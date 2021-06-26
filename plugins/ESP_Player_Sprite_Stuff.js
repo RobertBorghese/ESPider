@@ -12,6 +12,8 @@ class ESPPlayerSprite extends Sprite {
 	constructor() {
 		super();
 
+		this.IsObjectSprite = $espGamePlayer;
+
 		this.PlayerHolder = new Sprite();
 		this.PlayerHolder.scale.set(2);
 		this._playerHoldBaseY = -8;
@@ -378,6 +380,12 @@ class ESPPlayerSprite extends Sprite {
 
 	update() {
 		super.update();
+		if(this.IsObjectSprite._spriteNeedsRefresh) {
+			const par = this.parent;
+			par.removeChild(this);
+			par.addChildAt(this, 0);
+			this.IsObjectSprite._spriteNeedsRefresh = false;
+		}
 		this.updateContainers();
 		this.updateBodySprite();
 		this.updateDirection();
@@ -422,9 +430,13 @@ class ESPPlayerSprite extends Sprite {
 	}
 
 	updatePosition() {
-		this.x = $espGamePlayer.position.x;
+		this.x = $espGamePlayer.position.x + 4;
+		this._customLayerValue = $espGamePlayer.position.y;
 		this.y = $espGamePlayer.position.y + ($espGamePlayer.CollisionHeight * -48);
-		this.PlayerHolder.y = this._playerHoldBaseY + -$espGamePlayer.position.z;
+		this.PlayerHolder.y = this._playerHoldBaseY + -$espGamePlayer.position.z - 10;
+
+		this._colY = $espGamePlayer.position.y;
+		this._colZ = $espGamePlayer.position.z + ($espGamePlayer.CollisionHeight * 48) + 1;
 	}
 
 	updateShadowSprite() {
@@ -438,7 +450,7 @@ class ESPPlayerSprite extends Sprite {
 			this.addChild(this.ShadowSprite);
 		}
 
-		this.ShadowSprite.move(-4, 10);
+		this.ShadowSprite.move(-4, 10 - 10);
 
 		if($espGamePlayer.position.z > 0) {
 			this.ShadowSprite.scale.set(((200 - $espGamePlayer.position.z) / 200.0).clamp(0.3, 1));

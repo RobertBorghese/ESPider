@@ -1,435 +1,163 @@
 // Okay, here comes the hard part.
 
-ImageManager.loadESPPlayer = function(filename) {
-    return this.loadBitmap("img/characters/Player/", filename);
-};
 
-ImageManager.loadESPPlayerLegs = function(filename) {
-    return this.loadESPPlayer("Legs/" + filename);
-};
+const TilemapDecor = [];
 
-class ESPPlayerSprite extends Sprite {
-	constructor() {
-		super();
-
-		this.pos = {x: 0, y: 0, z: 0};
-
-		this.scale.set(2);
-
-		this.LegContainerBack = new PIXI.Container();
-		this.addChild(this.LegContainerBack);
-
-		this.BodySprite = new ESPAnimatedSprite(ImageManager.loadBitmapFromUrl("img/characters/Player/SpiderBody.png"), 10);
-		this.BodySprite.anchor.set(0.5);
-		this.BodySprite.move(-1, 1);
-		this.addChild(this.BodySprite);
-		this.Frame = 0;
-
-		this.IsAwaiting = 0;
-
-		this.LegContainerFront = new PIXI.Container();
-		this.addChild(this.LegContainerFront);
-
-		this.LegCount = 8;
-
-		this.makeIdleLegs();
-		this.makeHorizontalLegs();
-		this.makeVerticalLegs();
-		this.makeJumpLegs();
-		this.makeFallLegs();
-
-		this.Direction = -1;
-		this.setDirection(6);
+modify_Spriteset_Map = class {
+	createCharacters() {
+		ESP.Spriteset_Map.createCharacters.apply(this, arguments);
+		this._espPlayer = new ESPPlayerSprite();
+		this._espPlayer.z = 4;
+		this._tilemap.addChild(this._espPlayer);
 	}
 
-	makeIdleLegs() {
-		this.IdleLegSprites = [];
-		for(let i = 0; i < this.LegCount; i++) {
-			const SpriteName = i < 4 ? "Idle_Side" : "Idle_Front";
-			const Sprite = new ESPAnimatedSprite(ImageManager.loadESPPlayerLegs(SpriteName), 10);
-			Sprite.anchor.set(0.5);
-			this.IdleLegSprites.push(Sprite);
-			if(i === 0 || i === 3 || i === 4 || i === 5) {
-				this.LegContainerFront.addChild(Sprite);
-			} else {
-				this.LegContainerBack.addChild(Sprite);
-			}
-		}
-	}
-
-	makeHorizontalLegs() {
-		this.SideLegSprites = [];
-		for(let i = 0; i < this.LegCount; i++) {
-			const SpriteName = i < 4 ? "WalkHor_Side" : "WalkHor_Front";
-			const Sprite = new ESPAnimatedSprite(ImageManager.loadESPPlayerLegs(SpriteName), 4, false, (i * 2) % 6);
-			Sprite.anchor.set(0.5);
-			this.SideLegSprites.push(Sprite);
-			if(i === 0 || i === 3 || i === 4 || i === 5) {
-				this.LegContainerFront.addChild(Sprite);
-			} else {
-				this.LegContainerBack.addChild(Sprite);
-			}
-		}
-	}
-
-	makeVerticalLegs() {
-		this.VerticalLegSprites = [];
-		for(let i = 0; i < this.LegCount; i++) {
-			const SpriteName = i < 4 ? "WalkVer_Side" : "WalkVer_Front";
-			const Sprite = new ESPAnimatedSprite(ImageManager.loadESPPlayerLegs(SpriteName), 4, false, (i * 2) % 6);
-			Sprite.anchor.set(0.5);
-			this.VerticalLegSprites.push(Sprite);
-			if(i === 0 || i === 3 || i === 4 || i === 5) {
-				this.LegContainerFront.addChild(Sprite);
-			} else {
-				this.LegContainerBack.addChild(Sprite);
-			}
-		}
-	}
-
-	makeJumpLegs() {
-		this.JumpLegSprites = [];
-		for(let i = 0; i < this.LegCount; i++) {
-			const SpriteName = i < 4 ? "Jump_Side" : "Jump_Front";
-			const Sprite = new ESPAnimatedSprite(ImageManager.loadESPPlayerLegs(SpriteName), 2);
-			Sprite.anchor.set(0.5);
-			this.JumpLegSprites.push(Sprite);
-			if(i === 0 || i === 3 || i === 4 || i === 5) {
-				this.LegContainerFront.addChild(Sprite);
-			} else {
-				this.LegContainerBack.addChild(Sprite);
-			}
-		}
-	}
-
-	makeFallLegs() {
-		this.FallLegSprites = [];
-		for(let i = 0; i < this.LegCount; i++) {
-			const SpriteName = i < 4 ? "Fall_Side" : "Fall_Front";
-			const Sprite = new ESPAnimatedSprite(ImageManager.loadESPPlayerLegs(SpriteName), 4);
-			Sprite.anchor.set(0.5);
-			this.FallLegSprites.push(Sprite);
-			if(i === 0 || i === 3 || i === 4 || i === 5) {
-				this.LegContainerFront.addChild(Sprite);
-			} else {
-				this.LegContainerBack.addChild(Sprite);
-			}
-		}
-	}
-
-	setDirection(dir) {
-		if(this.Direction !== dir) {
-			this.Direction = dir;
-			this.refreshIdleLegs();
-			this.refreshSideLegs();
-			this.refreshVerticalLegs();
-			this.BodySprite.reset();
-			this.IdleLegSprites.forEach(s => s.reset());
-			this.SideLegSprites.forEach(s => s.reset());
-			this.VerticalLegSprites.forEach(s => s.reset());
-			this.JumpLegSprites.forEach(s => s.reset());
-			this.FallLegSprites.forEach(s => s.reset());
-
-			if(dir === 10) {
-				this.JumpLegSprites.forEach(s => s.await());
-			} else if(dir === 11) {
-				this.FallLegSprites.forEach(s => s.await());
-			}
-
-			this.refreshJumpLegs();
-			this.refreshFallLegs();
-		}
-	}
-
-	setSpritesVisibility(sprites, val) {
-		const len = sprites.length;
-		const result = sprites[0].visible;
-		for(let i = 0; i < len; i++) {
-			sprites[i].visible = val;
-		}
-		return result;
-	}
-
-	hideSprites(sprites) {
-		return this.setSpritesVisibility(sprites, false);
-	}
-
-	showSprites(sprites) {
-		return this.setSpritesVisibility(sprites, true);
-	}
-
-	isIdle() {
-		return this.Direction === 0;
-	}
-
-	isMovingHorizontal() {
-		return this.Direction === 4 || this.Direction === 6;
-	}
-
-	isMovingVertical() {
-		return this.Direction === 2 || this.Direction === 8;
-	}
-
-	isJumping() {
-		return this.Direction === 10;
-	}
-
-	isFalling() {
-		return this.Direction === 11;
-	}
-
-	refreshIdleLegs() {
-		if(!this.isIdle()) {
-			this.hideSprites(this.IdleLegSprites);
-			return;
-		} else {
-			this.showSprites(this.IdleLegSprites);
-		}
-
-		const Furthest = 6;
-		const IsLeft = this.Direction === 4;
-
-		const Sprites = this.IdleLegSprites;
-
-		Sprites[0].move(Furthest - 0, Furthest - 2);
-
-		Sprites[1].move(-Furthest - 1 - 3, Furthest - 2);
-		Sprites[1].scale.set(-1, 1);
-
-		Sprites[2].move(-Furthest + 1, 0);
-		Sprites[2].scale.set(-1, 1);
-
-		Sprites[3].move(Furthest - 4, 0);
-
-		Sprites[4].move((Furthest / 2) + 1, Furthest);
-
-		Sprites[5].move((Furthest / -2) - 5, Furthest);
-		Sprites[5].scale.set(-1, 1);
-
-		Sprites[6].move((Furthest / 2) - 2, 0);
-
-		Sprites[7].move((Furthest / -2) - 5 - 1 + 2, 0);
-		Sprites[7].scale.set(-1, 1);
-	}
-
-	refreshSideLegs() {
-		if(!this.isMovingHorizontal()) {
-			this.hideSprites(this.SideLegSprites);
-			return;
-		} else {
-			this.showSprites(this.SideLegSprites);
-		}
-
-		const Furthest = 4;
-		const IsLeft = this.Direction === 4;
-
-		const Sprites = this.SideLegSprites;
-
-		Sprites[0].move(Furthest, Furthest);
-		Sprites[0].Invert = IsLeft;
-		Sprites[0].Offset = IsLeft ? 0 : 2;
-
-		Sprites[1].move(-Furthest, Furthest);
-		Sprites[1].scale.set(-1, 1);
-		Sprites[1].Invert = !IsLeft;
-		Sprites[1].Offset = IsLeft ? 2 : 0;
-
-		Sprites[2].move(-Furthest, 0);
-		Sprites[2].scale.set(-1, 1);
-		Sprites[2].Invert = !IsLeft;
-		Sprites[2].Offset = IsLeft ? 4 : 0;
-
-		Sprites[3].move(Furthest, 0);
-		Sprites[3].Invert = IsLeft;
-		Sprites[3].Offset = IsLeft ? 0 : 4;
-
-		Sprites[4].move((Furthest / 2) + 2, Furthest);
-		Sprites[4].Offset = 4;
-
-		Sprites[5].move(Furthest / -2, Furthest);
-		Sprites[5].Offset = 0;
-
-		Sprites[6].move((Furthest / 2) + 2, 0);
-		Sprites[6].Offset = 0;
-
-		Sprites[7].move(Furthest / -2, 0);
-		Sprites[7].Offset = 4;
-
-		for(let i = 4; i <= 7; i++) { Sprites[i].Invert = !IsLeft; }
-	}
-
-	refreshVerticalLegs() {
-		if(!this.isMovingVertical()) {
-			this.hideSprites(this.VerticalLegSprites);
-			return;
-		} else {
-			this.showSprites(this.VerticalLegSprites);
-		}
-
-		const Furthest = 4;
-		const IsLeft = this.Direction === 4;
-
-		const Sprites = this.VerticalLegSprites;
-
-		Sprites[0].move(Furthest, Furthest + 1);
-		Sprites[0].Invert = IsLeft;
-		Sprites[0].Offset = IsLeft ? 0 : 2;
-
-		Sprites[1].move(-Furthest - 2, Furthest + 1);
-		Sprites[1].scale.set(-1, 1);
-		Sprites[1].Invert = !IsLeft;
-		Sprites[1].Offset = IsLeft ? 2 : 0;
-
-		Sprites[2].move(-Furthest - 2, 1);
-		Sprites[2].scale.set(-1, 1);
-		Sprites[2].Invert = !IsLeft;
-		Sprites[2].Offset = IsLeft ? 4 : 0;
-
-		Sprites[3].move(Furthest, 1);
-		Sprites[3].Invert = IsLeft;
-		Sprites[3].Offset = IsLeft ? 0 : 4;
-
-		Sprites[4].move((Furthest / 2) + 1, Furthest);
-		Sprites[4].Offset = 4;
-
-		Sprites[5].move((Furthest / -2) - 5, Furthest);
-		Sprites[5].scale.set(-1, 1);
-		Sprites[5].Offset = 0;
-
-		Sprites[6].move((Furthest / 2) + 1, 0);
-		Sprites[6].Offset = 0;
-
-		Sprites[7].move((Furthest / -2) - 5, 0);
-		Sprites[7].scale.set(-1, 1);
-		Sprites[7].Offset = 4;
-	}
-
-	refreshJumpLegs() {
-		if(!this.isJumping()) {
-			this.hideSprites(this.JumpLegSprites);
-			return;
-		} else {
-			if(!this.showSprites(this.JumpLegSprites)) {
-				//this.JumpLegSprites.forEach(s => s.await());
-			}
-		}
-
-		const Furthest = 6;
-
-		const Sprites = this.JumpLegSprites;
-
-		Sprites[0].move(Furthest - 0, Furthest - 2);
-
-		Sprites[1].move(-Furthest - 1 - 3, Furthest - 2);
-		Sprites[1].scale.set(-1, 1);
-
-		Sprites[2].move(-Furthest + 1, 0);
-		Sprites[2].scale.set(-1, 1);
-
-		Sprites[3].move(Furthest - 4, 0);
-
-		Sprites[4].move((Furthest / 2) + 1, Furthest);
-
-		Sprites[5].move((Furthest / -2) - 5, Furthest);
-		Sprites[5].scale.set(-1, 1);
-
-		Sprites[6].move((Furthest / 2) - 2, 0);
-
-		Sprites[7].move((Furthest / -2) - 5 - 1 + 2, 0);
-		Sprites[7].scale.set(-1, 1);
-	}
-
-	refreshFallLegs() {
-		if(!this.isFalling()) {
-			this.hideSprites(this.FallLegSprites);
-			return;
-		} else {
-			if(!this.showSprites(this.FallLegSprites)) {
-				//this.FallLegSprites.forEach(s => s.await());
-			}
-		}
-
-		const Furthest = 6;
-
-		const Sprites = this.FallLegSprites;
-
-		Sprites[0].move(Furthest - 0, Furthest - 2);
-
-		Sprites[1].move(-Furthest - 1 - 3, Furthest - 2);
-		Sprites[1].scale.set(-1, 1);
-
-		Sprites[2].move(-Furthest + 1, 0);
-		Sprites[2].scale.set(-1, 1);
-
-		Sprites[3].move(Furthest - 4, 0);
-
-		Sprites[4].move((Furthest / 2) + 1, Furthest);
-
-		Sprites[5].move((Furthest / -2) - 5, Furthest);
-		Sprites[5].scale.set(-1, 1);
-
-		Sprites[6].move((Furthest / 2) - 2, 0);
-
-		Sprites[7].move((Furthest / -2) - 5 - 1 + 2, 0);
-		Sprites[7].scale.set(-1, 1);
-	}
-
-	update() {
-		super.update();
-
-		const Containers = [
-			this.LegContainerFront,
-			this.LegContainerBack
-		];
-		for(let i = 0; i < Containers.length; i++) {
-			if(Containers[i].visible) {
-				const len = Containers[i].children.length;
-				for(let j = 0; j < len; j++) {
-					Containers[i].children[j].update();
+	createTilemap() {
+		const tilemap = new Tilemap();
+		tilemap.tileWidth = $gameMap.tileWidth();
+		tilemap.tileHeight = $gameMap.tileHeight();
+		tilemap.setData($gameMap.width(), $gameMap.height(), $gameMap.data());
+		tilemap.horizontalWrap = $gameMap.isLoopHorizontal();
+		tilemap.verticalWrap = $gameMap.isLoopVertical();
+		this._baseSprite.addChild(tilemap);
+		this._effectsContainer = tilemap;
+		this._tilemap = tilemap;
+		this.loadTileset();
+
+		const mapWidth = $dataMap.width;
+		const mapHeight = $dataMap.height;
+
+		this._loadedESPider = false;
+		function OnBitmapsLoaded() {
+			if(!this._loadedESPider && this._tilemap.isReady()) {
+				this._loadedESPider = true;
+
+				this._tilemap.updateTransform();
+				const bit = Bitmap.snap(this._tilemap._lowerLayer);
+
+				for(let x = 0; x < mapWidth; x++) {
+					for(let y = 0; y < mapHeight; y++) {
+						const regionId = $gameMap.tileId(x, y, 5) ?? 0;
+						if(regionId > 0) {
+							let height = 0;
+							if(($gameMap.tileId(x, y + 1, 5) ?? 0) > 0) {
+								height = 1;
+							} else {
+								height = 2;
+								for(let i = 2; i <= regionId; i++) {
+									if(($gameMap.tileId(x, y + i, 5) ?? 0) > 0) {
+										i = regionId + 1;
+									} else {
+										height++;
+									}
+								}
+							}
+							const bit2 = new Bitmap(48, 48 * height);
+							bit2.blt(bit, x * 48, y * 48, 48, 48 * height, 0, 0);
+							const spr = new Sprite(bit2);
+							spr.anchor.set(0.5, 1);
+							spr.move((x * 48) + 24, ((y + height - 1) * 48) + 48);
+							spr._colY = ((y + regionId) * 48);
+							spr._colZ = regionId * 48;
+							spr.z = height == 1 ? 999 : 4;
+							spr._shouldZ = spr.z;
+							spr.IsWorldSprite = true;
+							spr.IsWorldSpriteId = regionId;
+							spr.ComparisonZ = {};
+							if(!TilemapDecor[regionId]) {
+								TilemapDecor[regionId] = [];
+							}
+							TilemapDecor[regionId].push(spr);
+							//spr._zHeight = (regionId * 48);
+							this._tilemap.addChild(spr);
+						}
+					}
 				}
 			}
 		}
 
-		if(this.isIdle()) {
-			let Offset = this.IdleLegSprites[0].Index;
-			if(Offset === 3) Offset = 1;
-			this.BodySprite.move(-2, 2 - Offset);
-		} else if(this.isMovingHorizontal() || this.isMovingVertical()) {
-			let Offset = this.BodySprite.Index;
-			this.BodySprite.move(-2, 2 - (Offset >= 2 ? 2 : 0));
+		for(const bitmap of this._tilemap._bitmaps) {
+			if(bitmap) {
+				bitmap.addLoadListener(OnBitmapsLoaded.bind(this));
+			}
 		}
 
-		if(Input.Input4Dir === 6) {
-			this.BodySprite.scale.set(1, 1);
-		} else if(Input.Input4Dir === 4) {
-			this.BodySprite.scale.set(-1, 1);
-		}
-
-		this.setDirection(this.pos.z > 0 && this.__zSpd > 0 ? 10 : (this.pos.z > 0 && this.__zSpd < 0 ? 11 : Input.Input4Dir));
-
-		this.x = $espGamePlayer.position.x;
-		this.y = $espGamePlayer.position.y - $espGamePlayer.position.z;
+		
+/*
+		
+		//$gameMap.espCollisionMap
+		for(let x = 0; x < mapWidth; x++) {
+			for(let y = 0; y < mapHeight; y++) {
+				const regionId = this.tileId(x, y, 5);
+				if(regionId > 0) {
+					const newX = x;
+					const newY = y + regionId;
+					this.espCollisionMap[newX + (newY * mapWidth)] = regionId ?? 0;
+				}
+			}
+		}*/
 	}
 }
 
-ESP.Spriteset_Map_createCharacters = Spriteset_Map.prototype.createCharacters;
-Spriteset_Map.prototype.createLowerLayer = function() {
-    ESP.Spriteset_Map_createCharacters.apply(this, arguments);
-};
+modify_Scene_Map = class {
+	updateMain() {
+		ESP.Scene_Map.updateMain.apply(this, arguments);
+		$espGamePlayer.update();
+	}
+}
 
-Spriteset_Map.prototype.update = function() {
-    Spriteset_Base.prototype.update.call(this);
-    this.updateTileset();
-    this.updateParallax();
-    this.updateTilemap();
-    this.updateShadow();
-    this.updateWeather();
+modify_Game_Map = class {
+	setup(mapId) {
+		ESP.Game_Map.setup.apply(this, arguments);
+
+		const mapWidth = $dataMap.width;
+		const mapHeight = $dataMap.height;
+		let largestRegion = 0;
+		this.espCollisionMap = [];
+		for(let x = 0; x < mapWidth; x++) {
+			for(let y = 0; y < mapHeight; y++) {
+				this.espCollisionMap.push(0);
+				const regionId = this.tileId(x, y, 5) ?? 0;
+				if(largestRegion < regionId) {
+					largestRegion = regionId;
+				}
+			}
+		}
+
+		for(let i = 0; i < largestRegion; i++) {
+			for(let x = 0; x < mapWidth; x++) {
+				this.espCollisionMap.push(0);
+			}
+		}
+
+		for(let x = 0; x < mapWidth; x++) {
+			for(let y = 0; y < mapHeight; y++) {
+				const regionId = this.tileId(x, y, 5);
+				if(regionId > 0) {
+					const newX = x;
+					const newY = y + regionId;
+					this.espCollisionMap[newX + (newY * mapWidth)] = regionId ?? 0;
+				}
+			}
+		}
+	}
+}
 
 class ESPGamePlayer {
-	constructor() {
-		this.position = new Vector3(0, 0, 0);
+	constructor(isArrows) {
+		this.position = new Vector3(300, 500 + (isArrows ? 96 : 0), 0);
 		this.speed = 3;
 		this.speedZ = 0;
+
+		this.CollisionHeight = 0;
+
+		this._jumpHelp = 0;
+		this._triggerHelp = 0;
+
+		this.JUMP_POWER = 6;
+		this.GRAVITY = 0.2;
+
+		this._entityId = 0;
+		this._spriteNeedsRefresh = false;
 	}
 
 	update() {
@@ -438,27 +166,136 @@ class ESPGamePlayer {
 		this.updateFalling();
 	}
 
+	rectWidth() {
+		return 10;
+	}
+
+	rectHeight() {
+		return 6;
+	}
+
+	_GetCornerIndex(x, y, xPos, yPos) {
+		const tileSize = 48;
+		const xx =  Math.floor(((xPos ?? this.position.x) + (this.rectWidth() * x)) / tileSize);
+		const yy = Math.floor(((yPos ?? this.position.y) + (this.rectHeight() * y)) / tileSize);
+		return $gameMap.espCollisionMap[xx + (yy * $dataMap.width)] ?? 0;
+	}
+
+	findCollisionHeight() {
+		return Math.max(
+			this._GetCornerIndex(-1, -1),
+			this._GetCornerIndex(1, -1),
+			this._GetCornerIndex(-1, 1),
+			this._GetCornerIndex(1, 1)
+		);
+	}
+
 	updatePosition() {
-		this.position.x += (Input.InputVector.x * this.speed);
-		this.position.y += (Input.InputVector.y * this.speed);
+		const isMovingLeft = Input.InputVector.x < 0 ? -1 : 1;
+		const isMovingUp = Input.InputVector.y < 0 ? -1 : 1;
+		const newPosX = this.position.x + (Input.InputVector.x * this.speed);
+		const newPosY = this.position.y + (Input.InputVector.y * this.speed);
+
+		const tileSize = $gameMap.tileWidth();
+
+		const oldIndexX = Math.floor((this.position.x + (isMovingLeft * this.rectWidth())) / tileSize);
+		const oldIndexY = Math.floor((this.position.y + (isMovingUp * this.rectHeight())) / tileSize);
+		const indexX = Math.floor((newPosX + (isMovingLeft * this.rectWidth())) / tileSize);
+		const indexY = Math.floor((newPosY + (isMovingUp * this.rectHeight())) / tileSize);
+
+		const OldCollisionHeight = this.findCollisionHeight();
+
+		const PlayerHeightIndex = Math.floor(this.position.z / tileSize) + OldCollisionHeight;
+
+		if(oldIndexX === indexX || Math.max(this._GetCornerIndex(isMovingLeft, -1, newPosX), this._GetCornerIndex(isMovingLeft, 1, newPosX)) <= PlayerHeightIndex) {
+			this.position.x = newPosX;
+		}
+		if(oldIndexY === indexY || Math.max(this._GetCornerIndex(-1, isMovingUp, null, newPosY), this._GetCornerIndex(1, isMovingUp, null, newPosY)) <= PlayerHeightIndex) {
+			this.position.y = newPosY;
+		}
+		/*
+		if($gameMap.espCollisionMap[oldIndexX + (indexY * $dataMap.width)] <= PlayerHeightIndex) {
+			this.position.y = newPosY;
+		}*/
+
+		this.CollisionHeight = this.findCollisionHeight();
+
+		if(OldCollisionHeight !== this.CollisionHeight) {
+			const Diff = OldCollisionHeight - this.CollisionHeight;
+			this.position.z += (Diff * 48);
+		}
 	}
 
 	updateJump() {
-		if(Input.isTriggered("ok") && this.position.z <= 0) {
-			this.speedZ = 7;
+		if(this.position.z <= 0) {
+			this._jumpHelp = 10;
+		} else if(this._jumpHelp > 0) {
+			this._jumpHelp--;
+		}
+		if(Input.isTriggeredEx("space")) {
+			this._triggerHelp = 4;
+		} else if(this._triggerHelp > 0) {
+			this._triggerHelp--;
+		}
+		if(this._triggerHelp > 0 && this._jumpHelp > 0) {
+			this.speedZ = this.JUMP_POWER;
 		}
 	}
 
 	updateFalling() {
 		if(this.speedZ > -10) {
-			this.speedZ -= 0.2;
+			this.speedZ -= this.GRAVITY;
 		}
 
-		this.pos.z += this.speedZ;
-
-		if(this.pos.z <= 0) {
-			this.pos.z = 0;
+		this.position.z += this.speedZ;
+		if(this.position.z <= 0) {
+			this.position.z = 0;
 			this.speedZ = 0;
 		}
+
+		const TopPos = this.position.y + this.rectHeight();
+		const TopPosIndex = Math.floor(TopPos / 48);
+
+		const NewPlayerHeightIndex = Math.floor((this.position.z + 1) / 48) + this.CollisionHeight;
+		if(this.__PlayerHeightIndex !== NewPlayerHeightIndex || this.__PlayerTopPos !== TopPosIndex) {
+			this.__PlayerHeightIndex = NewPlayerHeightIndex;
+			this.__PlayerTopPos = TopPosIndex;
+
+			//const oldIndexY = Math.floor(this.position.y / tileSize);
+
+			for(let i = 0; i <= NewPlayerHeightIndex; i++) {
+				if(TilemapDecor[i]) {
+					for(let j = 0; j < TilemapDecor[i].length; j++) {
+						//ComparisonZ[this._entityId]
+						TilemapDecor[i][j].ComparisonZ[this._entityId] = ((TopPos) < TilemapDecor[i][j]._colY ? TilemapDecor[i][j]._shouldZ : 3);
+					}
+				}
+			}
+			for(let i = NewPlayerHeightIndex + 1; i <= 5; i++) {
+				if(TilemapDecor[i]) {
+					for(let j = 0; j < TilemapDecor[i].length; j++) {
+						TilemapDecor[i][j].ComparisonZ[this._entityId] = ((TopPos) < (TilemapDecor[i][j]._colY + 48) ? TilemapDecor[i][j]._shouldZ : 3);
+						//TilemapDecor[i][j].z = TilemapDecor[i][j]._shouldZ;
+					}
+				}
+			}
+
+			this._spriteNeedsRefresh = true;
+		}
+	}
+
+	isJumping() {
+		return this.position.z > 0 && this.speedZ > 0;
+	}
+
+	isFalling() {
+		return this.position.z > 0 && this.speedZ < 0
+	}
+
+	loadData(data) {
+		this.position = new Vector3(data.position.x ?? 0, data.position.y ?? 0, data.position.z ?? 0);
+		this.speed = data.speed ?? 0;
+		this.speedZ = data.speedZ ?? 0;
+		this.CollisionHeight = data.CollisionHeight ?? 0;
 	}
 }
