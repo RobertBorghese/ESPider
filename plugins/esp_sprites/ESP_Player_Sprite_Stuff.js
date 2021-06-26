@@ -8,17 +8,19 @@ ImageManager.loadESPPlayerLegs = function(filename) {
     return this.loadESPPlayer("Legs/" + filename);
 };
 
-class ESPPlayerSprite extends Sprite {
+class ESPPlayerSprite extends ESPGameSprite {
 	constructor() {
 		super();
 
-		this.IsObjectSprite = $espGamePlayer;
+		this.espObject = $espGamePlayer;
+
+		this.ObjectHolderOffsetX = 0;
+		this.ObjectHolderOffsetY = -8;
 
 		this.PlayerHolder = new Sprite();
 		this.PlayerHolder.scale.set(2);
-		this._playerHoldBaseY = -8;
 		this.PlayerHolder.move(0, -8);
-		this.addChild(this.PlayerHolder);
+		this.ObjectHolder.addChild(this.PlayerHolder);
 
 		this.LegContainerBack = new PIXI.Container();
 		this.PlayerHolder.addChild(this.LegContainerBack);
@@ -26,10 +28,8 @@ class ESPPlayerSprite extends Sprite {
 		this.BodySprite = new ESPAnimatedSprite(ImageManager.loadBitmapFromUrl("img/characters/Player/SpiderBody.png"), 10);
 		this.BodySprite.anchor.set(0.5);
 		this.BodySprite.move(-1, 1);
+		this._bodyOffsetY = 0;
 		this.PlayerHolder.addChild(this.BodySprite);
-		this.Frame = 0;
-
-		this.IsAwaiting = 0;
 
 		this.LegContainerFront = new PIXI.Container();
 		this.PlayerHolder.addChild(this.LegContainerFront);
@@ -143,23 +143,6 @@ class ESPPlayerSprite extends Sprite {
 			this.refreshJumpLegs();
 			this.refreshFallLegs();
 		}
-	}
-
-	setSpritesVisibility(sprites, val) {
-		const len = sprites.length;
-		const result = sprites[0].visible;
-		for(let i = 0; i < len; i++) {
-			sprites[i].visible = val;
-		}
-		return result;
-	}
-
-	hideSprites(sprites) {
-		return this.setSpritesVisibility(sprites, false);
-	}
-
-	showSprites(sprites) {
-		return this.setSpritesVisibility(sprites, true);
 	}
 
 	isIdle() {
@@ -380,17 +363,9 @@ class ESPPlayerSprite extends Sprite {
 
 	update() {
 		super.update();
-		if(this.IsObjectSprite._spriteNeedsRefresh) {
-			const par = this.parent;
-			par.removeChild(this);
-			par.addChildAt(this, 0);
-			this.IsObjectSprite._spriteNeedsRefresh = false;
-		}
 		this.updateContainers();
 		this.updateBodySprite();
 		this.updateDirection();
-		this.updatePosition();
-		this.updateShadowSprite();
 	}
 
 	updateContainers() {
@@ -412,10 +387,10 @@ class ESPPlayerSprite extends Sprite {
 		if(this.isIdle()) {
 			let Offset = this.IdleLegSprites[0].Index;
 			if(Offset === 3) Offset = 1;
-			this.BodySprite.move(-2, 2 - Offset);
+			this.BodySprite.move(-2, 2 - Offset - this._bodyOffsetY);
 		} else if(this.isMovingHorizontal() || this.isMovingVertical()) {
 			let Offset = this.BodySprite.Index;
-			this.BodySprite.move(-2, 2 - (Offset >= 2 ? 2 : 0));
+			this.BodySprite.move(-2, 2 - (Offset >= 2 ? 2 : 0) - this._bodyOffsetY);
 		}
 
 		if(Input.Input4Dir === 6) {
@@ -429,33 +404,12 @@ class ESPPlayerSprite extends Sprite {
 		this.setDirection($espGamePlayer.isJumping() ? 10 : ($espGamePlayer.isFalling() ? 11 : Input.Input4Dir));
 	}
 
-	updatePosition() {
-		this.x = $espGamePlayer.position.x + 4;
-		this._customLayerValue = $espGamePlayer.position.y;
-		this.y = $espGamePlayer.position.y + ($espGamePlayer.CollisionHeight * -48);
-		this.PlayerHolder.y = this._playerHoldBaseY + -$espGamePlayer.position.z - 10;
-
-		this._colY = $espGamePlayer.position.y;
-		this._colZ = $espGamePlayer.position.z + ($espGamePlayer.CollisionHeight * 48) + 1;
-	}
-
 	updateShadowSprite() {
-
-		if(!this.parent) {
-			return;
-		} else if(!this.ShadowSprite) {
-			this.ShadowSprite = new Sprite(ImageManager.loadSystem("Shadow4"));
-			this.ShadowSprite.anchor.set(0.5);
-			this.ShadowSprite.z = 3;
-			this.addChild(this.ShadowSprite);
-		}
-
-		this.ShadowSprite.move(-4, 10 - 10);
-
-		if($espGamePlayer.position.z > 0) {
-			this.ShadowSprite.scale.set(((200 - $espGamePlayer.position.z) / 200.0).clamp(0.3, 1));
+		this.ShadowSprite.move(-4, 0);
+		if(this.espObject.position.z > 0) {
+			this.ShadowSprite.scale.set(((200 - this.espObject.position.z) / 200.0).clamp(0.3, 1));
 		} else {
-			this.ShadowSprite.scale.set(1 + ((this.BodySprite.y - 2) * 0.05));
+			this.ShadowSprite.scale.set(1 + ((this.BodySprite.y - 2 + this._bodyOffsetY) * 0.05));
 		}
 		this.ShadowSprite.alpha = this.ShadowSprite.scale.x;
 	}

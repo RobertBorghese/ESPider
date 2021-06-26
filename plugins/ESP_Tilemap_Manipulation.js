@@ -3,13 +3,17 @@
 Tilemap.prototype._compareChildOrder = function(a, b) {
 
 	// If both sprites are "tilemap walls", do comparison with objects.
-	if(a._shouldZ && b._shouldZ) {
-		const player = SceneManager?._scene?._spriteset?._espPlayer;
-		if(player) {
-			const val1 = this._compareChildOrder(a, player);
-			const val2 = this._compareChildOrder(b, player);
-			if(val1 !== val2) {
-				return val1 - val2;
+	if(a._espWorldObject && b._espWorldObject) {
+		const sprites = this._espSprites;
+		const len = sprites.length;
+		for(let i = 0; i < len; i++) {
+			const spr = sprites[i];
+			if(spr) {
+				const val1 = this._compareChildOrder(a, spr);
+				const val2 = this._compareChildOrder(b, spr);
+				if(val1 !== val2) {
+					return val1 - val2;
+				}
 			}
 		}
 	}
@@ -22,11 +26,17 @@ Tilemap.prototype._compareChildOrder = function(a, b) {
 	let by2 = b._colY ?? 0;
 
 	// If an entity is above another, the back needs to be compared, not the front.
-	if(a._shouldZ && bz2 < az2) {
+	if(a._espWorldObject && bz2 < az2) {
 		ay2 += 48;
+		if(typeof b._objY === "number") {
+			by2 = b._objY;
+		}
 	}
-	if(b._shouldZ && az2 < bz2) {
+	if(b._espWorldObject && az2 < bz2) {
 		by2 += 48;
+		if(typeof a._objY === "number") {
+			ay2 = a._objY;
+		}
 	}
 
 	// Apply checks.
