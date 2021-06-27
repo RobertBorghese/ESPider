@@ -4,6 +4,15 @@ Tilemap.prototype._compareChildOrder = function(a, b) {
 
 	// If both sprites are "tilemap walls", do comparison with objects.
 	if(a._espWorldObject && b._espWorldObject) {
+
+		{
+			const val1 = this._compareChildOrder(a, this._espPlayer);
+			const val2 = this._compareChildOrder(b, this._espPlayer);
+			if(val1 !== val2) {
+				return val1 - val2;
+			}
+		}
+
 		const sprites = this._espSprites;
 		const len = sprites.length;
 		for(let i = 0; i < len; i++) {

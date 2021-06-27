@@ -17,6 +17,9 @@ modify_Game_Map = class {
 	setup(mapId) {
 		ESP.Game_Map.setup.apply(this, arguments);
 
+		this._mapObjects = [];
+		this._gravityManipulators = [];
+
 		const mapWidth = $dataMap.width;
 		const mapHeight = $dataMap.height;
 		let largestRegion = 0;
@@ -49,10 +52,49 @@ modify_Game_Map = class {
 		}
 
 		this._otherGameObject = new ESPFireballObject();
+		this._mapObjects.push(this._otherGameObject);
 	}
 
 	getGameObjects() {
-		return [this._otherGameObject];
+		return this._mapObjects;
+	}
+
+	addGameObject(object, x, y) {
+		if(SceneManager._scene.constructor === Scene_Map) {
+			if(typeof x === "number" && typeof y === "number") {
+				object.position.x = x;
+				object.position.y = y;
+			}
+			this._mapObjects.push(object);
+			if(object.isGravityManipulator()) {
+				this._gravityManipulators.push(object);
+			}
+			SceneManager._scene._spriteset.addGameSprite(object);
+		}
+	}
+
+	removeGameObject(object) {
+		if(SceneManager._scene.constructor === Scene_Map) {
+			this._mapObjects.remove(object);
+			if(this._gravityManipulators.includes(object)) {
+				this._gravityManipulators.remove(object);
+			}
+			SceneManager._scene._spriteset.removeGameSprite(object);
+		}
+	}
+
+	canvasToMapXPrecise(x) {
+		const tileWidth = this.tileWidth();
+		const originX = this._displayX * tileWidth;
+		const mapX = (originX + x);
+		return mapX;
+	}
+	
+	canvasToMapYPrecise(y) {
+		const tileHeight = this.tileHeight();
+		const originY = this._displayY * tileHeight;
+		const mapY = (originY + y);
+		return mapY;
 	}
 }
 
@@ -73,6 +115,29 @@ class ESPGameObject {
 
 	rectHeight() {
 		return 10;
+	}
+
+	isGravityManipulator() {
+		return false;
+	}
+
+	gravity() {
+		return 0;
+	}
+
+	getDistance(other) {
+		return Math.sqrt(
+			Math.pow(other.position.x - this.position.x, 2) +
+			Math.pow(other.position.y - this.position.y, 2) +
+			Math.pow(other.position.z - this.position.z, 2)
+		);
+	}
+
+	getDistance2d(other) {
+		return Math.sqrt(
+			Math.pow(other.position.x - this.position.x, 2) +
+			Math.pow(other.position.y - this.position.y, 2)
+		);
 	}
 
 	_GetCornerIndex(x, y, xPos, yPos) {

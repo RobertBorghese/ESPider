@@ -37,7 +37,7 @@ ESP.ApplyModifies = function() {
 	for(let i = ESP.GlobalKeys; i < NewLength; i++) {
 		const name = Keys[i];
 		if(name.startsWith("modify_")) {
-			ESP.MeltTogether(globalThis[name], name.replace(/^modify_/, ""));
+			ESP.MeltTogether(globalThis[name], name.replace(/^modify_([a-zA-Z_]+)(?:_\d+)?$/, "$1"));
 		}
 	}
 };

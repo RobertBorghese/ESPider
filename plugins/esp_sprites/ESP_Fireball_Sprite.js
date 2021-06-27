@@ -9,15 +9,13 @@ class ESPFireballSprite extends ESPGameSprite {
 		this.ObjectHolderOffsetY = -8;
 
 		this.Graphics = new PIXI.Graphics();
-		this.Graphics.beginFill(0xFFFFFF);
+		this.Graphics.beginFill(0xffffff);
 		this.Graphics.lineStyle(0);
 		this.Graphics.drawCircle(0, -10, 10);
 		this.Graphics.endFill();
 		this.ObjectHolder.addChild(this.Graphics);
 
 		this.Time = 0;
-
-		this.Graphics.filters = [new PIXI.filters.PixelateFilter(2)];
 	}
 
 	update() {

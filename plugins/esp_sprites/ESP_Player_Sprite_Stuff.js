@@ -405,7 +405,6 @@ class ESPPlayerSprite extends ESPGameSprite {
 	}
 
 	updateShadowSprite() {
-		this.ShadowSprite.move(-4, 0);
 		if(this.espObject.position.z > 0) {
 			this.ShadowSprite.scale.set(((200 - this.espObject.position.z) / 200.0).clamp(0.3, 1));
 		} else {

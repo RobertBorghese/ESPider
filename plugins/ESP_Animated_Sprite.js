@@ -43,6 +43,12 @@ class ESPAnimatedSprite extends Sprite {
 		const Width = this.bitmap.width;
 		const Height = this.bitmap.height;
 		this.MaxIndex = Math.floor(Width / Height);
+		if(this.bitmap._url.match(/_(\d+)\.png$/)) {
+			const Num = parseInt(RegExp.$1);
+			if(Num !== NaN) {
+				this.MaxIndex = Num;
+			}
+		}
 		this.FrameWidth = this.MaxIndex > 0 ? (Width / this.MaxIndex) : 0;
 		this.FrameHeight = Height;
 		this.setFrame(0, 0, this.FrameWidth, this.FrameHeight);

@@ -1,5 +1,7 @@
 // The player descends from the heavens.
 
+var gravityObjects = [];
+
 class ESPGamePlayer extends ESPGameObject {
 	constructor() {
 		super();
@@ -15,6 +17,28 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	update() {
+		/*
+		if(TouchInput.isTriggered()) {
+			if(this._playerIsGravity) {
+				$gameMap._gravityManipulators.remove(this);
+			} else {
+				$gameMap._gravityManipulators.push(this);
+			}
+			this._playerIsGravity = !this._playerIsGravity;
+		}*/
+		if(TouchInput.isTriggered()) {
+			const x = $gameMap.canvasToMapXPrecise(TouchInput.x);
+			const y = $gameMap.canvasToMapYPrecise(TouchInput.y);
+			const obj = new ESPWebGravityObject();
+			$gameMap.addGameObject(obj, x, y);
+			gravityObjects.push(obj);
+		} else if(TouchInput.isCancelled()) {
+			const len = gravityObjects.length;
+			for(let i = 0; i < len; i++) {
+				$gameMap.removeGameObject(gravityObjects[i]);
+			}
+			gravityObjects = [];
+		}
 		this.updateMovement();
 		this.updateJump();
 		this.updateFalling();

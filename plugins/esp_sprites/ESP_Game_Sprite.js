@@ -2,9 +2,10 @@
 
 modify_Spriteset_Map = class {
 	createCharacters() {
-		ESP.Spriteset_Map.createCharacters.apply(this, arguments);
+		//ESP.Spriteset_Map.createCharacters.apply(this, arguments);
 		this._espPlayer = new ESPPlayerSprite();
 		this._espPlayer.z = 4;
+		this._tilemap._espPlayer = this._espPlayer;
 		this._tilemap.addChild(this._espPlayer);
 
 		this._tilemap._espSprites = [this._espPlayer];
@@ -12,11 +13,28 @@ modify_Spriteset_Map = class {
 		const objects = $gameMap.getGameObjects();
 		const len = objects.length;
 		for(let i = 0; i < len; i++) {
-			const obj = objects[i];
-			const spr = obj.constructSprite();
-			spr.espObject = obj;
-			this._tilemap.addChild(spr);
-			this._tilemap._espSprites.push(spr);
+			this.addGameSprite(objects[i]);
+		}
+	}
+
+	addGameSprite(obj) {
+		const spr = obj.constructSprite();
+		spr.espObject = obj;
+		this._tilemap.addChild(spr);
+		this._tilemap._espSprites.push(spr);
+	}
+
+	removeGameSprite(obj) {
+		const sprites = this._tilemap._espSprites;
+		const len = sprites.length;
+		for(let i = 0; i < len; i++) {
+			const spr = sprites[i];
+			if(spr.espObject === obj) {
+				this._tilemap.removeChild(spr);
+				this._tilemap._espSprites.remove(spr);
+				spr.destroy();
+				break;
+			}
 		}
 	}
 
@@ -91,6 +109,7 @@ class ESPGameSprite extends Sprite {
 		this.ShadowSprite = new Sprite(ImageManager.loadSystem("Shadow4"));
 		this.ShadowSprite.anchor.set(0.5);
 		this.ShadowSprite.z = 3;
+		this.ShadowSprite.move(-4, 0);
 		this.addChild(this.ShadowSprite);
 	}
 
