@@ -366,6 +366,7 @@ class ESPPlayerSprite extends ESPGameSprite {
 		this.updateContainers();
 		this.updateBodySprite();
 		this.updateDirection();
+		this.updateLegSpeed();
 	}
 
 	updateContainers() {
@@ -411,5 +412,24 @@ class ESPPlayerSprite extends ESPGameSprite {
 			this.ShadowSprite.scale.set(1 + ((this.BodySprite.y - 2 + this._bodyOffsetY) * 0.05));
 		}
 		this.ShadowSprite.alpha = this.ShadowSprite.scale.x;
+	}
+
+	updateLegSpeed() {
+		this.setLegSpriteSpeed(Math.abs(this.espObject.speed.x / 3), Math.abs(this.espObject.speed.y / 3));
+	}
+
+	setLegSpriteSpeed(speedX, speedY) {
+		{
+			const len = this.SideLegSprites.length;
+			for(let i = 0; i < len; i++) {
+				this.SideLegSprites[i].FrameDelay = (4 + ((1 - speedX) * 4));
+			}
+		}
+		{
+			const len = this.VerticalLegSprites.length;
+			for(let i = 0; i < len; i++) {
+				this.VerticalLegSprites[i].FrameDelay = (4 + ((1 - speedY) * 4));
+			}
+		}
 	}
 }

@@ -50,13 +50,17 @@ class ESPGamePlayer extends ESPGameObject {
 		this.speed.y = Input.InputVector.y * 3;
 	}
 
+	isJumpButtonTriggered() {
+		return Input.isTriggeredEx("space") || Input.isTriggered("button_a");
+	}
+
 	updateJump() {
 		if(this.position.z <= 0) {
 			this._jumpHelp = 6;
 		} else if(this._jumpHelp > 0) {
 			this._jumpHelp--;
 		}
-		if(Input.isTriggeredEx("space")) {
+		if(this.isJumpButtonTriggered()) {
 			this._triggerHelp = 4;
 		} else if(this._triggerHelp > 0) {
 			this._triggerHelp--;
