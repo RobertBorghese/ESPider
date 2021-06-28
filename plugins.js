@@ -5,6 +5,7 @@ var $plugins =
 {"name":"pixi-filters","status":true,"description":"","parameters":{}},
 {"name":"ESP_Custom_Libraries","status":true,"description":"","parameters":{}},
 {"name":"ESP_Vector3","status":true,"description":"","parameters":{}},
+{"name":"ESP_Easing_Mai_Bois","status":true,"description":"","parameters":{}},
 {"name":"ESP_All_Important_Code_Here","status":true,"description":"","parameters":{}},
 {"name":"ESP_Data_And_Saves_And_Such","status":true,"description":"","parameters":{}},
 {"name":"ESP_Animated_Sprite","status":true,"description":"","parameters":{}},

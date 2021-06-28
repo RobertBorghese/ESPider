@@ -49,43 +49,173 @@ modify_Spriteset_Map = class {
 		}
 	}
 
+	initialize() {
+		ESP.Spriteset_Map.initialize.apply(this, arguments);
+		this.initializeTransitionMembers();
+	}
+
+	initializeTransitionMembers() {
+		this._espTransitionMode = 0;
+		this._espTransitionTime = 0;
+		this._espTransitionIndexes = [];
+		this._espBottomIndex = 0;
+
+		this._ESP_GROUND_TRANSITION_TIME = 60;
+		this._ESP_GROUND_EASING = EasingFunctions.easeInOutCubic;
+		this._ESP_OBJECT_TRANSITION_OFFSET = 0.02;//0.01;
+		this._ESP_OBJECT_DISTANCE = 900;
+		this._ESP_OBJECT_PER_FRAME = 5;
+		this._ESP_OBJECT_EASING = EasingFunctions.easeInOutCubic;
+	}
+
+	update() {
+		ESP.Spriteset_Map.update.apply(this, arguments);
+		this.updateTransition();
+	}
+
+	updateTransition() {
+		if(this._espTransitionMode > 0) {
+			this._espTransitionTime += (this._espTransitionMode === 1 ? 1 : -1);
+			if(this._espTransitionTime <= this._ESP_GROUND_TRANSITION_TIME) {
+				this._transitionCirlce.visible = true;
+
+				const Ratio = this._ESP_GROUND_EASING(this._espTransitionTime / this._ESP_GROUND_TRANSITION_TIME);
+				this._transitionCirlce.scale.set(Ratio);
+				this.setAllSpriteAlpha(1 - Ratio);
+				if(this._espTransitionMode === 2 && this._espTransitionTime <= 0) {
+					this._transitionCirlce.visible = false;
+					this._espTransitionMode = 0;
+				}
+			} else {
+				const MaxIndex = this._espTransitionIndexes.length;
+				const Index = Math.floor((this._espTransitionTime - this._ESP_GROUND_TRANSITION_TIME) * this._ESP_OBJECT_PER_FRAME).clamp(0, MaxIndex);
+				for(let i = this._espBottomIndex; i < Index; i++) {
+					const data = this._espTransitionIndexes[i];
+					const spr = this._espWorldSprites[data[0]];
+					if(!spr.__espDuration) spr.__espDuration = 0;
+					spr.__espDuration += this._ESP_OBJECT_TRANSITION_OFFSET * (this._espTransitionMode === 1 ? 1 : -1);
+					spr.__espDuration = spr.__espDuration.clamp(0, 1);
+					const Ratio = (this._ESP_OBJECT_EASING(spr.__espDuration) * this._ESP_OBJECT_DISTANCE);
+					this._updateTransitionObjectPosition(spr, data[1], Ratio);
+					if(spr.__espDuration >= 1 && this._espBottomIndex < i) {
+						this._espBottomIndex = i;
+					}
+				}
+				if(this._espTransitionMode === 1 && this._espBottomIndex >= MaxIndex - 1) {
+					this._espTransitionMode = 0;
+				}
+			}
+		}
+	}
+
+	transitionIn() {
+		this._randomizeTransitionIndexes(1);
+		this.setAllSpriteAlpha(0);
+		this._espTransitionMode = 2;
+		this._espTransitionTime = this._calculateEndTime();
+		this._espBottomIndex = 0;
+		this._transitionCirlce.scale.set(1);
+		this._transitionCirlce.visible = true;
+	}
+
+	transitionOut() {
+		this._randomizeTransitionIndexes(0);
+		this.setAllSpriteAlpha(1);
+		this._espTransitionMode = 1;
+		this._espTransitionTime = 0;
+		this._espBottomIndex = 0;
+		this._transitionCirlce.scale.set(0);
+		this._transitionCirlce.visible = false;
+	}
+
+	_updateTransitionObjectPosition(spr, dir, ratio) {
+		switch(dir) {
+			case 0: { spr.move(spr._espBaseX + ratio, spr._espBaseY); break; }
+			case 1: { spr.move(spr._espBaseX - ratio, spr._espBaseY); break; }
+			case 2: { spr.move(spr._espBaseX, spr._espBaseY + ratio); break; }
+			case 3: { spr.move(spr._espBaseX, spr._espBaseY - ratio); break; }
+		}
+	}
+
+	_calculateEndTime() {
+		return this._ESP_GROUND_TRANSITION_TIME + ((1 / this._ESP_OBJECT_TRANSITION_OFFSET) + Math.ceil(this._espWorldSprites.length / this._ESP_OBJECT_PER_FRAME));
+	}
+
+	_randomizeTransitionIndexes(initValue) {
+		this._espTransitionIndexes = [];
+		const len = this._espWorldSprites.length;
+		for(let i = 0; i < len; i++) {
+			const spr = this._espWorldSprites[i];
+			const dir = Math.randomInt(4);
+			spr.__espDuration = initValue;
+			this._updateTransitionObjectPosition(spr, dir, initValue * this._ESP_OBJECT_DISTANCE);
+			this._espTransitionIndexes.push([i, dir]);
+		}
+		this._espTransitionIndexes.shuffle();
+	}
+
+	setAllSpriteAlpha(alpha) {
+		this._tilemap._espSprites.forEach(function(spr) {
+			spr.alpha = alpha;
+		});
+	}
+
 	OnBitmapsLoaded() {
 		if(!this._loadedESPider && this._tilemap.isReady()) {
 			this._loadedESPider = true;
+			this.ConstructWorldBitmaps();
+		}
+	}
 
-			const mapWidth = $dataMap.width;
-			const mapHeight = $dataMap.height;
+	ConstructWorldBitmaps() {
+		const mapWidth = $dataMap.width;
+		const mapHeight = $dataMap.height;
 
-			this._tilemap.updateTransform();
-			const tilemapBitmap = Bitmap.snap(this._tilemap._lowerLayer);
-			for(let x = 0; x < mapWidth; x++) {
-				for(let y = 0; y < mapHeight; y++) {
-					const regionId = $gameMap.tileId(x, y, 5) ?? 0;
-					if(regionId > 0) {
-						let height = 0;
-						if(($gameMap.tileId(x, y + 1, 5) ?? 0) > 0) {
-							height = 1;
-						} else {
-							height = 2;
-							for(let i = 2; i <= regionId; i++) {
-								if(($gameMap.tileId(x, y + i, 5) ?? 0) > 0) {
-									i = regionId + 1;
-								} else {
-									height++;
-								}
+		this._espWorldSprites = [];
+
+		this._transitionCirlce = new PIXI.Graphics();
+		this._transitionCirlce.beginFill(0xffffff);
+		this._transitionCirlce.lineStyle(0);
+		this._transitionCirlce.drawCircle(0, 0, 1000);
+		this._transitionCirlce.endFill();
+		this._transitionCirlce.z = 1;
+		this._transitionCirlce.visible = false;
+		this._transitionCirlce.filters = [new PIXI.filters.PixelateFilter(40)];
+		this._tilemap.addChild(this._transitionCirlce);
+
+		this._tilemap._needsRepaint = true;
+		this._tilemap.updateTransform();
+		const tilemapBitmap = Bitmap.snap(this._tilemap._lowerLayer);
+		for(let x = 0; x < mapWidth; x++) {
+			for(let y = 0; y < mapHeight; y++) {
+				const regionId = $gameMap.tileId(x, y, 5) ?? 0;
+				if(regionId > 0) {
+					let height = 0;
+					if(($gameMap.tileId(x, y + 1, 5) ?? 0) > 0) {
+						height = 1;
+					} else {
+						height = 2;
+						for(let i = 2; i <= regionId; i++) {
+							if(($gameMap.tileId(x, y + i, 5) ?? 0) > 0) {
+								i = regionId + 1;
+							} else {
+								height++;
 							}
 						}
-						const bitmap = new Bitmap(48, 48 * height);
-						bitmap.blt(tilemapBitmap, x * 48, y * 48, 48, 48 * height, 0, 0);
-						const spr = new Sprite(bitmap);
-						spr.anchor.set(0.5, 1);
-						spr.move((x * 48) + 24, ((y + height - 1) * 48) + 48);
-						spr._colY = ((y + regionId) * 48);
-						spr._colZ = regionId * 48;
-						spr.z = height == 1 ? 999 : 4;
-						spr._espWorldObject = true;
-						this._tilemap.addChild(spr);
 					}
+					const bitmap = new Bitmap(48, 48 * height);
+					bitmap.blt(tilemapBitmap, x * 48, y * 48, 48, 48 * height, 0, 0);
+					const spr = new Sprite(bitmap);
+					spr.anchor.set(0.5, 1);
+					spr._espBaseX = (x * 48) + 24;
+					spr._espBaseY = ((y + height - 1) * 48) + 48;
+					spr.move(spr._espBaseX, spr._espBaseY);
+					spr._colY = ((y + regionId) * 48);
+					spr._colZ = regionId * 48;
+					spr.z = height == 1 ? 999 : 4;
+					spr._espWorldObject = true;
+					this._espWorldSprites.push(spr);
+					this._tilemap.addChild(spr);
 				}
 			}
 		}
@@ -100,6 +230,8 @@ class ESPGameSprite extends Sprite {
 
 		this.ObjectHolderOffsetX = 0;
 		this.ObjectHolderOffsetY = 0;
+
+		this.IsGameActive = true;
 
 		this.setupShadow();
 		this.setupObjectHolder();
@@ -135,11 +267,17 @@ class ESPGameSprite extends Sprite {
 		return this.setSpritesVisibility(sprites, true);
 	}
 
+	setActive(active) {
+		this.IsGameActive = active;
+	}
+
 	update() {
 		super.update();
-		this.updateObjectHolderChildren();
-		this.updatePosition();
-		this.updateShadowSprite();
+		if(this.IsGameActive) {
+			this.updateObjectHolderChildren();
+			this.updatePosition();
+			this.updateShadowSprite();
+		}
 	}
 
 	updateObjectHolderChildren() {
