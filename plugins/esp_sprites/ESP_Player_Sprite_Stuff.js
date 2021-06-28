@@ -394,15 +394,39 @@ class ESPPlayerSprite extends ESPGameSprite {
 			this.BodySprite.move(-2, 2 - (Offset >= 2 ? 2 : 0) - this._bodyOffsetY);
 		}
 
-		if(Input.Input4Dir === 6) {
-			this.BodySprite.scale.set(1, 1);
-		} else if(Input.Input4Dir === 4) {
-			this.BodySprite.scale.set(-1, 1);
+		if(this.espObject.canControl()) {
+			if(Input.Input4Dir === 6) {
+				this.BodySprite.scale.set(1, 1);
+			} else if(Input.Input4Dir === 4) {
+				this.BodySprite.scale.set(-1, 1);
+			}
 		}
 	}
 
+	updatePlayerSpeed2d() {
+		if(!this.__espPlayerSpeed2d) {
+			this.__espPlayerSpeed2d = new Vector2(0, 0);
+		}
+		this.__espPlayerSpeed2d.x = this.espObject.speed.x;
+		this.__espPlayerSpeed2d.y = this.espObject.speed.y;
+	}
+
 	updateDirection() {
-		this.setDirection($espGamePlayer.isJumping() ? 10 : ($espGamePlayer.isFalling() ? 11 : Input.Input4Dir));
+		if($espGamePlayer.isJumping()) {
+			this.setDirection(10);
+		} else if($espGamePlayer.isFalling()) {
+			this.setDirection(11);
+		} else {
+			let finalDir = this.espObject.canControl() ? Input.Input4Dir : 0;
+			if(finalDir === 0) {
+				this.updatePlayerSpeed2d();
+				if(this.__espPlayerSpeed2d.x < 0) finalDir = 4;
+				else if(this.__espPlayerSpeed2d.x > 0) finalDir = 6;
+				else if(this.__espPlayerSpeed2d.y < 0) finalDir = 8;
+				else if(this.__espPlayerSpeed2d.y > 0) finalDir = 2;
+			}
+			this.setDirection(finalDir);
+		}
 	}
 
 	updateShadowSprite() {
@@ -415,7 +439,8 @@ class ESPPlayerSprite extends ESPGameSprite {
 	}
 
 	updateLegSpeed() {
-		this.setLegSpriteSpeed(Input.InputVector.length());
+		this.updatePlayerSpeed2d();
+		this.setLegSpriteSpeed(this.__espPlayerSpeed2d.length() / 3);
 	}
 
 	setLegSpriteSpeed(speed) {

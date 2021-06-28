@@ -36,13 +36,13 @@ Tilemap.prototype._compareChildOrder = function(a, b) {
 
 	// If an entity is above another, the back needs to be compared, not the front.
 	if(a._espWorldObject && bz2 < az2) {
-		ay2 += 48;
+		ay2 += TS;
 		if(typeof b._objY === "number") {
 			by2 = b._objY;
 		}
 	}
 	if(b._espWorldObject && az2 < bz2) {
-		by2 += 48;
+		by2 += TS;
 		if(typeof a._objY === "number") {
 			ay2 = a._objY;
 		}

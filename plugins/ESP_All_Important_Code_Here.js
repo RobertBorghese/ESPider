@@ -1,5 +1,8 @@
 // Let's get this party started.
 
+const TS = 48;
+const TS2 = 24;
+
 var ESP = {};
 
 ESP.GlobalKeys = Object.keys(globalThis).length;

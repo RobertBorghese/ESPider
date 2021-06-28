@@ -13,14 +13,7 @@ modify_Game_Player = class {
 	}
 }
 
-modify_Scene_Map_2 = class {
-	processMapTouch() {
-	}
-
-	onMapTouch() {
-	}
-
-	isMenuCalled() {
-		return false;
-	}
+// this is dumb annoying feature. GET DISTABLED!! >:3
+SceneManager.isGameActive = function() {
+	return true;
 }

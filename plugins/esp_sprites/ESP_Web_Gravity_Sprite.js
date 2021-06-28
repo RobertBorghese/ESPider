@@ -19,7 +19,7 @@ class ESPWebGravitySprite extends ESPGameSprite {
 		this.WebBaseString.scale.set(2);
 		this.ObjectHolder.addChild(this.WebBaseString);
 
-		this.ObjectHolderOffsetY = 48;
+		this.ObjectHolderOffsetY = TS;
 	}
 
 	update() {
@@ -31,7 +31,7 @@ class ESPWebGravitySprite extends ESPGameSprite {
 		}
 
 		this.WebBase.x = this.x;
-		this.WebBase.y = this.y + 24;
+		this.WebBase.y = this.y + TS2;
 	}
 
 	updateShadowSprite() {

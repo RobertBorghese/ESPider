@@ -1,112 +1,33 @@
 // Okay, here comes the hard part.
 
-modify_Scene_Map = class {
-	updateMain() {
-		ESP.Scene_Map.updateMain.apply(this, arguments);
-		$espGamePlayer.update();
-
-		const objs = $gameMap.getGameObjects();
-		const len = objs.length;
-		for(let i = 0; i < len; i++) {
-			objs[i].update();
-		}
-	}
-}
-
-modify_Game_Map = class {
-	setup(mapId) {
-		ESP.Game_Map.setup.apply(this, arguments);
-
-		this._mapObjects = [];
-		this._gravityManipulators = [];
-
-		const mapWidth = $dataMap.width;
-		const mapHeight = $dataMap.height;
-		let largestRegion = 0;
-		this.espCollisionMap = [];
-		for(let x = 0; x < mapWidth; x++) {
-			for(let y = 0; y < mapHeight; y++) {
-				this.espCollisionMap.push(0);
-				const regionId = this.tileId(x, y, 5) ?? 0;
-				if(largestRegion < regionId) {
-					largestRegion = regionId;
-				}
-			}
-		}
-
-		for(let i = 0; i < largestRegion; i++) {
-			for(let x = 0; x < mapWidth; x++) {
-				this.espCollisionMap.push(0);
-			}
-		}
-
-		for(let x = 0; x < mapWidth; x++) {
-			for(let y = 0; y < mapHeight; y++) {
-				const regionId = this.tileId(x, y, 5);
-				if(regionId > 0) {
-					const newX = x;
-					const newY = y + regionId;
-					this.espCollisionMap[newX + (newY * mapWidth)] = regionId ?? 0;
-				}
-			}
-		}
-
-		this._otherGameObject = new ESPFireballObject();
-		this._mapObjects.push(this._otherGameObject);
-	}
-
-	getGameObjects() {
-		return this._mapObjects;
-	}
-
-	addGameObject(object, x, y) {
-		if(SceneManager._scene.constructor === Scene_Map) {
-			if(typeof x === "number" && typeof y === "number") {
-				object.position.x = x;
-				object.position.y = y;
-			}
-			this._mapObjects.push(object);
-			if(object.isGravityManipulator()) {
-				this._gravityManipulators.push(object);
-			}
-			SceneManager._scene._spriteset.addGameSprite(object);
-		}
-	}
-
-	removeGameObject(object) {
-		if(SceneManager._scene.constructor === Scene_Map) {
-			this._mapObjects.remove(object);
-			if(this._gravityManipulators.includes(object)) {
-				this._gravityManipulators.remove(object);
-			}
-			SceneManager._scene._spriteset.removeGameSprite(object);
-		}
-	}
-
-	canvasToMapXPrecise(x) {
-		const tileWidth = this.tileWidth();
-		const originX = this._displayX * tileWidth;
-		const mapX = (originX + x);
-		return mapX;
-	}
-	
-	canvasToMapYPrecise(y) {
-		const tileHeight = this.tileHeight();
-		const originY = this._displayY * tileHeight;
-		const mapY = (originY + y);
-		return mapY;
-	}
-}
-
 class ESPGameObject {
 	constructor() {
 		this.position = new Vector3(0, 0, 0);
 		this.speed = new Vector3(0, 0, 0);
 		this.CollisionHeight = 0;
+		this.CanCollide = true;
+	}
+
+	reset(x, y) {
+		this.movexy(x, y);
+		this.CollisionHeight = 0;
+	}
+
+	movexy(x, y) {
+		this.position.x = x;
+		this.position.y = y;
+	}
+
+	resetSpeed() {
+		this.speed.set(0, 0, 0);
 	}
 
 	constructSprite() {
 		return new ESPGameSprite(...arguments);
+	}
+
+	displayY() {
+		return this.position.y + (this.CollisionHeight * -TS);
 	}
 
 	rectWidth() {
@@ -141,9 +62,10 @@ class ESPGameObject {
 	}
 
 	_GetCornerIndex(x, y, xPos, yPos) {
-		const tileSize = 48;
+		const tileSize = TS;
 		const xx =  Math.floor(((xPos ?? this.position.x) + (this.rectWidth() * x)) / tileSize);
 		const yy = Math.floor(((yPos ?? this.position.y) + (this.rectHeight() * y)) / tileSize);
+		if(xx < 0 || yy < 0 || xx >= $gameMap.width() || (xx + (yy * $dataMap.width)) >= $gameMap.espCollisionMap.length) return 99;
 		return $gameMap.espCollisionMap[xx + (yy * $dataMap.width)] ?? 0;
 	}
 
@@ -161,39 +83,48 @@ class ESPGameObject {
 		this.updateZPosition();
 	}
 
+	canMoveToX(newPos) {
+		const tileSize = TS;
+		const isMovingLeft = newPos < this.position.x ? -1 : 1;
+		const oldIndexX = Math.floor((this.position.x + (isMovingLeft * this.rectWidth())) / tileSize);
+		const indexX = Math.floor((newPos + (isMovingLeft * this.rectWidth())) / tileSize);
+		return oldIndexX === indexX || Math.max(this._GetCornerIndex(isMovingLeft, -1, newPos), this._GetCornerIndex(isMovingLeft, 1, newPos)) <= this.__PrecisePlayerHeightIndex;
+	}
+
+	canMoveToY(newPos) {
+		const tileSize = TS;
+		const isMovingUp = newPos < this.position.y ? -1 : 1;
+		const oldIndexY = Math.floor((this.position.y + (isMovingUp * this.rectHeight())) / tileSize);
+		const indexY = Math.floor((newPos + (isMovingUp * this.rectHeight())) / tileSize);
+		return oldIndexY === indexY || Math.max(this._GetCornerIndex(-1, isMovingUp, null, newPos), this._GetCornerIndex(1, isMovingUp, null, newPos)) <= this.__PrecisePlayerHeightIndex;
+	}
+
 	updatePosition() {
 		const isMovingLeft = this.speed.x < 0 ? -1 : 1;
 		const isMovingUp = this.speed.y < 0 ? -1 : 1;
 		const newPosX = this.position.x + (this.speed.x);
 		const newPosY = this.position.y + (this.speed.y);
 
-		const tileSize = $gameMap.tileWidth();
+		this.__OldCollisionHeight = this.findCollisionHeight();
+		this.__PrecisePlayerHeightIndex = Math.floor(this.position.z / TS) + this.__OldCollisionHeight;
 
-		const oldIndexX = Math.floor((this.position.x + (isMovingLeft * this.rectWidth())) / tileSize);
-		const oldIndexY = Math.floor((this.position.y + (isMovingUp * this.rectHeight())) / tileSize);
-		const indexX = Math.floor((newPosX + (isMovingLeft * this.rectWidth())) / tileSize);
-		const indexY = Math.floor((newPosY + (isMovingUp * this.rectHeight())) / tileSize);
-
-		const OldCollisionHeight = this.findCollisionHeight();
-
-		const PlayerHeightIndex = Math.floor(this.position.z / tileSize) + OldCollisionHeight;
-
-		if(oldIndexX === indexX || Math.max(this._GetCornerIndex(isMovingLeft, -1, newPosX), this._GetCornerIndex(isMovingLeft, 1, newPosX)) <= PlayerHeightIndex) {
+		if(!this.CanCollide || this.canMoveToX(newPosX)) {
 			this.position.x = newPosX;
 		} else {
 			this.onCollided(isMovingLeft === -1 ? 4 : 6);
 		}
-		if(oldIndexY === indexY || Math.max(this._GetCornerIndex(-1, isMovingUp, null, newPosY), this._GetCornerIndex(1, isMovingUp, null, newPosY)) <= PlayerHeightIndex) {
+		if(!this.CanCollide || this.canMoveToY(newPosY)) {
 			this.position.y = newPosY;
 		} else {
 			this.onCollided(isMovingUp === -1 ? 8 : 2);
 		}
 
-		this.CollisionHeight = this.findCollisionHeight();
+		const NewCollisionHeight = this.findCollisionHeight();
+		if(this.CollisionHeight < 99) this.CollisionHeight = NewCollisionHeight;
 
-		if(OldCollisionHeight !== this.CollisionHeight) {
-			const Diff = OldCollisionHeight - this.CollisionHeight;
-			this.position.z += (Diff * 48);
+		if(this.__OldCollisionHeight !== this.CollisionHeight) {
+			const Diff = this.__OldCollisionHeight - this.CollisionHeight;
+			this.position.z += (Diff * TS);
 		}
 	}
 
@@ -204,7 +135,7 @@ class ESPGameObject {
 			this.speed.z = 0;
 		}
 
-		this.__PlayerHeightIndex = Math.floor((this.position.z + 1) / 48) + this.CollisionHeight;
+		this.__PlayerHeightIndex = Math.floor((this.position.z + 1) / TS) + this.CollisionHeight;
 	}
 
 	onCollided(direction) {

@@ -41,6 +41,7 @@ modify_Spriteset_Map = class {
 	createTilemap() {
 		ESP.Spriteset_Map.createTilemap.apply(this, arguments);
 
+		this._tilemap.visible = false;
 		this._loadedESPider = false;
 		for(const bitmap of this._tilemap._bitmaps) {
 			if(bitmap) {
@@ -60,11 +61,11 @@ modify_Spriteset_Map = class {
 		this._espTransitionIndexes = [];
 		this._espBottomIndex = 0;
 
-		this._ESP_GROUND_TRANSITION_TIME = 60;
+		this._ESP_GROUND_TRANSITION_TIME = 40;//60;
 		this._ESP_GROUND_EASING = EasingFunctions.easeInOutCubic;
 		this._ESP_OBJECT_TRANSITION_OFFSET = 0.02;//0.01;
 		this._ESP_OBJECT_DISTANCE = 900;
-		this._ESP_OBJECT_PER_FRAME = 5;
+		this._ESP_OBJECT_PER_FRAME = 7;
 		this._ESP_OBJECT_EASING = EasingFunctions.easeInOutCubic;
 	}
 
@@ -78,13 +79,19 @@ modify_Spriteset_Map = class {
 			this._espTransitionTime += (this._espTransitionMode === 1 ? 1 : -1);
 			if(this._espTransitionTime <= this._ESP_GROUND_TRANSITION_TIME) {
 				this._transitionCirlce.visible = true;
-
 				const Ratio = this._ESP_GROUND_EASING(this._espTransitionTime / this._ESP_GROUND_TRANSITION_TIME);
 				this._transitionCirlce.scale.set(Ratio);
 				this.setAllSpriteAlpha(1 - Ratio);
-				if(this._espTransitionMode === 2 && this._espTransitionTime <= 0) {
-					this._transitionCirlce.visible = false;
-					this._espTransitionMode = 0;
+				if(this._espTransitionMode === 2) {
+					this._updateTransitionCirclePosition();
+					if(this._espTransitionTime === this._ESP_GROUND_TRANSITION_TIME) {
+						this.OnPlayerVisibleFromIn();
+					}
+					if(this._espTransitionTime <= 0) {
+						this._transitionCirlce.visible = false;
+						this._espTransitionMode = 0;
+						this.OnTransitionComplete(true);
+					}
 				}
 			} else {
 				const MaxIndex = this._espTransitionIndexes.length;
@@ -103,6 +110,7 @@ modify_Spriteset_Map = class {
 				}
 				if(this._espTransitionMode === 1 && this._espBottomIndex >= MaxIndex - 1) {
 					this._espTransitionMode = 0;
+					this.OnTransitionComplete(false);
 				}
 			}
 		}
@@ -116,6 +124,7 @@ modify_Spriteset_Map = class {
 		this._espBottomIndex = 0;
 		this._transitionCirlce.scale.set(1);
 		this._transitionCirlce.visible = true;
+		this._updateTransitionCirclePosition();
 	}
 
 	transitionOut() {
@@ -126,6 +135,7 @@ modify_Spriteset_Map = class {
 		this._espBottomIndex = 0;
 		this._transitionCirlce.scale.set(0);
 		this._transitionCirlce.visible = false;
+		this._updateTransitionCirclePosition();
 	}
 
 	_updateTransitionObjectPosition(spr, dir, ratio) {
@@ -154,16 +164,32 @@ modify_Spriteset_Map = class {
 		this._espTransitionIndexes.shuffle();
 	}
 
+	_updateTransitionCirclePosition() {
+		this._transitionCirlce.x = this._espPlayer.x - 10;
+		this._transitionCirlce.y = this._espPlayer.y;
+	}
+
 	setAllSpriteAlpha(alpha) {
 		this._tilemap._espSprites.forEach(function(spr) {
 			spr.alpha = alpha;
 		});
 	}
 
+	OnTransitionComplete(wasIn) {
+		if(!wasIn) $gameMap.onTransferReady();
+		else $gameMap.onTransferInReady();
+	}
+
+	OnPlayerVisibleFromIn() {
+		$gameMap.onTransferInVisible();
+	}
+
 	OnBitmapsLoaded() {
 		if(!this._loadedESPider && this._tilemap.isReady()) {
 			this._loadedESPider = true;
+			this._tilemap.visible = true;
 			this.ConstructWorldBitmaps();
+			this.transitionIn();
 		}
 	}
 
@@ -176,7 +202,7 @@ modify_Spriteset_Map = class {
 		this._transitionCirlce = new PIXI.Graphics();
 		this._transitionCirlce.beginFill(0xffffff);
 		this._transitionCirlce.lineStyle(0);
-		this._transitionCirlce.drawCircle(0, 0, 1000);
+		this._transitionCirlce.drawCircle(0, 0, 900);
 		this._transitionCirlce.endFill();
 		this._transitionCirlce.z = 1;
 		this._transitionCirlce.visible = false;
@@ -203,15 +229,15 @@ modify_Spriteset_Map = class {
 							}
 						}
 					}
-					const bitmap = new Bitmap(48, 48 * height);
-					bitmap.blt(tilemapBitmap, x * 48, y * 48, 48, 48 * height, 0, 0);
+					const bitmap = new Bitmap(TS, TS * height);
+					bitmap.blt(tilemapBitmap, x * TS, y * TS, TS, TS * height, 0, 0);
 					const spr = new Sprite(bitmap);
 					spr.anchor.set(0.5, 1);
-					spr._espBaseX = (x * 48) + 24;
-					spr._espBaseY = ((y + height - 1) * 48) + 48;
+					spr._espBaseX = (x * TS) + TS2;
+					spr._espBaseY = ((y + height - 1) * TS) + TS;
 					spr.move(spr._espBaseX, spr._espBaseY);
-					spr._colY = ((y + regionId) * 48);
-					spr._colZ = regionId * 48;
+					spr._colY = ((y + regionId) * TS);
+					spr._colZ = regionId * TS;
 					spr.z = height == 1 ? 999 : 4;
 					spr._espWorldObject = true;
 					this._espWorldSprites.push(spr);
@@ -293,14 +319,14 @@ class ESPGameSprite extends Sprite {
 	updatePosition() {
 		if(this.espObject) {
 			this.x = this.espObject.position.x;
-			this.y = this.espObject.position.y + (this.espObject.CollisionHeight * -48);
+			this.y = this.espObject.displayY();
 			this.ObjectHolder.x = this.ObjectHolderOffsetX;
 			this.ObjectHolder.y = this.ObjectHolderOffsetY + -this.espObject.position.z;
 			this._customLayerValue = this.espObject.position.y;
 	
 			this._colY = this.espObject.position.y + this.espObject.rectHeight();
 			this._objY = this.espObject.position.y;
-			this._colZ = this.espObject.position.z + (this.espObject.CollisionHeight * 48) + 1;
+			this._colZ = this.espObject.position.z + (this.espObject.CollisionHeight * TS) + 1;
 		}
 	}
 
