@@ -10,7 +10,7 @@ modify_DataManager = class {
 
 	static makeSaveContents() {
 		const contents = ESP.DataManager.makeSaveContents.apply(this, arguments);
-		contents.espPlayer = JSON.stringify($espGamePlayer);
+		contents.espPlayer = JSON.stringify($espGamePlayer.saveData());
 		return contents;
 	}
 

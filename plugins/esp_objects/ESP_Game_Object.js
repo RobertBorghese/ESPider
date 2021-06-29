@@ -30,7 +30,7 @@ class ESPGameObject {
 		return this.position.y + (this.CollisionHeight * -TS);
 	}
 
-	trueZ() {
+	realZ() {
 		return this.position.z + (this.CollisionHeight * -TS);
 	}
 
@@ -54,7 +54,7 @@ class ESPGameObject {
 		return Math.sqrt(
 			Math.pow(other.position.x - this.position.x, 2) +
 			Math.pow(other.position.y - this.position.y, 2) +
-			Math.pow(other.position.z - this.position.z, 2)
+			Math.pow(other.realZ() - this.realZ(), 2)
 		);
 	}
 
@@ -143,6 +143,14 @@ class ESPGameObject {
 	}
 
 	onCollided(direction) {
+	}
+
+	saveData() {
+		const data = {};
+		data.position = this.position;
+		data.speed = this.speed;
+		data.CollisionHeight = this.CollisionHeight;
+		return data;
 	}
 
 	loadData(data) {

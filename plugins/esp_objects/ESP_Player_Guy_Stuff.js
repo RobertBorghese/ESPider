@@ -315,6 +315,12 @@ class ESPGamePlayer extends ESPGameObject {
 		this.position.z = 0;
 	}
 
+	saveData() {
+		const result = super.saveData();
+		result.respawnPos = this.respawnPos;
+		return result;
+	}
+
 	loadData(data) {
 		super.loadData(data);
 		data.respawnPos = data.respawnPos ?? {};
