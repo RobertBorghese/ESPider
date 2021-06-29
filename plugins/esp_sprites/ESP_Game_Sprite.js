@@ -52,7 +52,26 @@ modify_Spriteset_Map = class {
 
 	initialize() {
 		ESP.Spriteset_Map.initialize.apply(this, arguments);
+		this.initializeFadeMembers();
 		this.initializeTransitionMembers();
+	}
+
+	initializeFadeMembers() {
+		this._espFadeMode = 0;
+		this._espFadeTime = 0;
+		this._espMaxFadeTime = 40;
+
+		this._fadeCircle = new PIXI.Graphics();
+		this._fadeCircle.move = function(x, y) { this.x = x; this.y = y; };
+		this._fadeCircle.beginFill(0x000000);
+		this._fadeCircle.lineStyle(0);
+		this._fadeCircle.drawRect(0, 0, 2000, 2000);
+		this._fadeCircle.endFill();
+		this._fadeCircle.visible = false;
+		this._fadeCircle.rotation = Math.PI / 4;
+		this._fadeCircle.pivot.set(2000 / 2);
+		this._fadeCircle.filters = [new PIXI.filters.PixelateFilter(40)];
+		this.addChild(this._fadeCircle);
 	}
 
 	initializeTransitionMembers() {
@@ -62,16 +81,55 @@ modify_Spriteset_Map = class {
 		this._espBottomIndex = 0;
 
 		this._ESP_GROUND_TRANSITION_TIME = 40;//60;
-		this._ESP_GROUND_EASING = EasingFunctions.easeInOutCubic;
+		this._ESP_GROUND_EASING = Easing.easeInOutCubic;
 		this._ESP_OBJECT_TRANSITION_OFFSET = 0.02;//0.01;
 		this._ESP_OBJECT_DISTANCE = 900;
 		this._ESP_OBJECT_PER_FRAME = 7;
-		this._ESP_OBJECT_EASING = EasingFunctions.easeInOutCubic;
+		this._ESP_OBJECT_EASING = Easing.easeInOutCubic;
 	}
 
 	update() {
 		ESP.Spriteset_Map.update.apply(this, arguments);
+		this.updateFade();
 		this.updateTransition();
+	}
+
+	updateFade() {
+		if(this._espFadeMode > 0) {
+			this._espFadeTime += (this._espFadeMode === 1) ? 1 : -1;
+
+			const ratio = this._espFadeTime / this._espMaxFadeTime;
+			this._fadeCircle.scale.set(ratio);
+
+			if(this._espFadeMode === 2 && this._espFadeTime === 0) {
+				this._espFadeMode = 0;
+				this._fadeCircle.visible = false;
+				this.onFadeComplete(true);
+			} else if(this._espFadeMode === 1 && this._espFadeTime === this._espMaxFadeTime) {
+				this._espFadeMode = 0;
+				this.onFadeComplete(false);
+			}
+		}
+	}
+
+	fadeIn() {
+		this._espFadeMode = 2;
+		this._espFadeTime = this._espMaxFadeTime;
+		this._fadeCircle.visible = true;
+		this._fadeCircle.move($gameMap.width() * TS, $gameMap.height() * TS);
+		this.updateFade();
+	}
+
+	fadeOut() {
+		this._espFadeMode = 1;
+		this._espFadeTime = 0;
+		this._fadeCircle.visible = true;
+		this._fadeCircle.move(0, 0);
+		this.updateFade();
+	}
+
+	onFadeComplete(isIn) {
+		$gameMap.onESPFadeOutComplete(isIn);
 	}
 
 	updateTransition() {

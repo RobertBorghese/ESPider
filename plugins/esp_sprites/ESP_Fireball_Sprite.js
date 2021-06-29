@@ -22,7 +22,7 @@ class ESPFireballSprite extends ESPGameSprite {
 		super.update();
 
 		this.Time += 0.1;
-		this.Graphics.y = Math.sin(this.Time) * 5;
+		this.Graphics.y = Math.sin(this.Time) * 3;
 	}
 
 	updateShadowSprite() {

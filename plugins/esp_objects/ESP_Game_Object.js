@@ -30,6 +30,10 @@ class ESPGameObject {
 		return this.position.y + (this.CollisionHeight * -TS);
 	}
 
+	trueZ() {
+		return this.position.z + (this.CollisionHeight * -TS);
+	}
+
 	rectWidth() {
 		return 10;
 	}

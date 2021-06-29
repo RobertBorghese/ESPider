@@ -14,10 +14,12 @@ modify_Scene_Map = class {
 
 	// update game objects
 	updateESPGameObjects() {
-		const objs = $gameMap.getGameObjects();
-		const len = objs.length;
-		for(let i = 0; i < len; i++) {
-			objs[i].update();
+		if(!$gameMap.espIsFrozen()) {
+			const objs = $gameMap.getGameObjects();
+			const len = objs.length;
+			for(let i = 0; i < len; i++) {
+				objs[i].update();
+			}
 		}
 	}
 
@@ -37,16 +39,31 @@ modify_Game_Map = class {
 	initialize() {
 		ESP.Game_Map.initialize.apply(this, arguments);
 		this._espNewMapPosition = null;
+		this._worldFrozen = false;
 	}
 
 	// setup for each map
 	setup(mapId) {
 		ESP.Game_Map.setup.apply(this, arguments);
+		this.setupESPGame();
+	}
+
+	// setup the map for ESPider
+	setupESPGame() {
+		this._worldFrozen = false;
 		this.initESPFields();
 		this.setupCollisionMap();
 		this.initStartingGameObjects();
 		this.initMapEval();
 		this.initPlayerPos();
+	}
+
+	// reset the map
+	resetESPGame() {
+		this._worldFrozen = false;
+		this.removeAllGameObjects();
+		this.initStartingGameObjects();
+		$espGamePlayer.restoreRespawnPos();
 	}
 
 	// initialize fields for each map
@@ -104,7 +121,7 @@ modify_Game_Map = class {
 	// any starting game objects get initiated here
 	initStartingGameObjects() {
 		this._otherGameObject = new ESPFireballObject();
-		this._mapObjects.push(this._otherGameObject);
+		this.addGameObject(this._otherGameObject);
 	}
 
 	// handling map "notetags" very lazily
@@ -138,20 +155,25 @@ modify_Game_Map = class {
 		$espGamePlayer.makeCustscene();
 		$espGamePlayer.CollisionHeight = 0;
 		$espGamePlayer.resetSpeed();
+		$espGamePlayer.saveRespawnPos();
 	}
 
+	// upon transferring in and the transfer is done
 	onTransferInReady() {
 		if(this._espNewMapPosition !== null) {
 			this._espNewMapPosition = null;
 			$espGamePlayer.makePlayable();
+			$espGamePlayer.saveRespawnPos();
 		}
 	}
 
+	// upon transferring in and the player is visible (even if transparent)
 	onTransferInVisible() {
 		if(this._espNewMapPosition !== null) {
 			$espGamePlayer.reset(this._espNewMapPosition.x, this._espNewMapPosition.y, this._espNewMapPosition.xSpd, this._espNewMapPosition.ySpd);
 		} else {
 			$espGamePlayer.makePlayable();
+			$espGamePlayer.saveRespawnPos();
 		}
 	}
 
@@ -171,7 +193,10 @@ modify_Game_Map = class {
 			if(object.isGravityManipulator()) {
 				this._gravityManipulators.push(object);
 			}
-			SceneManager._scene._spriteset.addGameSprite(object);
+			const spriteset = SceneManager._scene._spriteset;
+			if(spriteset) {
+				spriteset.addGameSprite(object);
+			}
 		}
 	}
 
@@ -186,6 +211,16 @@ modify_Game_Map = class {
 		}
 	}
 
+	// remove every game object in existance
+	removeAllGameObjects() {
+		const len = this._mapObjects.length;
+		for(let i = 0; i < len; i++) {
+			this.removeGameObject(this._mapObjects[i]);
+		}
+		this._mapObjects = [];
+	}
+
+	// called once the player leaves the map "zones"
 	onPlayerLeaveMap(direction, z) {
 		if(!this._espTransferDirection && this._espTransitions[direction]) {
 			const data = this._espTransitions[direction];
@@ -201,6 +236,7 @@ modify_Game_Map = class {
 		return false;
 	}
 
+	// upon "fade out" of transition, this is called
 	onTransferReady() {
 		const direction = this._espTransferDirection;
 		const data = this._espTransitions[direction];
@@ -217,6 +253,40 @@ modify_Game_Map = class {
 			};
 			$gamePlayer.reserveTransfer(data[0], 0, 0, 0, 2);
 			this._espTransferDirection = null;
+		}
+	}
+
+	// is the world frozen?
+	espIsFrozen() {
+		return this._worldFrozen;
+	}
+
+	// freezes the world
+	espFreezeWorld() {
+		this._worldFrozen = true;
+	}
+
+	// special fade out
+	espFadeOut() {
+		const spriteset = SceneManager._scene._spriteset;
+		if(spriteset && spriteset.fadeOut) {
+			spriteset.fadeOut();
+		}
+	}
+
+	// special fade in
+	espFadeIn() {
+		const spriteset = SceneManager._scene._spriteset;
+		if(spriteset && spriteset.fadeIn) {
+			spriteset.fadeIn();
+		}
+	}
+
+	// called whenever a fade in/out is complete
+	onESPFadeOutComplete(isIn) {
+		if(!isIn) {
+			$espGamePlayer.unkill();
+			this.espFadeIn();
 		}
 	}
 

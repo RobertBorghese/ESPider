@@ -94,4 +94,8 @@ class ESPAnimatedSprite extends Sprite {
 
 		this.setFrame(FinalIndex * this.FrameWidth, 0, this.FrameWidth, this.FrameHeight);
 	}
+
+	isDone() {
+		return this.Index >= this.MaxIndex - 1;
+	}
 }

@@ -9,11 +9,19 @@ class ESPGamePlayer extends ESPGameObject {
 		this.position.set(375, 500, 0);
 		this.speed.set(0, 0, 0);
 
+		this.respawnPos = {x: 0, y: 0};
+
 		this._jumpHelp = 0;
 		this._triggerHelp = 0;
 		this._canControl = true;
+		this._isDying = false;
 		this._canTransition = true;
 		this._noPlayerControlTimer = 0;
+		this._deathAnimationData = null;
+		this._customColor = null;
+		this._spriteRotation = 0;
+		this._deathParticles = null;
+		this._isVisible = true;
 
 		this.JUMP_POWER = 5;
 		this.GRAVITY = 0.2;
@@ -42,7 +50,7 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	canControl() {
-		return this._canControl;
+		return this._canControl && !this._isDying;
 	}
 
 	update() {
@@ -51,6 +59,7 @@ class ESPGamePlayer extends ESPGameObject {
 		this.updateFalling();
 		super.update();
 		this.updateTransition();
+		this.updateDying();
 	}
 
 	updatePlayerControl() {
@@ -123,6 +132,7 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	updateFalling() {
+		if(this._isDying) return;
 		if(this.speed.z > -10) {
 			this.speed.z -= this.GRAVITY;
 		}
@@ -174,11 +184,140 @@ class ESPGamePlayer extends ESPGameObject {
 		}
 	}
 
+	updateDying() {
+		this.updateDeathAnimation1();
+		this.updateDeathAnimation2();
+	}
+
+	updateDeathAnimation1() {
+		if(this._isDying && this._deathAnimationData) {
+			const maxTime = 40;
+			const ratio = this._deathAnimationData.time / maxTime;
+
+			this._spriteRotation = 6 * Easing.easeOutCubic(ratio) * (this._deathAnimationData.x < 0 ? -1 : 1);
+
+			this._customColor[0] = this._customColor[1] = this._customColor[2] = (255 * ratio);
+
+			const easeRatio = Easing.easeOutCubic(ratio);
+			this.speed.x = (this._deathAnimationData.baseX + (this._deathAnimationData.x * easeRatio)) - this.position.x;
+			this.speed.y = (this._deathAnimationData.baseY + (this._deathAnimationData.y * easeRatio)) - this.position.y;
+			this.speed.z = (this._deathAnimationData.z * easeRatio) - this._deathAnimationData.totalZ;
+			this._deathAnimationData.totalZ += this.speed.z;
+
+			if(this._deathAnimationData.time < maxTime) {
+				this._deathAnimationData.time++;
+			} else if(!this._deathParticles) {
+				this.onDeathAnimation1End();
+			}
+		}
+	}
+
+	updateDeathAnimation2() {
+		if(this._deathParticles) {
+			const len = this._deathParticles.length;
+			for(let i = 0; i < len; i++) {
+				this._deathParticles[i].update();
+			}
+			if(this._deathParticles.filter(p => !p.isComplete()).length === 0) {
+				this.onDeathAnimationComplete();
+				this._deathParticles = null;
+			}
+		}
+	}
+
+	onDeathAnimation1End() {
+		const animationSpeed = 6;
+		const speedX = 1;
+		const speedY = 1;
+		this._deathParticles = [];
+		this._isVisible = false;
+		for(let i = -1; i <= 1; i++) {
+			for(let j = -1; j <= 1; j++) {
+				if(i === 0 && j === 0) continue;
+				const x = speedX * i;
+				const y = speedY * j;
+				const mag = Math.sqrt(x * x + y * y);
+				const obj = new ESPParticleObject(x / mag, (y / mag) - (0.3 * j), animationSpeed);
+				this._deathParticles.push(obj);
+				obj.position.set(this.position);
+				$gameMap.addGameObject(obj);
+			}
+		}
+		this._deathAnimationData = null;
+		this._isDying = true;
+	}
+
+	onDeathAnimationComplete() {
+		$gameMap.espFadeOut();
+	}
+
+	kill(offsetX, offsetY, offsetZ) {
+		$gameMap.espFreezeWorld();
+		this._isDying = true;
+		this._deathAnimationData = {
+			x: offsetX,
+			y: offsetY,
+			z: offsetZ,
+			baseX: this.position.x,
+			baseY: this.position.y,
+			totalZ: 0,
+			time: 0
+		};
+		this._customColor = [0, 0, 0, 0];
+	}
+
+	unkill() {
+		this._isDying = false;
+		this._isVisible = true;
+		this._spriteRotation = 0;
+		this._customColor = null;
+		this._deathAnimationData = null;
+		this._deathParticles = null;
+		$gameMap.resetESPGame();
+	}
+
 	isJumping() {
 		return this.position.z > 0 && this.speed.z > 0;
 	}
 
 	isFalling() {
 		return this.position.z > 0 && this.speed.z < 0
+	}
+
+	isDying() {
+		return this._isDying;
+	}
+
+	hasCustomColor() {
+		return this._customColor !== null;
+	}
+
+	customColor() {
+		return this._customColor;
+	}
+
+	spriteRotation() {
+		return this._spriteRotation;
+	}
+
+	visible() {
+		return this._isVisible;
+	}
+
+	saveRespawnPos() {
+		this.respawnPos.x = this.position.x;
+		this.respawnPos.y = this.position.y;
+	}
+
+	restoreRespawnPos() {
+		this.position.x = this.respawnPos.x ?? 0;
+		this.position.y = this.respawnPos.y ?? 0;
+		this.position.z = 0;
+	}
+
+	loadData(data) {
+		super.loadData(data);
+		data.respawnPos = data.respawnPos ?? {};
+		this.respawnPos = { x: data.respawnPos.x ?? 0, y: data.respawnPos.y ?? 0 };
 	}
 }

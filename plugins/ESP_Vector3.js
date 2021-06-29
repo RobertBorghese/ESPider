@@ -20,8 +20,14 @@ class Vector3 {
 	}
 
 	set(x, y, z) {
-		this.x = x;
-		this.y = y;
-		this.z = z;
+		if(typeof x === "object") {
+			this.x = x.x;
+			this.y = x.y;
+			this.z = x.z;
+		} else {
+			this.x = x;
+			this.y = y;
+			this.z = z;
+		}
 	}
 }

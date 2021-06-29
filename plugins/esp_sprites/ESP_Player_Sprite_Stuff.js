@@ -41,6 +41,7 @@ class ESPPlayerSprite extends ESPGameSprite {
 		this.makeVerticalLegs();
 		this.makeJumpLegs();
 		this.makeFallLegs();
+		this.makeDeathLegs();
 
 		this.Direction = -1;
 		this.setDirection(6);
@@ -48,71 +49,40 @@ class ESPPlayerSprite extends ESPGameSprite {
 
 	makeIdleLegs() {
 		this.IdleLegSprites = [];
-		for(let i = 0; i < this.LegCount; i++) {
-			const SpriteName = i < 4 ? "Idle_Side" : "Idle_Front";
-			const Sprite = new ESPAnimatedSprite(ImageManager.loadESPPlayerLegs(SpriteName), 10);
-			Sprite.anchor.set(0.5);
-			this.IdleLegSprites.push(Sprite);
-			if(i === 0 || i === 3 || i === 4 || i === 5) {
-				this.LegContainerFront.addChild(Sprite);
-			} else {
-				this.LegContainerBack.addChild(Sprite);
-			}
-		}
+		this.makeLegs(this.IdleLegSprites, "Idle_Side", "Idle_Front", 10);
 	}
 
 	makeHorizontalLegs() {
 		this.SideLegSprites = [];
-		for(let i = 0; i < this.LegCount; i++) {
-			const SpriteName = i < 4 ? "WalkHor_Side" : "WalkHor_Front";
-			const Sprite = new ESPAnimatedSprite(ImageManager.loadESPPlayerLegs(SpriteName), 4, false, (i * 2) % 6);
-			Sprite.anchor.set(0.5);
-			this.SideLegSprites.push(Sprite);
-			if(i === 0 || i === 3 || i === 4 || i === 5) {
-				this.LegContainerFront.addChild(Sprite);
-			} else {
-				this.LegContainerBack.addChild(Sprite);
-			}
-		}
+		this.makeLegs(this.SideLegSprites, "WalkHor_Side", "WalkHor_Front", 4, true);
 	}
 
 	makeVerticalLegs() {
 		this.VerticalLegSprites = [];
-		for(let i = 0; i < this.LegCount; i++) {
-			const SpriteName = i < 4 ? "WalkVer_Side" : "WalkVer_Front";
-			const Sprite = new ESPAnimatedSprite(ImageManager.loadESPPlayerLegs(SpriteName), 4, false, (i * 2) % 6);
-			Sprite.anchor.set(0.5);
-			this.VerticalLegSprites.push(Sprite);
-			if(i === 0 || i === 3 || i === 4 || i === 5) {
-				this.LegContainerFront.addChild(Sprite);
-			} else {
-				this.LegContainerBack.addChild(Sprite);
-			}
-		}
+		this.makeLegs(this.VerticalLegSprites, "WalkVer_Side", "WalkVer_Front", 4, true);
 	}
 
 	makeJumpLegs() {
 		this.JumpLegSprites = [];
-		for(let i = 0; i < this.LegCount; i++) {
-			const SpriteName = i < 4 ? "Jump_Side" : "Jump_Front";
-			const Sprite = new ESPAnimatedSprite(ImageManager.loadESPPlayerLegs(SpriteName), 2);
-			Sprite.anchor.set(0.5);
-			this.JumpLegSprites.push(Sprite);
-			if(i === 0 || i === 3 || i === 4 || i === 5) {
-				this.LegContainerFront.addChild(Sprite);
-			} else {
-				this.LegContainerBack.addChild(Sprite);
-			}
-		}
+		this.makeLegs(this.JumpLegSprites, "Jump_Side", "Jump_Front", 2);
 	}
 
 	makeFallLegs() {
 		this.FallLegSprites = [];
+		this.makeLegs(this.FallLegSprites, "Fall_Side", "Fall_Front", 4);
+	}
+
+	makeDeathLegs() {
+		this.DeathLegSprites = [];
+		this.makeLegs(this.DeathLegSprites, "Death_Side", "Death_Front", 3);
+	}
+
+	makeLegs(container, side, front, speed, offset) {
 		for(let i = 0; i < this.LegCount; i++) {
-			const SpriteName = i < 4 ? "Fall_Side" : "Fall_Front";
-			const Sprite = new ESPAnimatedSprite(ImageManager.loadESPPlayerLegs(SpriteName), 4);
+			const SpriteName = i < 4 ? side : front;
+			const Sprite = new ESPAnimatedSprite(ImageManager.loadESPPlayerLegs(SpriteName), speed, false, !!offset ? ((i * 2) % 6) : 0);
 			Sprite.anchor.set(0.5);
-			this.FallLegSprites.push(Sprite);
+			container.push(Sprite);
 			if(i === 0 || i === 3 || i === 4 || i === 5) {
 				this.LegContainerFront.addChild(Sprite);
 			} else {
@@ -133,15 +103,19 @@ class ESPPlayerSprite extends ESPGameSprite {
 			this.VerticalLegSprites.forEach(s => s.reset());
 			this.JumpLegSprites.forEach(s => s.reset());
 			this.FallLegSprites.forEach(s => s.reset());
+			this.DeathLegSprites.forEach(s => s.reset());
 
 			if(dir === 10) {
 				this.JumpLegSprites.forEach(s => s.await());
 			} else if(dir === 11) {
 				this.FallLegSprites.forEach(s => s.await());
+			} else if(dir === 12) {
+				this.DeathLegSprites.forEach(s => s.await());
 			}
 
 			this.refreshJumpLegs();
 			this.refreshFallLegs();
+			this.refreshDeathLegs();
 		}
 	}
 
@@ -165,18 +139,20 @@ class ESPPlayerSprite extends ESPGameSprite {
 		return this.Direction === 11;
 	}
 
-	refreshIdleLegs() {
-		if(!this.isIdle()) {
-			this.hideSprites(this.IdleLegSprites);
+	isDeath() {
+		return this.Direction === 12;
+	}
+
+	refreshIdleOrDeathLegs(cond, arr) {
+		if(!cond) {
+			this.hideSprites(arr);
 			return;
 		} else {
-			this.showSprites(this.IdleLegSprites);
+			this.showSprites(arr);
 		}
 
 		const Furthest = 6;
-		const IsLeft = this.Direction === 4;
-
-		const Sprites = this.IdleLegSprites;
+		const Sprites = arr;
 
 		Sprites[0].move(Furthest - 0, Furthest - 2);
 
@@ -197,6 +173,10 @@ class ESPPlayerSprite extends ESPGameSprite {
 
 		Sprites[7].move((Furthest / -2) - 5 - 1 + 2, 0);
 		Sprites[7].scale.set(-1, 1);
+	}
+
+	refreshIdleLegs() {
+		this.refreshIdleOrDeathLegs(this.isIdle(), this.IdleLegSprites);
 	}
 
 	refreshSideLegs() {
@@ -291,19 +271,16 @@ class ESPPlayerSprite extends ESPGameSprite {
 		Sprites[7].Offset = 4;
 	}
 
-	refreshJumpLegs() {
-		if(!this.isJumping()) {
-			this.hideSprites(this.JumpLegSprites);
+	refreshJumpOrFallLegs(cond, arr) {
+		if(!cond) {
+			this.hideSprites(arr);
 			return;
 		} else {
-			if(!this.showSprites(this.JumpLegSprites)) {
-				//this.JumpLegSprites.forEach(s => s.await());
-			}
+			this.showSprites(arr);
 		}
 
 		const Furthest = 6;
-
-		const Sprites = this.JumpLegSprites;
+		const Sprites = arr;
 
 		Sprites[0].move(Furthest - 0, Furthest - 2);
 
@@ -326,39 +303,16 @@ class ESPPlayerSprite extends ESPGameSprite {
 		Sprites[7].scale.set(-1, 1);
 	}
 
+	refreshJumpLegs() {
+		this.refreshJumpOrFallLegs(this.isJumping(), this.JumpLegSprites);
+	}
+
 	refreshFallLegs() {
-		if(!this.isFalling()) {
-			this.hideSprites(this.FallLegSprites);
-			return;
-		} else {
-			if(!this.showSprites(this.FallLegSprites)) {
-				//this.FallLegSprites.forEach(s => s.await());
-			}
-		}
+		this.refreshJumpOrFallLegs(this.isFalling(), this.FallLegSprites);
+	}
 
-		const Furthest = 6;
-
-		const Sprites = this.FallLegSprites;
-
-		Sprites[0].move(Furthest - 0, Furthest - 2);
-
-		Sprites[1].move(-Furthest - 1 - 3, Furthest - 2);
-		Sprites[1].scale.set(-1, 1);
-
-		Sprites[2].move(-Furthest + 1, 0);
-		Sprites[2].scale.set(-1, 1);
-
-		Sprites[3].move(Furthest - 4, 0);
-
-		Sprites[4].move((Furthest / 2) + 1, Furthest);
-
-		Sprites[5].move((Furthest / -2) - 5, Furthest);
-		Sprites[5].scale.set(-1, 1);
-
-		Sprites[6].move((Furthest / 2) - 2, 0);
-
-		Sprites[7].move((Furthest / -2) - 5 - 1 + 2, 0);
-		Sprites[7].scale.set(-1, 1);
+	refreshDeathLegs() {
+		this.refreshIdleOrDeathLegs(this.isDeath(), this.DeathLegSprites);
 	}
 
 	update() {
@@ -367,6 +321,9 @@ class ESPPlayerSprite extends ESPGameSprite {
 		this.updateBodySprite();
 		this.updateDirection();
 		this.updateLegSpeed();
+		this.updateVisibility();
+		this.updateColor();
+		this.updateRotation();
 	}
 
 	updateContainers() {
@@ -412,7 +369,9 @@ class ESPPlayerSprite extends ESPGameSprite {
 	}
 
 	updateDirection() {
-		if($espGamePlayer.isJumping()) {
+		if($espGamePlayer.isDying()) {
+			this.setDirection(12);
+		} else if($espGamePlayer.isJumping()) {
 			this.setDirection(10);
 		} else if($espGamePlayer.isFalling()) {
 			this.setDirection(11);
@@ -456,5 +415,21 @@ class ESPPlayerSprite extends ESPGameSprite {
 				this.VerticalLegSprites[i].FrameDelay = (4 + ((1 - speed) * 4));
 			}
 		}
+	}
+
+	updateVisibility() {
+		this.visible = this.espObject.visible();
+	}
+
+	updateColor() {
+		if(this.espObject.hasCustomColor()) {
+			this.PlayerHolder.setColorTone(this.espObject.customColor());
+		} else if(this.PlayerHolder._colorTone.x !== 0 || this.PlayerHolder._colorTone.y !== 0 || this.PlayerHolder._colorTone.z !== 0) {
+			this.PlayerHolder.setColorTone([0, 0, 0, 0]);
+		}
+	}
+
+	updateRotation() {
+		this.PlayerHolder.rotation = this.espObject.spriteRotation();
 	}
 }

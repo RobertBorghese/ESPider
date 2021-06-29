@@ -4,7 +4,7 @@ class ESPFireballObject extends ESPGameObject {
 	constructor() {
 		super();
 
-		this.position.set(300, 350, 20);
+		this.position.set(300, 350, 6);
 		this.speed.set(2, 0, 0);
 	}
 
@@ -34,6 +34,14 @@ class ESPFireballObject extends ESPGameObject {
 					this.speed.y -= ratio;
 				}
 			}
+		}
+
+		const size = 20;
+		if(this.getDistance($espGamePlayer) < size) {
+			const spd = 60;
+			const distX = Math.abs(this.position.x - $espGamePlayer.position.x) / size;
+			const distY = Math.abs(this.position.y - $espGamePlayer.position.y) / size;
+			$espGamePlayer.kill(spd * (this.position.x > $espGamePlayer.position.x ? -distX : distX), spd * (this.position.y > $espGamePlayer.position.y ? -distY : distY), 40);
 		}
 	}
 
