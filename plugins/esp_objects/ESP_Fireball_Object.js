@@ -14,7 +14,7 @@ class ESPFireballObject extends ESPGameObject {
 
 	update() {
 		super.update();
-		const manipulators = $gameMap._gravityManipulators;
+		const manipulators = $gameMapTemp._gravityManipulators;
 		const len = manipulators.length;
 		for(let i = 0; i < len; i++) {
 			const manipulator = manipulators[i];

@@ -2,7 +2,21 @@
 
 modify_Window_TitleCommand = class {
 	maxCols() {
-		return 3;
+		return 4;
+	}
+
+	makeCommandList() {
+		ESP.Window_TitleCommand.makeCommandList.apply(this, arguments);
+		this.addCommand("", "fourth");
+	}
+
+	updateOpen() {
+		if(this._opening) {
+			this.openness += 255;
+			if(this.isOpen()) {
+				this._opening = false;
+			}
+		}
 	}
 }
 
@@ -10,33 +24,60 @@ modify_Scene_Title = class {
 	create() {
 		ESP.Scene_Title.create.apply(this, arguments);
 
-		const shiftX = -260;
+		this._commandWindow.setHandler("fourth", function() {});
+/*
+		const width = 180;
+		const height = 40;
+		const shiftX = -300;
 		const shiftY = 240;
-		const offsetX = 260;
+		const offsetX = 200;
 		const offsetY = 0;
 
 		const x = (Graphics.boxWidth / 2) + shiftX;
 		const y = (Graphics.boxHeight / 2) + shiftY;
 
-		this._newGameButton = new ESPButton(240, 40, "New Game", 0xd4336b, 0xa12751, 0xbd2d5f, 0xfca9c6, this.commandNewGame.bind(this));
-		this._newGameButton.move(x, y);
-		this._newGameButton.onMouseEnter = this.onMouseEnter.bind(this, 0, this._newGameButton);
+		this._titleButtons = [];
 
-		this._continueButton = new ESPButton(240, 40, "Continue", 0x3363d4, 0x274ca1, 0x2d58bd, 0xa9c2fc, this.commandLoadGame.bind(this));
-		this._continueButton.move(x + offsetX, y + offsetY);
-		this._continueButton.onMouseEnter = this.onMouseEnter.bind(this, 1, this._continueButton);
+		const makeButton = function(i, text, callback) {
+			//216869
+			//0xd4336b, 0xa12751, 0xbd2d5f, 0xfccadc
+			const button = new ESPButton(width, height, text, 0x123a3b, 0x2e9294, 0x1b5657, 0x216869, callback);
+			button.move(x + (offsetX * i), y + (offsetY * i));
+			button.onMouseEnter = this.onMouseEnter.bind(this, i, button);
+			button.setEnabled(this._commandWindow.isCommandEnabled(i));
+			this._titleButtons.push(button);
+			this.addChild(button);
+		}.bind(this);
 
-		this._exitButton = new ESPButton(240, 40, "Leave Game", 0x2dba73, 0x208754, 0x27a365, 0x9ae6c0, this.commandEndGame.bind(this));
-		this._exitButton.move(x + (offsetX * 2), y + (offsetY * 2));
-		this._exitButton.onMouseEnter = this.onMouseEnter.bind(this, 2, this._exitButton);
+		makeButton(0, "New Game", this.commandNewGame.bind(this));
+		makeButton(1, "Continue", this.commandLoadGame.bind(this));
+		makeButton(2, "Volume [" + Math.floor(WebAudio._masterVolume * 100) + "%]", this.commandVolume.bind(this));
+		makeButton(3, "Leave", this.commandEndGame.bind(this));*/
 
-		this.addChild(this._newGameButton);
-		this.addChild(this._continueButton);
-		this.addChild(this._exitButton);
+		this._titleButtons = ESP.makeButtons(this, 180, 40, -300, 240, 200, 0, [
+			["New Game", this.commandNewGame.bind(this)],
+			["Continue", this.commandLoadGame.bind(this)],
+			["Volume [" + Math.floor(WebAudio._masterVolume * 100) + "%]", this.commandVolume.bind(this)],
+			["Leave", this.commandEndGame.bind(this)]
+		], 0x123a3b, 0x2e9294, 0x1b5657, 0x216869, this.onMouseEnter, this._commandWindow.isCommandEnabled.bind(this._commandWindow));
 	}
 
 	commandLoadGame() {
-		this.commandNewGame();
+		const savefileId = 1;
+		DataManager.loadGame(savefileId).then(function() {
+			//SoundManager.playLoad();
+			this.fadeOutAll();
+			SceneManager.goto(Scene_Map);
+			$gameSystem.onAfterLoad();
+			$gameMapTemp._shouldLoad = true;
+		}.bind(this)).catch(function() {});
+	}
+
+	commandVolume() {
+		const masterVolume = ConfigManager.incrementVolume();
+		this._titleButtons[2]._text.text = "Volume [" + masterVolume + "%]";
+		this._titleButtons[2].unclick();
+		this._titleButtons[2].updateGraphics();
 	}
 
 	commandEndGame() {
@@ -49,6 +90,32 @@ modify_Scene_Title = class {
 	}
 
 	drawGameTitle() {
+
+		const background = new PIXI.Graphics();
+		background.beginFill(0x03051f);
+		background.drawRect(0, 0, Graphics.width, Graphics.height);
+		background.endFill();
+		this._gameTitleSprite.addChild(background);
+
+		this._starsContainer = new Sprite();
+		this._starsContainer.move((1000 - Graphics.width) / -2, 0);
+		this._gameTitleSprite.addChild(this._starsContainer);
+
+		const starBit = ImageManager.loadBitmapFromUrl("img/titles1/Star.png");
+		starBit.smooth = true;
+		for(let i = 0; i < 300; i++) {
+			const star = new Sprite(starBit);
+			star.setFrame(0, 0, 15, 15);
+			star.move(Math.randomInt(1000), Math.randomInt(Graphics.height));
+			star.anchor.set(0.5);
+			star.scale.set((Math.random()) + 1);
+			this._starsContainer.addChild(star);
+		}
+
+		this._espTitleForeground = new Sprite(ImageManager.loadBitmapFromUrl("img/titles1/Foreground.png"));
+		this._espTitleForeground.filters = [ new PIXI.filters.PixelateFilter(4) ];
+		this._gameTitleSprite.addChild(this._espTitleForeground);
+
 		this._espTitleSprite = new Sprite(ImageManager.loadBitmapFromUrl("img/titles1/TitleLogo.png"));
 		this._espTitleSprite.anchor.set(0.5);
 		this._espTitleSprite.scale.set(3);
@@ -57,7 +124,7 @@ modify_Scene_Title = class {
 	}
 
 	onMouseEnter(index) {
-		const button = index === 0 ? this._newGameButton : (index === 1 ? this._continueButton : this._exitButton);
+		const button = this._titleButtons[index];
 		if(this._oldButton !== button) {
 			if(this._oldButton) this._oldButton.unhover();
 			this._oldButton = button;
@@ -73,5 +140,26 @@ modify_Scene_Title = class {
 			this._myIndex = this._commandWindow._index;
 			this.onMouseEnter(this._myIndex);
 		}
+
+		this._starsContainer.children.forEach(function(s) {
+			if(s._start) {
+				s._start += 0.1;
+				s.setFrame(Math.floor(s._start.clamp(0, 2.99999)) * 15, 0, 15, 15);
+				if(s._start > 4) {
+					s._start = 0;
+					s.setFrame(0, 0, 15, 15);
+					s.rotation = 0;
+				} else if(s._start >= 2) {
+					const ratio = Easing.easeOutQuad((s._start - 2) / 2);
+					s.rotation = (Math.PI / 2) * ratio;
+				}
+			} else if(Math.random() < 0.0004) {
+				s._start = 0.001;
+			}
+			s.x += 0.04 * s.scale.x;
+			if(s.x > 1000) {
+				s.x = 0;
+			}
+		});
 	}
 }

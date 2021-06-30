@@ -1,5 +1,6 @@
 // Input is what will make this game good. FEEEEEL like a real game.
 
+Input.keyMapper[27] = "esc";
 Input.keyMapper[32] = "space";
 Input.keyMapper[87] = "w";
 Input.keyMapper[83] = "s";
@@ -11,12 +12,16 @@ Input.gamepadMapper = {
 	1: "button_b",
 	2: "button_x",
 	3: "button_y",
-	//4: "pageup", // LB
-	//5: "pagedown", // RB
-	//12: "up", // D-pad up
-	//13: "down", // D-pad down
-	//14: "left", // D-pad left
-	//15: "right" // D-pad right
+	4: "button_lb",
+	5: "button_rb",
+	6: "button_l",
+	7: "button_r",
+	8: "button_select",
+	9: "button_start",
+	12: "dpad_up",
+	13: "dpad_down",
+	14: "dpad_left",
+	15: "dpad_right"
 };
 
 modify_Input = class {
@@ -29,6 +34,8 @@ modify_Input = class {
 		this.TrueTriggerTimer = 0;
 		this.TrueTriggeredTimes = [];
 		this.GamepadAxis = [];
+		this.OldGamepadAxis = [];
+		this.IsControlStickDirTriggered = [];
 	}
 	
 	static update() {
@@ -51,9 +58,40 @@ modify_Input = class {
 	static isTriggeredEx(keyName) {
 		return (this.TrueTriggeredTimes[keyName] ?? 0) === this.TrueTriggerTimer;
 	}
-	
+
+	static isDirectionTriggered(dir) {
+		const Threshold = 0.5;
+		switch(dir) {
+			case "right": {
+				if(this.GamepadAxis[0] > Threshold && this.OldGamepadAxis[0] < Threshold) {
+					return true;
+				}
+				break;
+			}
+			case "left": {
+				if(this.GamepadAxis[0] < -Threshold && this.OldGamepadAxis[0] > -Threshold) {
+					return true;
+				}
+				break;
+			}
+			case "down": {
+				if(this.GamepadAxis[1] > Threshold && this.OldGamepadAxis[1] < Threshold) {
+					return true;
+				}
+				break;
+			}
+			case "up": {
+				if(this.GamepadAxis[1] < -Threshold && this.OldGamepadAxis[1] > -Threshold) {
+					return true;
+				}
+				break;
+			}
+		}
+	}
+
 	static _updateGamepadState(gamepad) {
 		ESP.Input._updateGamepadState.apply(this, arguments);
+		this.OldGamepadAxis = this.GamepadAxis;
 		this.GamepadAxis = gamepad.axes;
 	}
 

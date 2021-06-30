@@ -1,6 +1,14 @@
 // SPRITES. Not from mcdonalds, dont worry.
 
 modify_Spriteset_Map = class {
+	initialize() {
+		ESP.Spriteset_Map.initialize.apply(this, arguments);
+		this._espIsFrozen = false;
+		this._unfreezable = [];
+		this.initializeFadeMembers();
+		this.initializeTransitionMembers();
+	}
+
 	createCharacters() {
 		//ESP.Spriteset_Map.createCharacters.apply(this, arguments);
 		this._espPlayer = new ESPPlayerSprite();
@@ -22,6 +30,9 @@ modify_Spriteset_Map = class {
 		spr.espObject = obj;
 		this._tilemap.addChild(spr);
 		this._tilemap._espSprites.push(spr);
+		if(!spr.freezable()) {
+			this._unfreezable.push(spr);
+		}
 	}
 
 	removeGameSprite(obj) {
@@ -32,6 +43,9 @@ modify_Spriteset_Map = class {
 			if(spr.espObject === obj) {
 				this._tilemap.removeChild(spr);
 				this._tilemap._espSprites.remove(spr);
+				if(this._unfreezable.contains(spr)) {
+					this._unfreezable.remove(spr);
+				}
 				spr.destroy();
 				break;
 			}
@@ -50,16 +64,10 @@ modify_Spriteset_Map = class {
 		}
 	}
 
-	initialize() {
-		ESP.Spriteset_Map.initialize.apply(this, arguments);
-		this.initializeFadeMembers();
-		this.initializeTransitionMembers();
-	}
-
 	initializeFadeMembers() {
 		this._espFadeMode = 0;
 		this._espFadeTime = 0;
-		this._espMaxFadeTime = 40;
+		this._refreshMaxFadeTime();
 
 		this._fadeCircle = new PIXI.Graphics();
 		this._fadeCircle.move = function(x, y) { this.x = x; this.y = y; };
@@ -89,7 +97,12 @@ modify_Spriteset_Map = class {
 	}
 
 	update() {
-		ESP.Spriteset_Map.update.apply(this, arguments);
+		if(!this._espIsFrozen) {
+			ESP.Spriteset_Map.update.apply(this, arguments);
+		} else if(this._espIsFrozen !== 2) {
+			this._espPlayer.update();
+			this._unfreezable.forEach(s => s.update());
+		}
 		this.updateFade();
 		this.updateTransition();
 	}
@@ -112,6 +125,10 @@ modify_Spriteset_Map = class {
 		}
 	}
 
+	_refreshMaxFadeTime() {
+		this._espMaxFadeTime = $gameMap.shouldFastDeathFade() ? 20 : 40;
+	}
+
 	fadeIn() {
 		this._espFadeMode = 2;
 		this._espFadeTime = this._espMaxFadeTime;
@@ -121,6 +138,7 @@ modify_Spriteset_Map = class {
 	}
 
 	fadeOut() {
+		this._refreshMaxFadeTime();
 		this._espFadeMode = 1;
 		this._espFadeTime = 0;
 		this._fadeCircle.visible = true;
@@ -183,6 +201,9 @@ modify_Spriteset_Map = class {
 		this._transitionCirlce.scale.set(1);
 		this._transitionCirlce.visible = true;
 		this._updateTransitionCirclePosition();
+		this._createShadowFilter();
+		this._myFilter.alpha = 0.5;
+		this._espWorldSprites.forEach(s => { s.parent.removeChild(s); this._filterHolder.addChild(s); });
 	}
 
 	transitionOut() {
@@ -194,6 +215,24 @@ modify_Spriteset_Map = class {
 		this._transitionCirlce.scale.set(0);
 		this._transitionCirlce.visible = false;
 		this._updateTransitionCirclePosition();
+		this._createShadowFilter();
+		this._myFilter.alpha = 0;
+		this._espWorldSprites.forEach(s => { s.parent.removeChild(s); this._filterHolder.addChild(s); });
+	}
+
+	_createShadowFilter() {
+		if(!this._myFilter) {
+			this._myFilter = new PIXI.filters.DropShadowFilter({
+				distance: 10,
+				alpha: 0
+			});
+			this._filterHolder = new Sprite();
+			this._filterHolder.filters = [this._myFilter];
+			this._filterHolder.z = 99999999;
+			if(this._espWorldSprites && this._espWorldSprites[0]) {
+				this._espWorldSprites[0].parent.addChild(this._filterHolder);
+			}
+		}
 	}
 
 	_updateTransitionObjectPosition(spr, dir, ratio) {
@@ -231,9 +270,15 @@ modify_Spriteset_Map = class {
 		this._tilemap._espSprites.forEach(function(spr) {
 			spr.alpha = alpha;
 		});
+		if(this._myFilter) {
+			this._myFilter.alpha = 0.5 * (1 - alpha);
+		}
 	}
 
 	OnTransitionComplete(wasIn) {
+		this._espWorldSprites.forEach(s => { s.parent.removeChild(s); this._filterHolder.parent.addChild(s); });
+		//this._espWorldSprites.forEach(s => s.filters = null);
+		this._myFilter = null;
 		if(!wasIn) $gameMap.onTransferReady();
 		else $gameMap.onTransferInReady();
 	}
@@ -303,6 +348,10 @@ modify_Spriteset_Map = class {
 				}
 			}
 		}
+	}
+
+	setFrozen(frozen) {
+		this._espIsFrozen = frozen;
 	}
 }
 
@@ -389,5 +438,9 @@ class ESPGameSprite extends Sprite {
 	}
 
 	updateShadowSprite() {
+	}
+
+	freezable() {
+		return true;
 	}
 }

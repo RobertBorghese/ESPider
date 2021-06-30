@@ -31,4 +31,8 @@ class ESPParticleSprite extends ESPGameSprite {
 		this.ShadowSprite.scale.set((1 - ((this.Animation.Index) / 9)) * 0.8);
 		this.ShadowSprite.alpha = this.ShadowSprite.scale.x;
 	}
+
+	freezable() {
+		return false;
+	}
 }

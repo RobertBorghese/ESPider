@@ -23,6 +23,8 @@ class ESPGamePlayer extends ESPGameObject {
 		this._deathParticles = null;
 		this._isVisible = true;
 
+		this.lastDeathTime = -1;
+
 		this.JUMP_POWER = 5;
 		this.GRAVITY = 0.2;
 	}
@@ -110,9 +112,9 @@ class ESPGamePlayer extends ESPGameObject {
 		/*
 		if(TouchInput.isTriggered()) {
 			if(this._playerIsGravity) {
-				$gameMap._gravityManipulators.remove(this);
+				$gameMapTemp._gravityManipulators.remove(this);
 			} else {
-				$gameMap._gravityManipulators.push(this);
+				$gameMapTemp._gravityManipulators.push(this);
 			}
 			this._playerIsGravity = !this._playerIsGravity;
 		}*/
@@ -249,6 +251,7 @@ class ESPGamePlayer extends ESPGameObject {
 
 	onDeathAnimationComplete() {
 		$gameMap.espFadeOut();
+		this.lastDeathTime = Graphics.frameCount;
 	}
 
 	kill(offsetX, offsetY, offsetZ) {

@@ -14,6 +14,7 @@ var $plugins =
 {"name":"ESP_Button_On_A_Jacket","status":true,"description":"","parameters":{}},
 {"name":"---","status":true,"description":"","parameters":{}},
 {"name":"ESP_Window_Window","status":true,"description":"","parameters":{}},
+{"name":"ESP_Options_Are_Good","status":true,"description":"","parameters":{}},
 {"name":"---","status":true,"description":"","parameters":{}},
 {"name":"ESP_Title_For_This_Land","status":true,"description":"","parameters":{}},
 {"name":"ESP_Da_Map_From_Dora","status":true,"description":"","parameters":{}},
