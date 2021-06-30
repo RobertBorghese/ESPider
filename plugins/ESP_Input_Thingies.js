@@ -110,11 +110,11 @@ modify_Input = class {
 			this.InputVector.y += YAxisLength > HighThreshold ? Math.round(this.GamepadAxis[1]) : this.GamepadAxis[1];
 		}
 
-		if(Input.isPressed("a")) this.InputVector.x--;
-		if(Input.isPressed("d")) this.InputVector.x++;
+		if(Input.isPressed("a") || Input.isPressed("dpad_left")) this.InputVector.x--;
+		if(Input.isPressed("d") || Input.isPressed("dpad_right")) this.InputVector.x++;
 
-		if(Input.isPressed("w")) this.InputVector.y--;
-		if(Input.isPressed("s")) this.InputVector.y++;
+		if(Input.isPressed("w") || Input.isPressed("dpad_up")) this.InputVector.y--;
+		if(Input.isPressed("s") || Input.isPressed("dpad_down")) this.InputVector.y++;
 	
 		this.InputPressed = this.InputVector.length() > 0;
 	

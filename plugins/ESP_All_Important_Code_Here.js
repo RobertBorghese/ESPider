@@ -46,10 +46,11 @@ ESP.ApplyModifies = function() {
 };
 
 // do these do anything?? :/
+/*
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
-PIXI.settings.ROUND_PIXELS = false;
+PIXI.settings.ROUND_PIXELS = true;
 PIXI.settings.RESOLUTION = 1;
-window.devicePixelRatio = 1;
+window.devicePixelRatio = 1;*/
 
 // pixel-art needs to be ROUGH uwu
 ESP.Bitmap_load = Bitmap.load;

@@ -55,14 +55,25 @@ modify_Scene_Title = class {
 		makeButton(3, "Leave", this.commandEndGame.bind(this));*/
 
 		this._titleButtons = ESP.makeButtons(this, 180, 40, -300, 240, 200, 0, [
-			["New Game", this.commandNewGame.bind(this)],
+			["New Game", this.commandESPNewGame.bind(this)],
 			["Continue", this.commandLoadGame.bind(this)],
 			["Volume [" + Math.floor(WebAudio._masterVolume * 100) + "%]", this.commandVolume.bind(this)],
 			["Leave", this.commandEndGame.bind(this)]
 		], 0x123a3b, 0x2e9294, 0x1b5657, 0x216869, this.onMouseEnter, this._commandWindow.isCommandEnabled.bind(this._commandWindow));
 	}
 
+	disableTheButtons() {
+		this._commandWindow.deactivate();
+		this._titleButtons.disableAllButtons();
+	}
+
+	commandESPNewGame() {
+		this.disableTheButtons();
+		this.commandNewGame();
+	}
+
 	commandLoadGame() {
+		this.disableTheButtons();
 		const savefileId = 1;
 		DataManager.loadGame(savefileId).then(function() {
 			//SoundManager.playLoad();
@@ -81,6 +92,7 @@ modify_Scene_Title = class {
 	}
 
 	commandEndGame() {
+		this.disableTheButtons();
 		SceneManager.pop();
 	}
 
@@ -136,7 +148,7 @@ modify_Scene_Title = class {
 	update() {
 		ESP.Scene_Title.update.apply(this, arguments);
 
-		if(this._myIndex !== this._commandWindow._index) {
+		if(this._commandWindow.active && this._myIndex !== this._commandWindow._index) {
 			this._myIndex = this._commandWindow._index;
 			this.onMouseEnter(this._myIndex);
 		}

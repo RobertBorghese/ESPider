@@ -1,206 +1,5 @@
 // Hello map from dora de exporera. It's me, guy from reality.
 
-class Window_PauseCommand extends Window_Command {
-	maxCols() {
-		return 1;
-	}
-
-	makeCommandList() {
-		for(let i = 0; i < 4; i++) {
-			this.addCommand("", "_" + i);
-		}
-	}
-}
-
-
-modify_Scene_Map = class {
-	initialize() {
-		ESP.Scene_Map.initialize.apply(this, arguments);
-		this._isPaused = false;
-		this._titleButtons = null;
-	}
-
-	updateMain() {
-		if(!this._isPaused) {
-			ESP.Scene_Map.updateMain.apply(this, arguments);
-			this.updateESPPlayer();
-			this.updateESPGameObjects();
-			this.updatePauseInput();
-			this.updateESPBackground();
-		} else {
-			this.updatePause();
-		}
-	}
-
-	// update player
-	updateESPPlayer() {
-		$espGamePlayer.update();
-	}
-
-	// update game objects
-	updateESPGameObjects() {
-		if(!$gameMap.espIsFrozen()) {
-			const objs = $gameMap.getGameObjects();
-			const len = objs.length;
-			for(let i = 0; i < len; i++) {
-				objs[i].update();
-			}
-		}
-	}
-
-	isPauseInputTriggered() {
-		return Input.isTriggered("button_start") || Input.isTriggeredEx("esc");
-	}
-
-	updatePauseInput() {
-		if($espGamePlayer.canControl() && this.isPauseInputTriggered()) {
-			this.onPause();
-		}
-	}
-
-	updateESPBackground() {
-		if(this._background) {
-			if(this._background.alpha > 0) {
-				this._background.alpha -= 0.1;
-				if(this._background.alpha <= 0) {
-					this.removeChild(this._Background);
-					this._background = null;
-				}
-			}
-		}
-	}
-
-	// make sure dat map loads when loading game
-	onMapLoaded() {
-		if($gameMapTemp._shouldLoad) {
-			$gameMap.onLoad();
-			$gameMapTemp._shouldLoad = false;
-		}
-		ESP.Scene_Map.onMapLoaded.apply(this, arguments);
-	}
-
-	onPause() {
-		this._isPaused = true;
-
-		SceneManager._scene._spriteset.setFrozen(2);
-
-		if(!this._pauseWindow) {
-			this._pauseWindow = new Window_PauseCommand(new Rectangle(0, 0, 100, 100));
-		} else {
-			this._pauseWindow.select(0);
-		}
-
-		if(!this._background) {
-			this._background = new PIXI.Graphics();
-			this._background.beginFill(0x000000, 0.9);
-			this._background.drawRect(0, 0, Graphics.width, Graphics.height);
-			this._background.endFill();
-			this.addChild(this._background);
-		}
-		this._background.alpha = 0;
-
-		this._titleButtons = ESP.makeButtons(this, 240, 40, 0, -80, 0, 50, [
-			["Resume", this.onUnpause.bind(this)],
-			["Volume [" + Math.floor(WebAudio._masterVolume * 100) + "%]", this.commandVolume.bind(this)],
-			["Return to Title", this.commandReturnToTitle.bind(this)],
-			["Exit Game", this.commandExitGame.bind(this)]
-		], 0x123a3b, 0x2e9294, 0x1b5657, 0x216869, this.onMouseEnter, function() { return true; });
-
-		this._titleButtonParent = new Sprite();
-		this._titleButtonParent.alpha = 0;
-		this.addChild(this._titleButtonParent);
-
-		this._titleButtons.forEach(function(b) {
-			this.removeChild(b);
-			this._titleButtonParent.addChild(b);
-		}.bind(this));
-	}
-
-	onUnpause() {
-		this._isPaused = false;
-
-		SceneManager._scene._spriteset.setFrozen(false);
-
-		if(this._titleButtons && this._titleButtonParent) {
-			for(let i = 0; i < this._titleButtons.length; i++) {
-				this._titleButtonParent.removeChild(this._titleButtons[i]);
-			}
-		}
-
-		this.removeChild(this._titleButtonParent);
-		this._titleButtonParent = null;
-
-		this._pauseWindow.select(-1);
-
-		this._titleButtons = null;
-		this._myPauseMenuIndex = null;
-		this._oldButton = null;
-	}
-
-	commandVolume() {
-		const masterVolume = ConfigManager.incrementVolume();
-		this._titleButtons[1]._text.text = "Volume [" + masterVolume + "%]";
-		this._titleButtons[1].unclick();
-		this._titleButtons[1].updateGraphics();
-	}
-
-	commandReturnToTitle() {
-		SceneManager.goto(Scene_Title);
-	}
-
-	commandExitGame() {
-		SceneManager.exit();
-	}
-
-	updatePause() {
-		if(this._background) {
-			if(this._background.alpha < 1) {
-				this._background.alpha += 0.1;
-				if(this._background.alpha > 1) this._background.alpha = 1;
-				this._titleButtonParent.alpha = this._background.alpha;
-			}
-		}
-		if(this.isPauseInputTriggered()) {
-			this.onUnpause();
-		}
-		if(this._pauseWindow) {
-			this._pauseWindow.update();
-		}
-		if(this._myPauseMenuIndex !== this._pauseWindow._index) {
-			this._myPauseMenuIndex = this._pauseWindow._index;
-			this.onMouseEnter(this._myPauseMenuIndex);
-		}
-		/*
-		if(this._titleButtons) {
-			for(let i = 0; i < this._titleButtons.length; i++) {
-				this._titleButtons[i].update();
-			}
-		}*/
-	}
-
-	onMouseEnter(index) {
-		if(this._titleButtons) {
-			const button = this._titleButtons[index];
-			if(this._oldButton !== button) {
-				if(this._oldButton) this._oldButton.unhover();
-				this._oldButton = button;
-				if(this._oldButton) this._oldButton.hover();
-			}
-			if(this._pauseWindow) this._pauseWindow.select(index);
-		}
-	}
-
-	// no button allowed!
-	createMenuButton() {}
-
-	// lets prevent da touching shit
-	processMapTouch() {}
-	onMapTouch() {}
-
-	// lazy way to prevent menu
-	isMenuCalled() { return false; }
-}
-
 var $gameMapTemp = {};
 $gameMapTemp._shouldLoad = false;
 
@@ -291,8 +90,41 @@ modify_Game_Map = class {
 
 	// any starting game objects get initiated here
 	initStartingGameObjects() {
-		this._otherGameObject = new ESPFireballObject();
-		this.addGameObject(this._otherGameObject);
+		this.setupObjects();
+		this.addGameObject(new ESPFireballObject());
+	}
+
+	// setup ESP objects
+	setupObjects() {
+		for (const event of $dataMap.events.filter(event => !!event)) {
+			if(event && event.pages && event.pages[0]) {
+				const data = event.pages[0];
+				if(data.image && data.image.characterName === "_Entities") {
+					const d = data.image;
+					const ci = d.characterIndex;
+					const x = (ci > 3 ? ((ci - 3) * 3) : (ci * 3)) + d.pattern;
+					const y = (ci > 3 ? 4 : 0) + (d.direction / 2) - 1
+					const index = (y * 12) + x;
+					const objectData = { text: [] };
+					data.list.forEach(function(event) {
+						if(event.code === 401) {
+							objectData.text.push(event.parameters[0]);
+						}
+					});
+					this.createPresetObject(index, event.x, event.y, objectData);
+				}
+			}
+		}
+	}
+
+	// create objects based on id
+	createPresetObject(id, x, y, objectData) {
+		switch(id) {
+			case 0: {
+				this.addGameObject(new ESPInfoBeetleObject(objectData), x * TS, y * TS);
+				break;
+			}
+		}
 	}
 
 	// handling map "notetags" very lazily
@@ -364,7 +196,7 @@ modify_Game_Map = class {
 				object.position.x = x;
 				object.position.y = y;
 			}
-			$gameMapTemp._mapObjects.push(object);
+			this.getGameObjects().push(object);
 			if(object.isGravityManipulator()) {
 				$gameMapTemp._gravityManipulators.push(object);
 			}
@@ -375,22 +207,34 @@ modify_Game_Map = class {
 		}
 	}
 
+	canRemoveGameObjects() {
+		return SceneManager._scene.constructor === Scene_Map;
+	}
+
 	// remove game object when not needed
 	removeGameObject(object) {
-		if(SceneManager._scene.constructor === Scene_Map) {
-			$gameMapTemp._mapObjects.remove(object);
-			if($gameMapTemp._gravityManipulators.includes(object)) {
-				$gameMapTemp._gravityManipulators.remove(object);
-			}
-			SceneManager._scene._spriteset.removeGameSprite(object);
+		if(object && this.canRemoveGameObjects()) {
+			this.getGameObjects().remove(object);
+			this.onGameObjectRemoved(object);
+		}
+	}
+
+	// remove other game object partners
+	onGameObjectRemoved(object) {
+		SceneManager._scene._spriteset.removeGameSprite(object);
+		if($gameMapTemp._gravityManipulators.includes(object)) {
+			$gameMapTemp._gravityManipulators.remove(object);
 		}
 	}
 
 	// remove every game object in existance
 	removeAllGameObjects() {
-		const len = $gameMapTemp._mapObjects.length;
-		for(let i = 0; i < len; i++) {
-			this.removeGameObject($gameMapTemp._mapObjects[i]);
+		if(this.canRemoveGameObjects()) {
+			const objects = this.getGameObjects();
+			const len = objects.length;
+			for(let i = 0; i < len; i++) {
+				this.onGameObjectRemoved(objects[i]);
+			}
 		}
 		$gameMapTemp._mapObjects = [];
 	}
@@ -465,6 +309,7 @@ modify_Game_Map = class {
 		}
 	}
 
+	// save the game
 	save() {
 		$gameSystem.setSavefileId(1);
 		$gameSystem.onBeforeSave();
@@ -475,11 +320,13 @@ modify_Game_Map = class {
 		this.setupESPGame();
 	}
 
+	// check if should increase fade upon player death
 	shouldFastDeathFade() {
 		if($espGamePlayer.lastDeathTime < 0) return false;
 		return Graphics.frameCount - $espGamePlayer.lastDeathTime < 1000;
 	}
 
+	// freeze the game world
 	setFrozen(frozen) {
 		if(this._worldFrozen !== frozen) {
 			this._worldFrozen = frozen;

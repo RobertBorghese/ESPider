@@ -24,6 +24,13 @@ ESP.makeButtons = function(pixiObject, width, height, shiftX, shiftY, offsetX, o
 	return result;
 };
 
+Array.prototype.disableAllButtons = function() {
+	const len = this.length;
+	for(let i = 0; i < len; i++) {
+		this[i].setFrozen(true);
+	}
+};
+
 class ESPButton extends Sprite_Clickable {
 	constructor(width, height, text, colorNormal, colorHover, colorClickFlash, colorUnderline, callback) {
 		super();
@@ -34,6 +41,8 @@ class ESPButton extends Sprite_Clickable {
 		this.filters = [ new PIXI.filters.AlphaFilter() ];
 
 		this.anchor.set(0.5);
+
+		this._isFrozen = false;
 
 		this._maxLetterSpacing = 8;
 
@@ -73,7 +82,7 @@ class ESPButton extends Sprite_Clickable {
 			//letterSpacing: 1
 		};
 		this._text = new PIXI.Text(text ?? "New Game", this._style);
-		this._text.resolution = 1;
+		this._text.resolution = 2;
 		this._text.y = 4;
 		this._text.scale.set(1);
 
@@ -200,7 +209,9 @@ class ESPButton extends Sprite_Clickable {
 	}
 
 	update() {
-		super.update();
+		if(!this._isFrozen) {
+			super.update();
+		}
 		if(!this._espClicked) {
 			const spd = 0.05;
 			if(this._espHovered) {
@@ -224,7 +235,7 @@ class ESPButton extends Sprite_Clickable {
 			this.updateGraphics();
 		}
 
-		if(this._espHovered) {
+		if(!this._isFrozen && this._espHovered) {
 			if(!this._pressedKey) { 
 				const choices = ["ok", "space", "button_a"];
 				for(let i = 0; i < choices.length; i++) {
@@ -241,5 +252,9 @@ class ESPButton extends Sprite_Clickable {
 		} else {
 			this._pressedKey = null;
 		}
+	}
+
+	setFrozen(frozen) {
+		this._isFrozen = frozen;
 	}
 }
