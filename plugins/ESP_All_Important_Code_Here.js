@@ -71,3 +71,20 @@ Object.defineProperty(Array.prototype, 'shuffle', {
 		return this;
 	}
 });
+
+Bitmap.snapWhole = function(stage, width, height) {
+	const bitmap = new Bitmap(width, height);
+	const renderTexture = PIXI.RenderTexture.create(width, height);
+	if (stage) {
+		const renderer = Graphics.app.renderer;
+		renderer.render(stage, renderTexture);
+		stage.worldTransform.identity();
+		const canvas = renderer.extract.canvas(renderTexture);
+		bitmap.context.drawImage(canvas, 0, 0);
+		canvas.width = 0;
+		canvas.height = 0;
+	}
+	renderTexture.destroy({ destroyBase: true });
+	bitmap.baseTexture.update();
+	return bitmap;
+};

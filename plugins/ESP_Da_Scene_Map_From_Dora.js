@@ -34,6 +34,11 @@ modify_Scene_Map = class {
 	// update player
 	updateESPPlayer() {
 		$espGamePlayer.update();
+		this.updateCameraPos();
+	}
+
+	updateCameraPos() {
+		this._spriteset.setCameraPos($espGamePlayer.position.x - (Graphics.width / 2), $espGamePlayer.displayY() - (Graphics.height / 2));
 	}
 
 	// update game objects

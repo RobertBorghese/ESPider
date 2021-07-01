@@ -123,12 +123,14 @@ class ESPGameObject {
 			this.onCollided(isMovingUp === -1 ? 8 : 2);
 		}
 
-		const NewCollisionHeight = this.findCollisionHeight();
-		if(this.CollisionHeight < 99) this.CollisionHeight = NewCollisionHeight;
+		if(this.CanCollide) {
+			const NewCollisionHeight = this.findCollisionHeight();
+			if(this.CollisionHeight < 99) this.CollisionHeight = NewCollisionHeight;
 
-		if(this.__OldCollisionHeight !== this.CollisionHeight) {
-			const Diff = this.__OldCollisionHeight - this.CollisionHeight;
-			this.position.z += (Diff * TS);
+			if(this.__OldCollisionHeight !== this.CollisionHeight) {
+				const Diff = this.__OldCollisionHeight - this.CollisionHeight;
+				this.position.z += (Diff * TS);
+			}
 		}
 	}
 

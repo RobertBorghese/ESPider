@@ -33,8 +33,8 @@ modify_Scene_Title = class {
 		const offsetX = 200;
 		const offsetY = 0;
 
-		const x = (Graphics.boxWidth / 2) + shiftX;
-		const y = (Graphics.boxHeight / 2) + shiftY;
+		const x = (Graphics.width / 2) + shiftX;
+		const y = (Graphics.height / 2) + shiftY;
 
 		this._titleButtons = [];
 
@@ -54,7 +54,7 @@ modify_Scene_Title = class {
 		makeButton(2, "Volume [" + Math.floor(WebAudio._masterVolume * 100) + "%]", this.commandVolume.bind(this));
 		makeButton(3, "Leave", this.commandEndGame.bind(this));*/
 
-		this._titleButtons = ESP.makeButtons(this, 180, 40, -300, 240, 200, 0, [
+		this._titleButtons = ESP.makeButtons(this, 240, 40, -390, 240, 260, 0, [
 			["New Game", this.commandESPNewGame.bind(this)],
 			["Continue", this.commandLoadGame.bind(this)],
 			["Volume [" + Math.floor(WebAudio._masterVolume * 100) + "%]", this.commandVolume.bind(this)],
@@ -110,7 +110,7 @@ modify_Scene_Title = class {
 		this._gameTitleSprite.addChild(background);
 
 		this._starsContainer = new Sprite();
-		this._starsContainer.move((1000 - Graphics.width) / -2, 0);
+		this._starsContainer.move((1200 - Graphics.width) / -2, 0);
 		this._gameTitleSprite.addChild(this._starsContainer);
 
 		const starBit = ImageManager.loadBitmapFromUrl("img/titles1/Star.png");
@@ -118,7 +118,7 @@ modify_Scene_Title = class {
 		for(let i = 0; i < 300; i++) {
 			const star = new Sprite(starBit);
 			star.setFrame(0, 0, 15, 15);
-			star.move(Math.randomInt(1000), Math.randomInt(Graphics.height));
+			star.move(Math.randomInt(1200), Math.randomInt(Graphics.height));
 			star.anchor.set(0.5);
 			star.scale.set((Math.random()) + 1);
 			this._starsContainer.addChild(star);
@@ -131,7 +131,7 @@ modify_Scene_Title = class {
 		this._espTitleSprite = new Sprite(ImageManager.loadBitmapFromUrl("img/titles1/TitleLogo.png"));
 		this._espTitleSprite.anchor.set(0.5);
 		this._espTitleSprite.scale.set(3);
-		this._espTitleSprite.move(Graphics.boxWidth / 2, (Graphics.boxHeight / 2) - 100);
+		this._espTitleSprite.move(Graphics.width / 2, (Graphics.height / 2) - 100);
 		this._gameTitleSprite.addChild(this._espTitleSprite);
 	}
 
@@ -169,7 +169,7 @@ modify_Scene_Title = class {
 				s._start = 0.001;
 			}
 			s.x += 0.04 * s.scale.x;
-			if(s.x > 1000) {
+			if(s.x > 1200) {
 				s.x = 0;
 			}
 		});

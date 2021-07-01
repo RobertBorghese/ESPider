@@ -1,8 +1,8 @@
 // all my jackets dont have buttons anymore cause some fucking guy keeps coming into my apartment at 2am and ripping them off. he keeps coming even though i dont wear anything with buttons anymore. this sounds like a joke but it's genuinely terrifying im actually crying as i write this idk maybe theres just something wrong with me cause no one else seems to understand that he exists please help me if youre reading this. message me, dm me, reach out and send your regards. trust me, i will appreciate it more than you can imagine.
 
 ESP.makeButtons = function(pixiObject, width, height, shiftX, shiftY, offsetX, offsetY, data, color1, color2, color3, color4, onMouseEnter, enabledFunc) {
-	const x = (Graphics.boxWidth / 2) + shiftX;
-	const y = (Graphics.boxHeight / 2) + shiftY;
+	const x = (Graphics.width / 2) + shiftX;
+	const y = (Graphics.height / 2) + shiftY;
 
 	const result = [];
 
