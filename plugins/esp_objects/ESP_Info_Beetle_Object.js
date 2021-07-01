@@ -24,3 +24,5 @@ class ESPInfoBeetleObject extends ESPGameObject {
 		return this._shouldShowText;
 	}
 }
+
+Game_Map.presetObjects.push(ESPInfoBeetleObject);

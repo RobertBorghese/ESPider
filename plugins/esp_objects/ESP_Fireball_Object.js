@@ -49,10 +49,12 @@ class ESPFireballObject extends ESPGameObject {
 	}
 
 	onCollided(direction) {
+		$gameMap.removeGameObject(this);
+		/*
 		if(direction === 4 || direction === 6) {
 			this.speed.x *= -1;
 		} else {
 			this.speed.y *= -1;
-		}
+		}*/
 	}
 }

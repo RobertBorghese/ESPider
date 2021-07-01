@@ -3,6 +3,8 @@
 var $gameMapTemp = {};
 $gameMapTemp._shouldLoad = false;
 
+Game_Map.presetObjects = [];
+
 modify_Game_Map = class {
 	// lets begin!!
 	initialize() {
@@ -119,12 +121,19 @@ modify_Game_Map = class {
 
 	// create objects based on id
 	createPresetObject(id, x, y, objectData) {
+		if(Game_Map.presetObjects[id]) {
+			//Game_Map
+			const cls = Game_Map.presetObjects[id];
+			this.addGameObject(new cls(objectData), x * TS, y * TS);
+		}
+		/*
 		switch(id) {
 			case 0: {
 				this.addGameObject(new ESPInfoBeetleObject(objectData), x * TS, y * TS);
 				break;
 			}
 		}
+		*/
 	}
 
 	// handling map "notetags" very lazily

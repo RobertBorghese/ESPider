@@ -6,6 +6,7 @@ class ESPGameObject {
 		this.speed = new Vector3(0, 0, 0);
 		this.CollisionHeight = 0;
 		this.CanCollide = true;
+		this.CantWalkOffLedge = false;
 	}
 
 	reset(x, y) {
@@ -82,6 +83,15 @@ class ESPGameObject {
 		);
 	}
 
+	findCollisionHeightAt(x, y) {
+		return Math.max(
+			this._GetCornerIndex(-1, -1, x, y),
+			this._GetCornerIndex(1, -1, x, y),
+			this._GetCornerIndex(-1, 1, x, y),
+			this._GetCornerIndex(1, 1, x, y)
+		);
+	}
+
 	update() {
 		this.updatePosition();
 		this.updateZPosition();
@@ -92,7 +102,8 @@ class ESPGameObject {
 		const isMovingLeft = newPos < this.position.x ? -1 : 1;
 		const oldIndexX = Math.floor((this.position.x + (isMovingLeft * this.rectWidth())) / tileSize);
 		const indexX = Math.floor((newPos + (isMovingLeft * this.rectWidth())) / tileSize);
-		return oldIndexX === indexX || Math.max(this._GetCornerIndex(isMovingLeft, -1, newPos), this._GetCornerIndex(isMovingLeft, 1, newPos)) <= this.__PrecisePlayerHeightIndex;
+		const newHeightIndex = Math.max(this._GetCornerIndex(isMovingLeft, -1, newPos), this._GetCornerIndex(isMovingLeft, 1, newPos));
+		return oldIndexX === indexX || (this.CantWalkOffLedge ? newHeightIndex === this.__PrecisePlayerHeightIndex : newHeightIndex <= this.__PrecisePlayerHeightIndex);
 	}
 
 	canMoveToY(newPos) {
@@ -100,7 +111,8 @@ class ESPGameObject {
 		const isMovingUp = newPos < this.position.y ? -1 : 1;
 		const oldIndexY = Math.floor((this.position.y + (isMovingUp * this.rectHeight())) / tileSize);
 		const indexY = Math.floor((newPos + (isMovingUp * this.rectHeight())) / tileSize);
-		return oldIndexY === indexY || Math.max(this._GetCornerIndex(-1, isMovingUp, null, newPos), this._GetCornerIndex(1, isMovingUp, null, newPos)) <= this.__PrecisePlayerHeightIndex;
+		const newHeightIndex = Math.max(this._GetCornerIndex(-1, isMovingUp, null, newPos), this._GetCornerIndex(1, isMovingUp, null, newPos));
+		return oldIndexY === indexY || (this.CantWalkOffLedge ? newHeightIndex === this.__PrecisePlayerHeightIndex : newHeightIndex <= this.__PrecisePlayerHeightIndex);
 	}
 
 	updatePosition() {
