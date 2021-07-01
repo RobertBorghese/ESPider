@@ -1,7 +1,7 @@
 // A quick lil sprite util for all your util needs.
 
 class ESPAnimatedSprite extends Sprite {
-	constructor(Bitmap, FrameDelay, Invert, Offset) {
+	constructor(Bitmap, FrameDelay, Invert, Offset, InitOffset) {
 		super();
 
 		this.bitmap = Bitmap;
@@ -10,6 +10,7 @@ class ESPAnimatedSprite extends Sprite {
 		this.FrameDelay = FrameDelay ?? 10;
 		this.Invert = Invert ?? false;
 		this.Offset = Offset ?? 0;
+		this.InitOffset = InitOffset ?? 0;
 
 		this.Frame = 0;
 		this.Index = 0;
@@ -54,6 +55,10 @@ class ESPAnimatedSprite extends Sprite {
 		this.setFrame(0, 0, this.FrameWidth, this.FrameHeight);
 		if(this.Invert) {
 			this.Index = this.MaxIndex - 1;
+		}
+		if(this.InitOffset) {
+			this.Index += this.InitOffset;
+			this.Index = this.Index % this.MaxIndex;
 		}
 	}
 

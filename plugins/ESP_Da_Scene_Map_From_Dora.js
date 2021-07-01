@@ -38,7 +38,7 @@ modify_Scene_Map = class {
 	}
 
 	updateCameraPos() {
-		this._spriteset.setCameraPos($espGamePlayer.position.x - (Graphics.width / 2), $espGamePlayer.displayY() - (Graphics.height / 2));
+		if(this._spriteset) this._spriteset.setCameraPos($espGamePlayer.position.x - (Graphics.width / 2), $espGamePlayer.displayY() - (Graphics.height / 2));
 	}
 
 	// update game objects

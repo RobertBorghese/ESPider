@@ -6,6 +6,9 @@ class ESPFireballObject extends ESPGameObject {
 
 		this.position.set(300, 350, 6);
 		this.speed.set(2, 0, 0);
+
+		//this._particles = [];
+		this._time = 0;
 	}
 
 	constructSprite() {

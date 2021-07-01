@@ -4,7 +4,7 @@ modify_Spriteset_Map = class {
 	initialize() {
 		ESP.Spriteset_Map.initialize.apply(this, arguments);
 		this._espIsFrozen = false;
-		this._unfreezable = [];
+		if(!this._unfreezable) this._unfreezable = [];
 		this.initializeFadeMembers();
 		this.initializeTransitionMembers();
 	}
@@ -31,6 +31,7 @@ modify_Spriteset_Map = class {
 		this._tilemap.addChild(spr);
 		this._tilemap._espSprites.push(spr);
 		if(!spr.freezable()) {
+			if(!this._unfreezable) this._unfreezable = [];
 			this._unfreezable.push(spr);
 		}
 	}

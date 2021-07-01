@@ -1,11 +1,12 @@
 // Hopefully this isnt so painfullll.
 
 class ESPParticleSprite extends ESPGameSprite {
-	constructor(object, spd) {
+	constructor(object, spd, deleteOnComplete) {
 		super();
 
 		this.espObject = object;
 
+		this.DeleteOnComplete = deleteOnComplete;
 		this.ShouldUpdate = true;
 
 		this.ObjectHolderOffsetY = -8;
@@ -20,9 +21,11 @@ class ESPParticleSprite extends ESPGameSprite {
 	update() {
 		super.update();
 
-		if(this.ShouldUpdate && this.Animation.isDone()) {
-			$gameMap.removeGameObject(this.espObject);
-			this.ShouldUpdate = false;
+		if(this.DeleteOnComplete)  {
+			if(this.ShouldUpdate && this.Animation.isDone()) {
+				$gameMap.removeGameObject(this.espObject);
+				this.ShouldUpdate = false;
+			}
 		}
 	}
 
