@@ -52,7 +52,6 @@ class ESPAnimatedSprite extends Sprite {
 		}
 		this.FrameWidth = this.MaxIndex > 0 ? (Width / this.MaxIndex) : 0;
 		this.FrameHeight = Height;
-		this.setFrame(0, 0, this.FrameWidth, this.FrameHeight);
 		if(this.Invert) {
 			this.Index = this.MaxIndex - 1;
 		}
@@ -60,6 +59,7 @@ class ESPAnimatedSprite extends Sprite {
 			this.Index += this.InitOffset;
 			this.Index = this.Index % this.MaxIndex;
 		}
+		this.setFrame(this.Index * this.FrameWidth, 0, this.FrameWidth, this.FrameHeight);
 	}
 
 	update() {
@@ -101,6 +101,6 @@ class ESPAnimatedSprite extends Sprite {
 	}
 
 	isDone() {
-		return this.Index >= this.MaxIndex - 1;
+		return this.Invert ? this.Index <= 0 : this.Index >= this.MaxIndex - 1;
 	}
 }

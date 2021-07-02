@@ -1,7 +1,7 @@
 // And, of course, a correlating first game sprite.
 
 class ESPFireballSprite extends ESPGameSprite {
-	constructor(object) {
+	constructor(object, initAnimation) {
 		super();
 
 		this.espObject = object;
@@ -46,25 +46,36 @@ class ESPFireballSprite extends ESPGameSprite {
 
 		//this.ShadowSprite.visible = false;
 
+		this._initAnimation = initAnimation;
+		this._isInitializing = this._initAnimation;
+
 		this._time = 0;
 		this.Time = 0;
 
-		for(let i = 0; i < 20; i++) {
-			const particle = new ESPAnimatedSprite(ImageManager.loadBitmapFromUrl("img/particles/Particle.png"), 4, false, 0, i);
-			particle.await();
-			particle.scale.set(2);
-			particle.anchor.set(0.5);
-			particle.x = this.makeParticlePos() * (this.espObject.speed.x * i);
-			particle.y = this.makeParticlePos() * (this.espObject.speed.y * i);
-			this._particles.push(particle);
-			this._particleHolder.addChild(particle);
-		}
+		/*for(let i = 0; i < 20; i++) {
+			this.makeParticle(i);
+		}*/
 
-		this._mainParticle = new ESPAnimatedSprite(ImageManager.loadBitmapFromUrl("img/particles/Particle.png"), 4);
+		this._mainParticle = new ESPAnimatedSprite(ImageManager.loadBitmapFromUrl("img/particles/Particle.png"), 4, this._isInitializing);
 		this._mainParticle.scale.set(2);
 		this._mainParticle.anchor.set(0.5);
 		this._mainParticle.tint = 0xffecb3;
-		this._particleHolder.addChild(this._mainParticle);
+		this.ObjectHolder.addChild(this._mainParticle);
+
+		if(this._isInitializing) {
+			this.ShadowSprite.visible = false;
+		}
+	}
+
+	makeParticle(i) {
+		const particle = new ESPAnimatedSprite(ImageManager.loadBitmapFromUrl("img/particles/Particle.png"), 4, false, 0, i);
+		particle.await();
+		particle.scale.set(2);
+		particle.anchor.set(0.5);
+		particle.x = this.makeParticlePos();
+		particle.y = this.makeParticlePos();
+		this._particles.push(particle);
+		this._particleHolder.addChild(particle);
 	}
 
 	makeParticlePos() {
@@ -73,6 +84,22 @@ class ESPFireballSprite extends ESPGameSprite {
 
 	update() {
 		super.update();
+
+		if(this._isInitializing) {
+			if(this._mainParticle.isDone()) {
+				this._mainParticle.Invert = false;
+				this._isInitializing = false;
+				this.ShadowSprite.visible = true;
+				this.espObject.finishInitializing();
+			} else {
+			}
+			return;
+		}
+
+		if(this._time < 20) {
+			this.makeParticle(this._time);
+			this._time++;
+		}
 
 		this._mainParticle.Index = 0;
 		this._mainParticle.rotation += 0.1 * Math.sign(this.espObject.speed.x);
@@ -89,9 +116,13 @@ class ESPFireballSprite extends ESPGameSprite {
 			particle.x -= (this.espObject.speed.x);
 			particle.y -= (this.espObject.speed.y);
 			if(particle.isDone()) {
-				particle.x = this._mainParticle.x + this.makeParticlePos();
-				particle.y = this._mainParticle.y + this.makeParticlePos();
-				particle.reset();
+				if(this.espObject._isDead) {
+					particle.visible = false;
+				} else {
+					particle.x = this._mainParticle.x + this.makeParticlePos();
+					particle.y = this._mainParticle.y + this.makeParticlePos();
+					particle.reset();
+				}
 			}
 			switch(particle.Index) {
 				case 0: { particle.tint = 0xfac116; break; }
@@ -105,13 +136,22 @@ class ESPFireballSprite extends ESPGameSprite {
 			}
 		}
 
-		this.Time += 0.1;
-		this._mainParticle.y = Math.sin(this.Time) * 3;
+		if(this.espObject._isDead) {
+			if(this._mainParticle.visible) {
+				this._mainParticle.visible = false;
+			}
+			if(this._particles.filter(p => p.visible).length <= 0) {
+				this.espObject.kill();
+			}
+		} else {
+			this.Time += 0.1;
+			this._mainParticle.y = Math.sin(this.Time) * 3;
+		}
 	}
 
 	updateShadowSprite() {
 		this.ShadowSprite.move(0, 0);
-		this.ShadowSprite.scale.set(0.6 + (((this._mainParticle.y) + 5) * 0.02));
+		this.ShadowSprite.scale.set(!this.espObject._isDead ? (0.6 + (((this._mainParticle.y) + 5) * 0.02)) : (this.ShadowSprite.scale.x - 0.05).clamp(0, 1));
 		this.ShadowSprite.alpha = this.ShadowSprite.scale.x;
 	}
 }

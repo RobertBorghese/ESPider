@@ -2,6 +2,8 @@
 
 var $gameMapTemp = {};
 $gameMapTemp._shouldLoad = false;
+$gameMapTemp._objectsUpdating = false;
+$gameMapTemp._toBeDeleted = [];
 
 Game_Map.presetObjects = [];
 
@@ -98,7 +100,7 @@ modify_Game_Map = class {
 
 	// setup ESP objects
 	setupObjects() {
-		for (const event of $dataMap.events.filter(event => !!event)) {
+		for(const event of $dataMap.events.filter(event => !!event)) {
 			if(event && event.pages && event.pages[0]) {
 				const data = event.pages[0];
 				if(data.image && data.image.characterName === "_Entities") {
@@ -111,6 +113,12 @@ modify_Game_Map = class {
 					data.list.forEach(function(event) {
 						if(event.code === 401) {
 							objectData.text.push(event.parameters[0]);
+						} else if(event.code === 357) {
+							const data = event.parameters[3];
+							const keys = Object.keys(data);
+							for(let i = 0; i < keys.length; i++) {
+								objectData[keys[i]] = data[keys[i]];
+							}
 						}
 					});
 					this.createPresetObject(index, event.x, event.y, objectData);
@@ -199,11 +207,14 @@ modify_Game_Map = class {
 	}
 
 	// add game object when needed
-	addGameObject(object, x, y) {
+	addGameObject(object, x, y, z) {
 		if(SceneManager._scene.constructor === Scene_Map) {
 			if(typeof x === "number" && typeof y === "number") {
 				object.position.x = x;
 				object.position.y = y;
+			}
+			if(typeof z === "number") {
+				object.position.z = z;
 			}
 			this.getGameObjects().push(object);
 			if(object.isGravityManipulator()) {
@@ -223,7 +234,11 @@ modify_Game_Map = class {
 	// remove game object when not needed
 	removeGameObject(object) {
 		if(object && this.canRemoveGameObjects()) {
-			this.getGameObjects().remove(object);
+			if($gameMapTemp._objectsUpdating) {
+				$gameMapTemp._toBeDeleted.push(object);
+			} else {
+				$gameMapTemp._mapObjects.remove(object);
+			}
 			this.onGameObjectRemoved(object);
 		}
 	}

@@ -43,6 +43,7 @@ modify_Scene_Map = class {
 
 	// update game objects
 	updateESPGameObjects() {
+		$gameMapTemp._objectsUpdating = true;
 		if(!$gameMap.espIsFrozen()) {
 			const objs = $gameMap.getGameObjects();
 			const len = objs.length;
@@ -50,6 +51,11 @@ modify_Scene_Map = class {
 				objs[i].update();
 			}
 		}
+		$gameMapTemp._objectsUpdating = false;
+		$gameMapTemp._toBeDeleted.forEach(function(obj) {
+			$gameMapTemp._mapObjects.remove(obj);
+		});
+		$gameMapTemp._toBeDeleted = [];
 	}
 
 	isPauseInputTriggered() {

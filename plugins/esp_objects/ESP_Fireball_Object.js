@@ -1,7 +1,7 @@
 // All right, time for the first non-player object!!
 
 class ESPFireballObject extends ESPGameObject {
-	constructor() {
+	constructor(initAnimation) {
 		super();
 
 		this.position.set(300, 350, 6);
@@ -9,37 +9,44 @@ class ESPFireballObject extends ESPGameObject {
 
 		//this._particles = [];
 		this._time = 0;
+
+		this._initAnimation = !!initAnimation;
+		this._isInitializing = this._initAnimation;
+
+		this._isDead = false;
 	}
 
 	constructSprite() {
-		return new ESPFireballSprite(this);
+		return new ESPFireballSprite(this, this._initAnimation);
 	}
 
 	update() {
-		super.update();
-		const manipulators = $gameMapTemp._gravityManipulators;
-		const len = manipulators.length;
-		for(let i = 0; i < len; i++) {
-			const manipulator = manipulators[i];
-			const distance = this.getDistance2d(manipulator);
-			if(distance < 100) {
-				const ratio = (distance / 100) * manipulator.gravity();
+		if(!this._isInitializing) {
+			super.update();
+			const manipulators = $gameMapTemp._gravityManipulators;
+			const len = manipulators.length;
+			for(let i = 0; i < len; i++) {
+				const manipulator = manipulators[i];
+				const distance = this.getDistance2d(manipulator);
+				if(distance < 100) {
+					const ratio = (distance / 100) * manipulator.gravity();
 
-				if(this.position.x < manipulator.position.x) {
-					this.speed.x += ratio;
-				} else if(this.position.x > manipulator.position.x) {
-					this.speed.x -= ratio;
-				}
+					if(this.position.x < manipulator.position.x) {
+						this.speed.x += ratio;
+					} else if(this.position.x > manipulator.position.x) {
+						this.speed.x -= ratio;
+					}
 
-				if(this.position.y < manipulator.position.y) {
-					this.speed.y += ratio;
-				} else if(this.position.y > manipulator.position.y) {
-					this.speed.y -= ratio;
+					if(this.position.y < manipulator.position.y) {
+						this.speed.y += ratio;
+					} else if(this.position.y > manipulator.position.y) {
+						this.speed.y -= ratio;
+					}
 				}
 			}
 		}
 
-		const size = 20;
+		const size = 25;
 		if(this.getDistance($espGamePlayer) < size) {
 			const spd = 60;
 			const distX = Math.abs(this.position.x - $espGamePlayer.position.x) / size;
@@ -48,13 +55,24 @@ class ESPFireballObject extends ESPGameObject {
 		}
 	}
 
+	finishInitializing() {
+		this._isInitializing = false;
+	}
+
 	onCollided(direction) {
-		$gameMap.removeGameObject(this);
+		if(!this._isDead) {
+			this._isDead = true;
+			this.speed.set(0, 0, 0);
+		}
 		/*
 		if(direction === 4 || direction === 6) {
 			this.speed.x *= -1;
 		} else {
 			this.speed.y *= -1;
 		}*/
+	}
+
+	kill() {
+		$gameMap.removeGameObject(this);
 	}
 }

@@ -4,7 +4,7 @@ class ESPSlugObject extends ESPGameObject {
 	constructor() {
 		super();
 
-		this.position.set(300, 350, 6);
+		this.position.set(300, 350, 0);
 		this.speed.set(2, 0, 0);
 
 		this._mode = 0;
