@@ -1,16 +1,23 @@
 // A quick lil sprite util for all your util needs.
 
 class ESPAnimatedSprite extends Sprite {
-	constructor(Bitmap, FrameDelay, Invert, Offset, InitOffset) {
+	constructor(Bitmap, FrameDelay, InvertOrObj, Offset, InitOffset) {
 		super();
 
 		this.bitmap = Bitmap;
 		this.bitmap.smooth = false;
 
 		this.FrameDelay = FrameDelay ?? 10;
-		this.Invert = Invert ?? false;
-		this.Offset = Offset ?? 0;
-		this.InitOffset = InitOffset ?? 0;
+		if(typeof InvertOrObj === "object") {
+			this.Invert = InvertOrObj.Invert ?? false;
+			this.Offset = InvertOrObj.Offset ?? 0;
+			this.InitOffset = InvertOrObj.InitOffset ?? 0;
+			this.FrameCount = InvertOrObj.FrameCount ?? null;
+		} else {
+			this.Invert = InvertOrObj ?? false;
+			this.Offset = Offset ?? 0;
+			this.InitOffset = InitOffset ?? 0;
+		}
 
 		this.Frame = 0;
 		this.Index = 0;
@@ -43,7 +50,7 @@ class ESPAnimatedSprite extends Sprite {
 	setup() {
 		const Width = this.bitmap.width;
 		const Height = this.bitmap.height;
-		this.MaxIndex = Math.floor(Width / Height);
+		this.MaxIndex = this.FrameCount ?? Math.floor(Width / Height);
 		if(this.bitmap._url.match(/_(\d+)\.png$/)) {
 			const Num = parseInt(RegExp.$1);
 			if(Num !== NaN) {

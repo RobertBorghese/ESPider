@@ -117,4 +117,4 @@ class ESPSlugObject extends ESPGameObject {
 	}
 }
 
-Game_Map.presetObjects.push(ESPSlugObject);
+Game_Map.presetObjects[1] = ESPSlugObject;

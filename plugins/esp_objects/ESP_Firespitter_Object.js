@@ -1,4 +1,3 @@
-
 // MAI BOI DO BE SPITTIN BARZZZ
 
 /*:
@@ -17,7 +16,7 @@
  * @on Left
  * @off Right
  * @default false
-
+ *
  * @arg Shoot Dir
  * @type select
  * @option Up
@@ -26,8 +25,21 @@
  * @value down
  * @option Left
  * @value left
+ * @option Right
+ * @value right
  * @desc
  * @default left
+ *
+ * @arg Z Level Shift
+ * @type select
+ * @option No Change
+ * @value default
+ * @option Grounded
+ * @value grounded
+ * @option Random
+ * @value random
+ * @desc
+ * @default default
  */
 
 class ESPFirespitterObject extends ESPGameObject {
@@ -40,6 +52,7 @@ class ESPFirespitterObject extends ESPGameObject {
 		this._lookDir = data["Look Dir"] === "true";
 		this._shootDir = data["Shoot Dir"] ?? "left";
 		this._shootRate = parseInt(data["Shoot Rate"]) || 60;
+		this._zLevel = data["Z Level Shift"] === "grounded" ? 1 : (data["Z Level Shift"] === "random" ? 2 : 0);
 
 		this._shootTime = 0;
 
@@ -67,19 +80,19 @@ class ESPFirespitterObject extends ESPGameObject {
 	}
 
 	shoot() {
-		this._latestFireball = new ESPFireballObject(true);
+		this._latestFireball = new ESPFireballObject(true, this._zLevel);
 		switch(this._shootDir) {
 			case "left": { this._latestFireball.speed.x = -2; break; }
 			case "right": { this._latestFireball.speed.x = 2; break; }
 			case "up": { this._latestFireball.speed.y = -2; break; }
 			case "down": { this._latestFireball.speed.y = 2; break; }
 		}
-		$gameMap.addGameObject(this._latestFireball, this.position.x, this.position.y, 20);
+		$gameMap.addGameObject(this._latestFireball, this.position.x, this.position.y, 25);
 	}
 
 	updatePlayerKill() {
 		const size = 20;
-		if(this.getDistance($espGamePlayer) < size) {
+		if(this.getDistance($espGamePlayer) < size && ($espGamePlayer.position.z !== 0 || $espGamePlayer.CollisionHeight === this.CollisionHeight)) {
 			const spd = 60;
 			const distX = Math.abs(this.position.x - $espGamePlayer.position.x) / size;
 			const distY = Math.abs(this.position.y - $espGamePlayer.position.y) / size;
@@ -88,4 +101,4 @@ class ESPFirespitterObject extends ESPGameObject {
 	}
 }
 
-Game_Map.presetObjects.push(ESPFirespitterObject);
+Game_Map.presetObjects[2] = ESPFirespitterObject;

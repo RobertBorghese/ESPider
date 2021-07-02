@@ -114,7 +114,7 @@ class ESPFireballSprite extends ESPGameSprite {
 			});
 			const particle = this._particles[i];
 			particle.x -= (this.espObject.speed.x);
-			particle.y -= (this.espObject.speed.y);
+			particle.y -= (this.espObject.speed.y - this.espObject.speed.z);
 			if(particle.isDone()) {
 				if(this.espObject._isDead) {
 					particle.visible = false;

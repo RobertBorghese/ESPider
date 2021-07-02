@@ -175,6 +175,7 @@ modify_Spriteset_Map = class {
 					}
 				}
 			} else {
+				this.setAllSpriteAlpha(0);
 				const MaxIndex = this._espTransitionIndexes.length;
 				const Index = Math.floor((this._espTransitionTime - this._ESP_GROUND_TRANSITION_TIME) * this._ESP_OBJECT_PER_FRAME).clamp(0, MaxIndex);
 				for(let i = this._espBottomIndex; i < Index; i++) {
@@ -435,8 +436,8 @@ modify_Spriteset_Map = class {
 	}
 
 	setCameraPos(x, y, force) {
-		const newX = -(x.clamp(0, (this._tilemap.width - Graphics.width)));
-		const newY = -(y.clamp(0, (this._tilemap.height - Graphics.height)));
+		const newX = -(x.clamp(0, ((this._tilemap.width) - Graphics.width)));
+		const newY = -(y.clamp(0, ((this._tilemap.height) - Graphics.height)));
 		if(this._cameraTargetX !== newX || this._cameraTargetY !== newY) {
 			this._cameraTargetX = newX;
 			this._cameraTargetY = newY;

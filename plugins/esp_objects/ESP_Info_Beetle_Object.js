@@ -25,4 +25,4 @@ class ESPInfoBeetleObject extends ESPGameObject {
 	}
 }
 
-Game_Map.presetObjects.push(ESPInfoBeetleObject);
+Game_Map.presetObjects[0] = ESPInfoBeetleObject;

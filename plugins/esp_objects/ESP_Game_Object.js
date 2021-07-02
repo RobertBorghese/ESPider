@@ -32,7 +32,7 @@ class ESPGameObject {
 	}
 
 	realZ() {
-		return this.position.z + (this.CollisionHeight * -TS);
+		return this.position.z + (this.CollisionHeight * TS);
 	}
 
 	rectWidth() {
@@ -142,6 +142,7 @@ class ESPGameObject {
 			if(this.__OldCollisionHeight !== this.CollisionHeight) {
 				const Diff = this.__OldCollisionHeight - this.CollisionHeight;
 				this.position.z += (Diff * TS);
+				this.onCollisionHeightChange(this.__OldCollisionHeight);
 			}
 		}
 	}
@@ -157,6 +158,9 @@ class ESPGameObject {
 	}
 
 	onCollided(direction) {
+	}
+
+	onCollisionHeightChange(oldHeight) {
 	}
 
 	saveData() {

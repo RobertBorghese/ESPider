@@ -24,7 +24,7 @@ class ESPParticleObject extends ESPGameObject {
 	onCollided(direction) {
 		if(this._deleteOnComplete) {
 			$gameMap.removeGameObject(this);
-			this._spr.ShouldUpdate = false;
+			if(this._spr) this._spr.ShouldUpdate = false;
 		}
 	}
 

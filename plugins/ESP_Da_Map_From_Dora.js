@@ -132,7 +132,8 @@ modify_Game_Map = class {
 		if(Game_Map.presetObjects[id]) {
 			//Game_Map
 			const cls = Game_Map.presetObjects[id];
-			this.addGameObject(new cls(objectData), x * TS, y * TS);
+			const regionId = this.tileId(x, y, 5) ?? 0;
+			this.addGameObject(new cls(objectData), (x * TS) + (TS / 2), (y * TS) + (regionId * TS) + (TS / 2));
 		}
 		/*
 		switch(id) {
@@ -216,6 +217,7 @@ modify_Game_Map = class {
 			if(typeof z === "number") {
 				object.position.z = z;
 			}
+			object.updatePosition();
 			this.getGameObjects().push(object);
 			if(object.isGravityManipulator()) {
 				$gameMapTemp._gravityManipulators.push(object);
