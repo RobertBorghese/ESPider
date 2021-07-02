@@ -163,7 +163,6 @@ modify_Spriteset_Map = class {
 
 	updateTransition() {
 		if(this._espTransitionMode > 0) {
-			console.log(this._espTransitionTime);
 			this._espTransitionTime += (this._espTransitionMode === 1 ? 1 : -1);
 			if(this._espTransitionTime <= this._ESP_GROUND_TRANSITION_TIME) {
 				this._transitionCirlce.visible = true;
@@ -206,7 +205,6 @@ modify_Spriteset_Map = class {
 	}
 
 	transitionIn() {
-		console.log("transition in!! ", this._espTransitionMode);
 		this._randomizeTransitionIndexes(1);
 		this.setAllSpriteAlpha(0);
 		this._espTransitionMode = 2;
