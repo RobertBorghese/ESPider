@@ -9,6 +9,11 @@
  * @desc 
  * @type number
  * @default 120
+ *
+ * @arg Shoot Rate Offset
+ * @desc 
+ * @type number
+ * @default 0
  * 
  * @arg Look Dir
  * @desc 
@@ -52,9 +57,10 @@ class ESPFirespitterObject extends ESPGameObject {
 		this._lookDir = data["Look Dir"] === "true";
 		this._shootDir = data["Shoot Dir"] ?? "left";
 		this._shootRate = parseInt(data["Shoot Rate"]) || 60;
+		this._shootRateOffset = parseInt(data["Shoot Rate Offset"]) || 0;
 		this._zLevel = data["Z Level Shift"] === "grounded" ? 1 : (data["Z Level Shift"] === "random" ? 2 : 0);
 
-		this._shootTime = 0;
+		this._shootTime = this._shootRateOffset;
 
 		this._fastAnimation = false;
 

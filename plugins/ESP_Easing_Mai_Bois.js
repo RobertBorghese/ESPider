@@ -41,7 +41,7 @@ const Easing = {
 		return 1 - (f * f * f - f * Math.sin(f * Math.PI));
 	},
 
-	easeInBounce: t => 1-Easing.easeInBounce(1-t),
+	easeInBounce: t => 1-Easing.easeOutBounce(1-t),
 	easeOutBounce: p => {
 		if(p < 4/11.0) return (121 * p * p)/16.0;
 		else if(p < 8/11.0) return (363/40.0 * p * p) - (99/10.0 * p) + 17/5.0;

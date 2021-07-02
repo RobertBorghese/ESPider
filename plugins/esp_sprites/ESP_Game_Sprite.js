@@ -2,11 +2,13 @@
 
 modify_Spriteset_Map = class {
 	initialize() {
-		ESP.Spriteset_Map.initialize.apply(this, arguments);
 		this._espIsFrozen = false;
 		if(!this._unfreezable) this._unfreezable = [];
-		this.initializeFadeMembers();
 		this.initializeTransitionMembers();
+
+		ESP.Spriteset_Map.initialize.apply(this, arguments);
+
+		this.initializeFadeMembers();
 	}
 
 	createCharacters() {
@@ -155,8 +157,13 @@ modify_Spriteset_Map = class {
 		$gameMap.onESPFadeOutComplete(isIn);
 	}
 
+	canMoveCamera() {
+		return this._espTransitionMode === 0 || this._espTransitionMode === 2;
+	}
+
 	updateTransition() {
 		if(this._espTransitionMode > 0) {
+			console.log(this._espTransitionTime);
 			this._espTransitionTime += (this._espTransitionMode === 1 ? 1 : -1);
 			if(this._espTransitionTime <= this._ESP_GROUND_TRANSITION_TIME) {
 				this._transitionCirlce.visible = true;
@@ -199,6 +206,7 @@ modify_Spriteset_Map = class {
 	}
 
 	transitionIn() {
+		console.log("transition in!! ", this._espTransitionMode);
 		this._randomizeTransitionIndexes(1);
 		this.setAllSpriteAlpha(0);
 		this._espTransitionMode = 2;
@@ -307,8 +315,10 @@ modify_Spriteset_Map = class {
 	}
 
 	_updateTransitionCirclePosition() {
-		this._transitionCirlce.x = this._espPlayer.x - 10;
-		this._transitionCirlce.y = this._espPlayer.y;
+		if(this._transitionCirlce && this._espPlayer) {
+			this._transitionCirlce.x = this._espPlayer.x - 10;
+			this._transitionCirlce.y = this._espPlayer.y;
+		}
 	}
 
 	_updateTransitionCircleSizedBasedOnPosition() {
@@ -333,9 +343,11 @@ modify_Spriteset_Map = class {
 	}
 
 	setAllSpriteAlpha(alpha) {
-		this._tilemap._espSprites.forEach(function(spr) {
-			spr.alpha = alpha;
-		});
+		if(this?._tilemap?._espSprites) {
+			this._tilemap._espSprites.forEach(function(spr) {
+				spr.alpha = alpha;
+			});
+		}
 		if(this._myFilter) {
 			this._myFilter.alpha = 0.5 * (1 - alpha);
 		}

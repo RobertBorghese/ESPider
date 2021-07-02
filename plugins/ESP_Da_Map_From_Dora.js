@@ -148,7 +148,26 @@ modify_Game_Map = class {
 	// handling map "notetags" very lazily
 	initMapEval() {
 		this._espTransitions = {};
+
+		let code = "";
+
 		if($dataMap && $dataMap.note) {
+			code += $dataMap.note + "\n";
+		}
+
+		for(const event of $dataMap.events.filter(event => !!event)) {
+			if(event && event.pages && event.pages[0]) {
+				const data = event.pages[0];
+				data.list.forEach(function(event) {
+					if(event.code === 355 || event.code === 655) {
+						code += event.parameters[0] + "\n";
+					}
+				});
+			}
+		}
+
+		if(code) {
+			const addGameObject = this.addGameObject.bind(this);
 			function addTransitionDir(dir, mapId, destDir, dest, requiredZ) {
 				this._espTransitions[dir] = [mapId, destDir, dest, requiredZ];
 			};
@@ -161,7 +180,7 @@ modify_Game_Map = class {
 			const left = addTransitionDir.bind(this, "left");
 			const right = addTransitionDir.bind(this, "right");
 			try {
-				eval($dataMap.note);
+				eval(code);
 			} catch(e) {}
 		}
 	}
@@ -185,7 +204,9 @@ modify_Game_Map = class {
 		if(this._espNewMapPosition !== null) {
 			this._espNewMapPosition = null;
 			$espGamePlayer.makePlayable();
-			$espGamePlayer.saveRespawnPos();
+			if($espGamePlayer.saveRespawnPos()) {
+				this.save();
+			}
 		}
 	}
 
@@ -195,7 +216,9 @@ modify_Game_Map = class {
 			$espGamePlayer.reset(this._espNewMapPosition.x, this._espNewMapPosition.y, this._espNewMapPosition.xSpd, this._espNewMapPosition.ySpd);
 		} else {
 			$espGamePlayer.makePlayable();
-			$espGamePlayer.saveRespawnPos();
+			if($espGamePlayer.saveRespawnPos()) {
+				this.save();
+			}
 		}
 	}
 

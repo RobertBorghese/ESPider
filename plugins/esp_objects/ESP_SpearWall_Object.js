@@ -22,7 +22,7 @@
  */
 
 class ESPSpearWallObject extends ESPGameObject {
-	constructor(data) {
+	constructor(data, showAni) {
 		super();
 
 		this.position.set(300, 350, 0);
@@ -30,6 +30,10 @@ class ESPSpearWallObject extends ESPGameObject {
 
 		this._width = parseInt(data["Width"]) || 2;
 		this._startingUp = data["StartingState"] === "up";
+
+		this._showAnimation = showAni ? 1 : 0;
+		this._showTime = 0;
+		this._scaleState = showAni ? 0 : 1;
 	}
 
 	constructSprite() {
@@ -39,17 +43,52 @@ class ESPSpearWallObject extends ESPGameObject {
 	update() {
 		super.update();
 
+		if(this._showAnimation !== 0) {
+			this._showTime += 0.04 * (this._showAnimation === 1 ? 1 : -1);
+
+			this._scaleState = Easing.easeOutBack(this._showTime);
+
+			if((this._showAnimation === 1 && this._showTime >= 1) ||
+				(this._showAnimation === 2 && this._showTime <= 0)) {
+
+				if(this._showAnimation === 2) {
+					$gameMap.removeGameObject(this);
+				}
+
+				this._showTime = 0;
+				this._showAnimation = 0;
+			}
+		} else {
+			this._scaleState = 1;
+		}
+
 		this.updatePlayerKill();
+	}
+
+	centerX() {
+		return this.position.x + ((TS / 2) * (this._width - 1).clamp(0, 99));
 	}
 
 	updatePlayerKill() {
 		const size = 20;
-		if(this.getDistance($espGamePlayer) < size) {
+		const playerX = $espGamePlayer.position.x;
+		const playerY = $espGamePlayer.position.y;
+		const playerZ = $espGamePlayer.realZ();
+		const TS2 = TS / 2;
+		if(playerX >= (this.position.x - TS2) && playerX < (this.position.x + TS2 + ((this._width - 1) * TS)) &&
+			(playerY >= this.position.y - TS2) && (playerY < this.position.y + TS2) && 
+			(playerZ >= this.realZ()) && (playerZ < this.realZ() + TS * 2)) {
+
 			const spd = 60;
-			const distX = Math.abs(this.position.x - $espGamePlayer.position.x) / size;
 			const distY = Math.abs(this.position.y - $espGamePlayer.position.y) / size;
-			$espGamePlayer.kill(spd * (this.position.x > $espGamePlayer.position.x ? -distX : distX), spd * (this.position.y > $espGamePlayer.position.y ? -distY : distY), 40);
+			$espGamePlayer.kill(0, spd * (this.position.y > $espGamePlayer.position.y ? -distY : distY), 40);
+
 		}
+	}
+
+	hideSpears() {
+		this._showAnimation = 2;
+		this._showTime = 1;
 	}
 }
 

@@ -310,6 +310,13 @@ class ESPGamePlayer extends ESPGameObject {
 	saveRespawnPos() {
 		this.respawnPos.x = this.position.x;
 		this.respawnPos.y = this.position.y;
+		if(this.__oldRespawnPosX !== this.respawnPos.x || this.__oldRespawnPosY !== this.respawnPos.y || this.__oldMapId !== $gameMap.mapId()) {
+			this.__oldRespawnPosX = this.respawnPos.x;
+			this.__oldRespawnPosY = this.respawnPos.y;
+			this.__oldMapId = $gameMap.mapId();
+			return true;
+		}
+		return false;
 	}
 
 	restoreRespawnPos() {
