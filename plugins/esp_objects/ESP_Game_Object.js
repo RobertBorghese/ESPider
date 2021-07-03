@@ -43,6 +43,14 @@ class ESPGameObject {
 		return 10;
 	}
 
+	visibleWidth() {
+		return 30;
+	}
+
+	visibleHeight() {
+		return 30;
+	}
+
 	isGravityManipulator() {
 		return false;
 	}
@@ -92,6 +100,15 @@ class ESPGameObject {
 		return $gameMap.espCollisionKillers[index] ?? 0;
 	}
 
+	_GetCornerShow(x, y) {
+		const tileSize = TS;
+		const xx =  Math.floor(((this.position.x) + ((this.visibleWidth()) * x)) / tileSize);
+		const yy = Math.floor(((this.position.y) + ((this.visibleHeight()) * y)) / tileSize);
+		if(xx < 0 || yy < 0 || xx >= $gameMap.width() || (xx + (yy * $dataMap.width)) >= $gameMap.espCollisionKillers.length) return 0;
+		const index = xx + (yy * $dataMap.width);
+		return $gameMap.espCollisionShowMap[index] ?? 0;
+	}
+
 	findCollisionHeight() {
 		return Math.max(
 			this._GetCornerIndex(-1, -1),
@@ -109,6 +126,20 @@ class ESPGameObject {
 			this._GetCornerKill(1, -1, expandX, expandY),
 			this._GetCornerKill(-1, 1, expandX, expandY),
 			this._GetCornerKill(1, 1, expandX, expandY)
+		);
+	}
+
+	findLowestShow() {
+		return Math.min(
+			this._GetCornerShow(-1, -1),
+			this._GetCornerShow(0, -1),
+			this._GetCornerShow(1, -1),
+			this._GetCornerShow(-1, 0),
+			this._GetCornerShow(0, 0),
+			this._GetCornerShow(1, 0),
+			this._GetCornerShow(-1, 1),
+			this._GetCornerShow(0, 1),
+			this._GetCornerShow(1, 1)
 		);
 	}
 
@@ -220,5 +251,9 @@ class ESPGameObject {
 		this.position = new Vector3(data.position.x ?? 0, data.position.y ?? 0, data.position.z ?? 0);
 		this.speed = new Vector3(data.speed.x ?? 0, data.speed.y ?? 0, data.speed.z ?? 0);
 		this.CollisionHeight = data.CollisionHeight ?? 0;
+	}
+
+	shadowify() {
+		return false;
 	}
 }

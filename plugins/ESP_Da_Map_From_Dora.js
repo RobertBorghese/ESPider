@@ -12,6 +12,7 @@ modify_Game_Map = class {
 	initialize() {
 		ESP.Game_Map.initialize.apply(this, arguments);
 		this._espNewMapPosition = null;
+		this._isTranferring = false;
 		this._worldFrozen = false;
 		this.initESPFields();
 	}
@@ -69,10 +70,12 @@ modify_Game_Map = class {
 		let largestRegion = 0;
 		this.espCollisionMap = [];
 		this.espCollisionKillers = [];
+		this.espCollisionShowMap = [];
 		for(let x = 0; x < mapWidth; x++) {
 			for(let y = 0; y < mapHeight; y++) {
 				this.espCollisionMap.push(0);
 				this.espCollisionKillers.push(0);
+				this.espCollisionShowMap.push(0);
 				const regionId = this.getColHeight(x, y);
 				if(largestRegion < regionId) {
 					largestRegion = regionId;
@@ -98,6 +101,12 @@ modify_Game_Map = class {
 				if(regionId > 0) {
 					const newX = x;
 					const newY = y + regionId;
+					let offset = 0;
+					for(let i = newY; i >= y; i--) {
+						const index = newX + (i * mapWidth);
+						this.espCollisionShowMap[index] = Math.max(this.espCollisionShowMap[index], regionId - offset);
+						if(i !== newY) offset++;
+					}
 					this.espCollisionMap[newX + (newY * mapWidth)] = regionId ?? 0;
 					this.espCollisionKillers[newX + (newY * mapWidth)] = killId;
 					if(newY > mapHeight) {
@@ -118,7 +127,7 @@ modify_Game_Map = class {
 	// any starting game objects get initiated here
 	initStartingGameObjects() {
 		this.setupObjects();
-		this.addGameObject(new ESPFireballObject());
+		//this.addGameObject(new ESPFireballObject());
 	}
 
 	// setup ESP objects
@@ -212,7 +221,7 @@ modify_Game_Map = class {
 	initPlayerPos() {
 		if($gameMapTemp._shouldLoad) return;
 		if(this._espNewMapPosition === null) {
-			$espGamePlayer.movexy(this._espStartX * TS, this._espStartY * TS);
+			$espGamePlayer.movexy((this._espStartX + 0.5) * TS, (this._espStartY + 0.5) * TS);
 		} else {
 			$espGamePlayer.movexy(this._espNewMapPosition.x, this._espNewMapPosition.y);
 		}
@@ -236,6 +245,7 @@ modify_Game_Map = class {
 			$espGamePlayer.makePlayable();
 			this.saveRespawnPosAndSave();
 		}
+		this._isTranferring = false;
 	}
 
 	// upon transferring in and the player is visible (even if transparent)
@@ -407,6 +417,10 @@ modify_Game_Map = class {
 			this._worldFrozen = frozen;
 			SceneManager._scene._spriteset.setFrozen(frozen);
 		}
+	}
+
+	getShadowifyObjects() {
+		return $gameMapTemp._mapObjects.filter(obj => obj.shadowify()).concat([$espGamePlayer]);
 	}
 
 	// need more precise method for getting touch x/y

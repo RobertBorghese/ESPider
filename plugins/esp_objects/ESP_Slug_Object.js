@@ -43,7 +43,7 @@ class ESPSlugObject extends ESPGameObject {
 				this.speed.x = Math.sin(radians) * -8;
 				this.speed.y = Math.cos(radians) * -8;
 				this._mode = 2;
-				this._actionTime = 60;
+				this._actionTime = 40;
 			}
 		} else if(this._mode === 2) {
 			this._actionTime--;
@@ -115,6 +115,10 @@ class ESPSlugObject extends ESPGameObject {
 
 	mode() {
 		return this._mode;
+	}
+
+	shadowify() {
+		return true;
 	}
 }
 

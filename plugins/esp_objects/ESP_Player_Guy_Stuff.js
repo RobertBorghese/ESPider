@@ -208,6 +208,7 @@ class ESPGamePlayer extends ESPGameObject {
 
 			this._spriteRotation = 6 * Easing.easeOutCubic(ratio) * (this._deathAnimationData.x < 0 ? -1 : 1);
 
+			if(!this._customColor) this._customColor = [0, 0, 0, 0];
 			this._customColor[0] = this._customColor[1] = this._customColor[2] = (255 * ratio);
 
 			const easeRatio = Easing.easeOutCubic(ratio);
@@ -348,5 +349,9 @@ class ESPGamePlayer extends ESPGameObject {
 		data.respawnPos = data.respawnPos ?? {};
 		this.respawnPos = { x: data.respawnPos.x ?? 0, y: data.respawnPos.y ?? 0 };
 		this.respawnCheckId = data.respawnCheckId ?? 0;
+	}
+
+	shadowify() {
+		return true;
 	}
 }

@@ -11,6 +11,14 @@ modify_Game_Player = class {
 
 	update() {
 	}
+
+	setupForNewGame() {
+		ESP.Game_Player.setupForNewGame.apply(this, arguments);
+		// skip intro when testing and holding a s and d
+		if($gameTemp.isPlaytest() && (!Input.isPressed("a") || !Input.isPressed("s") || !Input.isPressed("d"))) {
+			$gameTemp._isNewGame = true;
+		}
+	}
 }
 
 // this is dumb annoying feature. GET DISTABLED!! >:3

@@ -4,6 +4,7 @@ modify_Spriteset_Map = class {
 	initialize() {
 		this._espIsFrozen = false;
 		if(!this._unfreezable) this._unfreezable = [];
+		this.initializeWorldTransparency();
 		this.initializeTransitionMembers();
 
 		ESP.Spriteset_Map.initialize.apply(this, arguments);
@@ -67,6 +68,12 @@ modify_Spriteset_Map = class {
 		}
 	}
 
+	initializeWorldTransparency() {
+		this.__makeWorldTransparent = false;
+		this.__makeWorldAlpha = 1;
+		this.__makeWorldTargetAlpha = 1;
+	}
+
 	initializeFadeMembers() {
 		this._espFadeMode = 0;
 		this._espFadeTime = 0;
@@ -110,8 +117,30 @@ modify_Spriteset_Map = class {
 			this._espPlayer.update();
 			this._unfreezable.forEach(s => s.update());
 		}
+		this.updateWorldTransparency();
 		this.updateFade();
 		this.updateTransition();
+	}
+
+	updateWorldTransparency() {
+		if(this._espWorldSprites) {
+			const highest = $espGamePlayer.findLowestShow();
+			const makeWorldTransparent = $espGamePlayer.realZ() < ((highest * TS) - (TS * 0.75));
+			if(this.__makeWorldTransparent !== makeWorldTransparent) {
+				this.__makeWorldTransparent = makeWorldTransparent;
+				this.__makeWorldTargetAlpha = makeWorldTransparent ? 0.5 : 1;
+				$espGamePlayer._customColor = makeWorldTransparent ? [0, 0, 0] : null;
+			}
+		}
+		if(this.__makeWorldAlpha < this.__makeWorldTargetAlpha) {
+			this.__makeWorldAlpha += 0.05;
+			if(this.__makeWorldAlpha >= this.__makeWorldTargetAlpha) this.__makeWorldAlpha = this.__makeWorldTargetAlpha;
+			this._espWorldSprites.forEach(w => w.alpha = this.__makeWorldAlpha);
+		} else if(this.__makeWorldAlpha > this.__makeWorldTargetAlpha) {
+			this.__makeWorldAlpha -= 0.05;
+			if(this.__makeWorldAlpha <= this.__makeWorldTargetAlpha) this.__makeWorldAlpha = this.__makeWorldTargetAlpha;
+			this._espWorldSprites.forEach(w => w.alpha = this.__makeWorldAlpha);
+		}
 	}
 
 	updateFade() {
@@ -161,32 +190,61 @@ modify_Spriteset_Map = class {
 		return this._espTransitionMode === 0 || this._espTransitionMode === 2;
 	}
 
+	getGroundTransitionTime() {
+		return $gameTemp._isNewGame ? this._ESP_GROUND_TRANSITION_TIME * 10 : this._ESP_GROUND_TRANSITION_TIME;
+	}
+
+	getObjectPerFrame() {
+		return $gameTemp._isNewGame ? this._ESP_OBJECT_PER_FRAME : this._ESP_OBJECT_PER_FRAME;
+	}
+
 	updateTransition() {
+		const transitionTime = this.getGroundTransitionTime();
 		if(this._espTransitionMode > 0) {
 			this._espTransitionTime += (this._espTransitionMode === 1 ? 1 : -1);
-			if(this._espTransitionTime <= this._ESP_GROUND_TRANSITION_TIME) {
+			if(this._espTransitionTime <= transitionTime) {
 				this._transitionCirlce.visible = true;
-				const Ratio = this._ESP_GROUND_EASING(this._espTransitionTime / this._ESP_GROUND_TRANSITION_TIME);
+				const Ratio = this._ESP_GROUND_EASING(this._espTransitionTime / transitionTime);
+				if($gameTemp._isNewGame) {
+					this._tilemap.scale.set((Ratio * 5) + 1);
+				}
 				this._transitionCirlce.scale.set(Ratio);
 				this.setAllSpriteAlpha(1 - Ratio);
+				if($gameTemp._isNewGame) {
+					this._espWorldSprites.forEach(w => w.alpha = (1 - Ratio));
+				}
 				if(this._espTransitionMode === 2) {
 					this._updateTransitionCirclePosition();
-					if(this._espTransitionTime === this._ESP_GROUND_TRANSITION_TIME) {
+					if(this._espTransitionTime === transitionTime) {
 						this.OnPlayerVisibleFromIn();
 					}
 					if(this._espTransitionTime <= 0) {
 						this._transitionCirlce.visible = false;
 						this._espTransitionMode = 0;
 						this.OnTransitionComplete(true);
+						if($gameTemp._isNewGame) {
+							this._tilemap.scale.set(1);
+						}
+					}
+				}
+				if($gameTemp._isNewGame) {
+					if(this._espWorldSprites && this._espWorldSprites[0] && !this._espWorldSprites[0].visible) {
+						this._espWorldSprites.forEach(w => w.visible = true);
 					}
 				}
 			} else {
+				if($gameTemp._isNewGame) {
+					this._tilemap.scale.set(6);
+				}
 				this.setAllSpriteAlpha(0);
 				const MaxIndex = this._espTransitionIndexes.length;
-				const Index = Math.floor((this._espTransitionTime - this._ESP_GROUND_TRANSITION_TIME) * this._ESP_OBJECT_PER_FRAME).clamp(0, MaxIndex);
+				const Index = Math.floor((this._espTransitionTime - transitionTime) * this.getObjectPerFrame()).clamp(0, MaxIndex);
 				for(let i = this._espBottomIndex; i < Index; i++) {
 					const data = this._espTransitionIndexes[i];
 					const spr = this._espWorldSprites[data[0]];
+					if($gameTemp._isNewGame) {
+						spr.visible = false;
+					}
 					if(!spr.__espDuration) spr.__espDuration = 0;
 					spr.__espDuration += this._ESP_OBJECT_TRANSITION_OFFSET * (this._espTransitionMode === 1 ? 1 : -1);
 					spr.__espDuration = spr.__espDuration.clamp(0, 1);
@@ -217,6 +275,7 @@ modify_Spriteset_Map = class {
 		this._createShadowFilter();
 		this._myFilter.alpha = 0.5;
 		this._espWorldSprites.forEach(s => { s.parent.removeChild(s); this._filterHolder.addChild(s); });
+		$gameMap._isTranferring = true;
 	}
 
 	transitionOut() {
@@ -232,6 +291,7 @@ modify_Spriteset_Map = class {
 		this._createShadowFilter();
 		this._myFilter.alpha = 0;
 		this._espWorldSprites.forEach(s => { s.parent.removeChild(s); this._filterHolder.addChild(s); });
+		$gameMap._isTranferring = true;
 	}
 
 	_createShadowFilter() {
@@ -259,7 +319,7 @@ modify_Spriteset_Map = class {
 	}
 
 	_calculateEndTime() {
-		return this._ESP_GROUND_TRANSITION_TIME + ((1 / this._ESP_OBJECT_TRANSITION_OFFSET) + Math.ceil(this._espWorldSprites.length / this._ESP_OBJECT_PER_FRAME));
+		return (this.getGroundTransitionTime()) + ((1 / this._ESP_OBJECT_TRANSITION_OFFSET) + Math.ceil(this._espWorldSprites.length / this.getObjectPerFrame()));
 	}
 
 	updateWorldSpriteVisibility() {
@@ -352,6 +412,7 @@ modify_Spriteset_Map = class {
 	}
 
 	OnTransitionComplete(wasIn) {
+		$gameTemp._isNewGame = false;
 		this._espWorldSprites.forEach(s => { s.parent.removeChild(s); this._filterHolder.parent.addChild(s); });
 		//this._espWorldSprites.forEach(s => s.filters = null);
 		this._myFilter = null;
@@ -386,7 +447,7 @@ modify_Spriteset_Map = class {
 		this._transitionCirlce.endFill();
 		this._transitionCirlce.z = 1;
 		this._transitionCirlce.visible = false;
-		this._transitionCirlce.filters = [new PIXI.filters.PixelateFilter(40)];
+		this._transitionCirlce.filters = [new PIXI.filters.PixelateFilter(20)];
 		this._tilemap.addChild(this._transitionCirlce);
 
 		this._tilemap._needsRepaint = true;
@@ -428,7 +489,7 @@ modify_Spriteset_Map = class {
 					spr._colZ = regionId * TS;
 					spr.z = height == 1 ? 999 : 4;
 					spr._espWorldObject = true;
-					spr.alpha = 0.5;
+					//if((y + height) >= mapHeight) spr.alpha = 0.5;
 					this._espWorldSprites.push(spr);
 					//this._tilemap._espWorldSprites = this._espWorldSprites;
 					this._tilemap.addChild(spr);
@@ -447,8 +508,10 @@ modify_Spriteset_Map = class {
 	}
 
 	setCameraPos(x, y, force) {
-		const newX = -(x.clamp(0, ((this._tilemap.width) - Graphics.width)));
-		const newY = -(y.clamp(0, ((this._tilemap.height) - Graphics.height)));
+		//x *= this._tilemap.scale.x;
+		//y *= this._tilemap.scale.y;
+		const newX = -(x.clamp(0, ((this._tilemap.width * this._tilemap.scale.x) - Graphics.width)));
+		const newY = -(y.clamp(0, ((this._tilemap.height * this._tilemap.scale.y) - Graphics.height)));
 		if(this._cameraTargetX !== newX || this._cameraTargetY !== newY) {
 			this._cameraTargetX = newX;
 			this._cameraTargetY = newY;

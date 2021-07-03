@@ -424,7 +424,7 @@ class ESPPlayerSprite extends ESPGameSprite {
 	updateColor() {
 		if(this.espObject.hasCustomColor()) {
 			this.PlayerHolder.setColorTone(this.espObject.customColor());
-		} else if(this.PlayerHolder._colorTone.x !== 0 || this.PlayerHolder._colorTone.y !== 0 || this.PlayerHolder._colorTone.z !== 0) {
+		} else if(this.PlayerHolder._colorTone[0] !== 0 || this.PlayerHolder._colorTone[1] !== 0 || this.PlayerHolder._colorTone[2] !== 0 || this.PlayerHolder._colorTone[3] !== 0) {
 			this.PlayerHolder.setColorTone([0, 0, 0, 0]);
 		}
 	}

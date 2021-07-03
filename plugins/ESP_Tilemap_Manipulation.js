@@ -138,3 +138,28 @@ Object.defineProperty(Tilemap.prototype, "height", {
     },
     configurable: true
 });
+
+Tilemap.prototype.updateTransform = function() {
+    const ox = Math.ceil(this.origin.x);
+    const oy = Math.ceil(this.origin.y);
+    const startX = 0;//Math.floor((ox - this._margin) / this._tileWidth);
+    const startY = 0;//Math.floor((oy - this._margin) / this._tileHeight);
+    this._lowerLayer.x = 0;//startX * this._tileWidth - ox;
+    this._lowerLayer.y = 0;//startY * this._tileHeight - oy;
+    this._upperLayer.x = 0;//startX * this._tileWidth - ox;
+    this._upperLayer.y = 0;// startY * this._tileHeight - oy;
+    if (
+        this._needsRepaint ||
+        this._lastAnimationFrame !== this.animationFrame ||
+        this._lastStartX !== startX ||
+        this._lastStartY !== startY
+    ) {
+        this._lastAnimationFrame = this.animationFrame;
+        this._lastStartX = startX;
+        this._lastStartY = startY;
+        this._addAllSpots(startX, startY);
+        this._needsRepaint = false;
+    }
+    this._sortChildren();
+    PIXI.Container.prototype.updateTransform.call(this);
+};

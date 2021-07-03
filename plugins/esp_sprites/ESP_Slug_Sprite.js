@@ -8,10 +8,13 @@ class ESPSlugSprite extends ESPGameSprite {
 
 		this.ObjectHolderOffsetY = 20;
 
+		this._slugHolder = new Sprite();
+		this.ObjectHolder.addChild(this._slugHolder);
+
 		this._slugSprite = new ESPAnimatedSprite(ImageManager.loadBitmapFromUrl("img/enemies/Slug.png"), 8);
 		this._slugSprite.scale.set(2);
 		this._slugSprite.anchor.set(0.5, 1);
-		this.ObjectHolder.addChild(this._slugSprite);
+		this._slugHolder.addChild(this._slugSprite);
 	}
 
 	update() {

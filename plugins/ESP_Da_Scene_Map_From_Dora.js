@@ -38,8 +38,11 @@ modify_Scene_Map = class {
 	}
 
 	updateCameraPos() {
-		if(this._spriteset && this._spriteset.canMoveCamera()) {
-			this._spriteset.setCameraPos($espGamePlayer.position.x - (Graphics.width / 2), $espGamePlayer.position.y - (Graphics.height / 2));
+		if(this._spriteset && (this._spriteset.canMoveCamera())) {
+			this._spriteset.setCameraPos(
+				($espGamePlayer.position.x * this._spriteset._tilemap.scale.x) - (Graphics.width / 2),
+				($espGamePlayer.position.y * this._spriteset._tilemap.scale.y) - (Graphics.height / 2),
+				$gameTemp._isNewGame);
 		}
 	}
 
