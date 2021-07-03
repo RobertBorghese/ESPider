@@ -48,37 +48,58 @@ modify_Game_Map = class {
 		this._espStartY = 0;
 	}
 
+	// get height
+	getColHeight(x, y) {
+		let result = this.tileId(x, y, 5) ?? 0;
+		if(result >= 100) result -= 100;
+		return result;
+	}
+
+	// get killer type
+	getColKill(x, y) {
+		let result = this.tileId(x, y, 5) ?? 0;
+		if(result >= 100) return 1;
+		return 0;
+	}
+
 	// setup collision map for 3d world
 	setupCollisionMap() {
 		const mapWidth = $dataMap.width;
 		const mapHeight = $dataMap.height;
 		let largestRegion = 0;
 		this.espCollisionMap = [];
+		this.espCollisionKillers = [];
 		for(let x = 0; x < mapWidth; x++) {
 			for(let y = 0; y < mapHeight; y++) {
 				this.espCollisionMap.push(0);
-				const regionId = this.tileId(x, y, 5) ?? 0;
+				this.espCollisionKillers.push(0);
+				const regionId = this.getColHeight(x, y);
 				if(largestRegion < regionId) {
 					largestRegion = regionId;
 				}
 			}
 		}
 
+		/*
 		for(let i = 0; i < largestRegion; i++) {
 			for(let x = 0; x < mapWidth; x++) {
 				this.espCollisionMap.push(0);
+				this.espCollisionKillers.push(0);
 			}
 		}
+		*/
 
 		this.MapBottom = mapHeight;
 
 		for(let x = 0; x < mapWidth; x++) {
 			for(let y = 0; y < mapHeight; y++) {
-				const regionId = this.tileId(x, y, 5);
+				const regionId = this.getColHeight(x, y);
+				const killId = this.getColKill(x, y);
 				if(regionId > 0) {
 					const newX = x;
 					const newY = y + regionId;
 					this.espCollisionMap[newX + (newY * mapWidth)] = regionId ?? 0;
+					this.espCollisionKillers[newX + (newY * mapWidth)] = killId;
 					if(newY > mapHeight) {
 						this.MapBottom = newY;
 					}
@@ -87,6 +108,8 @@ modify_Game_Map = class {
 							this.espCollisionMap[newX + (i * mapWidth)] = 99;
 						}
 					}
+				} else if(killId > 0) {
+					this.espCollisionKillers[x + (y * mapWidth)] = killId;
 				}
 			}
 		}
@@ -132,7 +155,7 @@ modify_Game_Map = class {
 		if(Game_Map.presetObjects[id]) {
 			//Game_Map
 			const cls = Game_Map.presetObjects[id];
-			const regionId = this.tileId(x, y, 5) ?? 0;
+			const regionId = this.getColHeight(x, y);
 			this.addGameObject(new cls(objectData), (x * TS) + (TS / 2), (y * TS) + (regionId * TS) + (TS / 2));
 		}
 		/*
@@ -199,14 +222,19 @@ modify_Game_Map = class {
 		$espGamePlayer.saveRespawnPos();
 	}
 
+	// save respawn point and save
+	saveRespawnPosAndSave(checkId) {
+		if($espGamePlayer.saveRespawnPos(checkId)) {
+			this.save();
+		}
+	}
+
 	// upon transferring in and the transfer is done
 	onTransferInReady() {
 		if(this._espNewMapPosition !== null) {
 			this._espNewMapPosition = null;
 			$espGamePlayer.makePlayable();
-			if($espGamePlayer.saveRespawnPos()) {
-				this.save();
-			}
+			this.saveRespawnPosAndSave();
 		}
 	}
 
@@ -216,9 +244,7 @@ modify_Game_Map = class {
 			$espGamePlayer.reset(this._espNewMapPosition.x, this._espNewMapPosition.y, this._espNewMapPosition.xSpd, this._espNewMapPosition.ySpd);
 		} else {
 			$espGamePlayer.makePlayable();
-			if($espGamePlayer.saveRespawnPos()) {
-				this.save();
-			}
+			this.saveRespawnPosAndSave();
 		}
 	}
 

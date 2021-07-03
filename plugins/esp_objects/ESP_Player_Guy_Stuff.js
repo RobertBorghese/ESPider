@@ -10,6 +10,7 @@ class ESPGamePlayer extends ESPGameObject {
 		this.speed.set(0, 0, 0);
 
 		this.respawnPos = {x: 0, y: 0};
+		this.respawnCheckId = 0;
 
 		this._jumpHelp = 0;
 		this._triggerHelp = 0;
@@ -44,11 +45,13 @@ class ESPGamePlayer extends ESPGameObject {
 	makeCustscene() {
 		this._canTransition = false;
 		this._canControl = false;
+		this.CanCollide = false;
 	}
 
 	makePlayable() {
 		this._canTransition = true;
 		this._canControl = true;
+		this.CanCollide = true;
 	}
 
 	canControl() {
@@ -61,6 +64,7 @@ class ESPGamePlayer extends ESPGameObject {
 		this.updateFalling();
 		super.update();
 		this.updateTransition();
+		this.updateDeathTiles();
 		this.updateDying();
 	}
 
@@ -186,6 +190,12 @@ class ESPGamePlayer extends ESPGameObject {
 		}
 	}
 
+	updateDeathTiles() {
+		if(!this._isDying && this.findKill() === 1 && this.position.z <= 0) {
+			this.kill(0, 0, 60);
+		}
+	}
+
 	updateDying() {
 		this.updateDeathAnimation1();
 		this.updateDeathAnimation2();
@@ -307,9 +317,10 @@ class ESPGamePlayer extends ESPGameObject {
 		return this._isVisible;
 	}
 
-	saveRespawnPos() {
+	saveRespawnPos(checkId) {
 		this.respawnPos.x = this.position.x;
 		this.respawnPos.y = this.position.y;
+		this.respawnCheckId = checkId ?? 0;
 		if(this.__oldRespawnPosX !== this.respawnPos.x || this.__oldRespawnPosY !== this.respawnPos.y || this.__oldMapId !== $gameMap.mapId()) {
 			this.__oldRespawnPosX = this.respawnPos.x;
 			this.__oldRespawnPosY = this.respawnPos.y;
@@ -328,6 +339,7 @@ class ESPGamePlayer extends ESPGameObject {
 	saveData() {
 		const result = super.saveData();
 		result.respawnPos = this.respawnPos;
+		result.respawnCheckId = this.respawnCheckId;
 		return result;
 	}
 
@@ -335,5 +347,6 @@ class ESPGamePlayer extends ESPGameObject {
 		super.loadData(data);
 		data.respawnPos = data.respawnPos ?? {};
 		this.respawnPos = { x: data.respawnPos.x ?? 0, y: data.respawnPos.y ?? 0 };
+		this.respawnCheckId = data.respawnCheckId ?? 0;
 	}
 }

@@ -59,7 +59,7 @@ class ESPFireballObject extends ESPGameObject {
 				} else {
 					this.speed.z = 0;
 					if(this.position.z < ESP.StandardFireballHeight) {
-						this.position.z += 0.02;
+						this.speed.z += 0.01;
 						if(this.position.z >= ESP.StandardFireballHeight) this.position.z = ESP.StandardFireballHeight;
 					}
 				}

@@ -394,15 +394,15 @@ modify_Spriteset_Map = class {
 		const tilemapBitmap = Bitmap.snapWhole(this._tilemap._lowerLayer, this._tilemap.width, this._tilemap.height);
 		for(let x = 0; x < mapWidth; x++) {
 			for(let y = 0; y < mapHeight; y++) {
-				const regionId = $gameMap.tileId(x, y, 5) ?? 0;
+				const regionId = $gameMap.getColHeight(x, y);
 				if(regionId > 0) {
 					let height = 0;
-					if(($gameMap.tileId(x, y + 1, 5) ?? 0) > 0) {
+					if(($gameMap.getColHeight(x, y + 1)) > 0) {
 						height = 1;
 					} else {
 						height = 2;
 						for(let i = 2; i <= regionId; i++) {
-							if(($gameMap.tileId(x, y + i, 5) ?? 0) > 0) {
+							if(($gameMap.getColHeight(x, y + i)) > 0) {
 								i = regionId + 1;
 							} else {
 								height++;

@@ -74,12 +74,41 @@ class ESPGameObject {
 		return $gameMap.espCollisionMap[xx + (yy * $dataMap.width)] ?? 0;
 	}
 
+	_GetCornerIndexEx(x, y, xPos, yPos) {
+		const tileSize = TS;
+		const xx =  Math.floor(((xPos ?? this.position.x) + (this.rectWidth() * x)) / tileSize);
+		const yy = Math.floor(((yPos ?? this.position.y) + (this.rectHeight() * y)) / tileSize);
+		if(xx < 0 || yy < 0 || xx >= $gameMap.width() || (xx + (yy * $dataMap.width)) >= $gameMap.espCollisionMap.length) return [99, 0];
+		const index = xx + (yy * $dataMap.width);
+		return [$gameMap.espCollisionMap[index] ?? 0, $gameMap.espCollisionKillers[index] ?? 0];
+	}
+
+	_GetCornerKill(x, y, expandX, expandY) {
+		const tileSize = TS;
+		const xx =  Math.floor(((this.position.x) + ((this.rectWidth() + expandX) * x)) / tileSize);
+		const yy = Math.floor(((this.position.y) + ((this.rectHeight() + expandY) * y)) / tileSize);
+		if(xx < 0 || yy < 0 || xx >= $gameMap.width() || (xx + (yy * $dataMap.width)) >= $gameMap.espCollisionKillers.length) return 0;
+		const index = xx + (yy * $dataMap.width);
+		return $gameMap.espCollisionKillers[index] ?? 0;
+	}
+
 	findCollisionHeight() {
 		return Math.max(
 			this._GetCornerIndex(-1, -1),
 			this._GetCornerIndex(1, -1),
 			this._GetCornerIndex(-1, 1),
 			this._GetCornerIndex(1, 1)
+		);
+	}
+
+	findKill() {
+		const expandX = 12;
+		const expandY = 6;
+		return Math.min(
+			this._GetCornerKill(-1, -1, expandX, expandY),
+			this._GetCornerKill(1, -1, expandX, expandY),
+			this._GetCornerKill(-1, 1, expandX, expandY),
+			this._GetCornerKill(1, 1, expandX, expandY)
 		);
 	}
 
@@ -102,8 +131,16 @@ class ESPGameObject {
 		const isMovingLeft = newPos < this.position.x ? -1 : 1;
 		const oldIndexX = Math.floor((this.position.x + (isMovingLeft * this.rectWidth())) / tileSize);
 		const indexX = Math.floor((newPos + (isMovingLeft * this.rectWidth())) / tileSize);
-		const newHeightIndex = Math.max(this._GetCornerIndex(isMovingLeft, -1, newPos), this._GetCornerIndex(isMovingLeft, 1, newPos));
-		return oldIndexX === indexX || (this.CantWalkOffLedge ? newHeightIndex === this.__PrecisePlayerHeightIndex : newHeightIndex <= this.__PrecisePlayerHeightIndex);
+		if(this.CantWalkOffLedge) {
+			const l = this._GetCornerIndexEx(isMovingLeft, -1, newPos);
+			const r = this._GetCornerIndexEx(isMovingLeft, 1, newPos);
+			const newHeightIndex = Math.max(l[0], r[0]);
+			const newKillIndex = Math.min(l[1], r[1]);
+			return oldIndexX === indexX || (newKillIndex === 0 && newHeightIndex === this.__PrecisePlayerHeightIndex);
+		} else {
+			const newHeightIndex = Math.max(this._GetCornerIndex(isMovingLeft, -1, newPos), this._GetCornerIndex(isMovingLeft, 1, newPos));
+			return oldIndexX === indexX || (newHeightIndex <= this.__PrecisePlayerHeightIndex);
+		}
 	}
 
 	canMoveToY(newPos) {
@@ -111,8 +148,16 @@ class ESPGameObject {
 		const isMovingUp = newPos < this.position.y ? -1 : 1;
 		const oldIndexY = Math.floor((this.position.y + (isMovingUp * this.rectHeight())) / tileSize);
 		const indexY = Math.floor((newPos + (isMovingUp * this.rectHeight())) / tileSize);
-		const newHeightIndex = Math.max(this._GetCornerIndex(-1, isMovingUp, null, newPos), this._GetCornerIndex(1, isMovingUp, null, newPos));
-		return oldIndexY === indexY || (this.CantWalkOffLedge ? newHeightIndex === this.__PrecisePlayerHeightIndex : newHeightIndex <= this.__PrecisePlayerHeightIndex);
+		if(this.CantWalkOffLedge) {
+			const l = this._GetCornerIndexEx(isMovingUp, -1, null, newPos);
+			const r = this._GetCornerIndexEx(isMovingUp, 1, null, newPos);
+			const newHeightIndex = Math.max(l[0], r[0]);
+			const newKillIndex = Math.min(l[1], r[1]);
+			return oldIndexY === indexY || (newKillIndex === 0 && newHeightIndex === this.__PrecisePlayerHeightIndex);
+		} else {
+			const newHeightIndex = Math.max(this._GetCornerIndex(-1, isMovingUp, null, newPos), this._GetCornerIndex(1, isMovingUp, null, newPos));
+			return oldIndexY === indexY || (newHeightIndex <= this.__PrecisePlayerHeightIndex);
+		}
 	}
 
 	updatePosition() {
