@@ -63,9 +63,9 @@ class ESPSlugObject extends ESPGameObject {
 		this._cooldown = 200;
 	}
 
-	redoIdleMotion() {
+	redoIdleMotion(forceStill) {
 		if(this._actionTime <= 0) {
-			if(this._lastIdleAction === 0 || Math.random() < 0.5) {
+			if(!forceStill && (this._lastIdleAction === 0 || Math.random() < 0.5)) {
 				this._lastIdleAction = 1;
 				this.speed.x = (Math.random()) - 0.5;
 				this.speed.y = (Math.random()) - 0.5;
@@ -101,6 +101,7 @@ class ESPSlugObject extends ESPGameObject {
 			this.redoIdleMotion();
 		} else if(this._mode === 2) {
 			this.resetToDefaultMode();
+			this.redoIdleMotion(true);
 		}
 	}
 

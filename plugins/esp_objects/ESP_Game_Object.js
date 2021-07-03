@@ -149,8 +149,8 @@ class ESPGameObject {
 		const oldIndexY = Math.floor((this.position.y + (isMovingUp * this.rectHeight())) / tileSize);
 		const indexY = Math.floor((newPos + (isMovingUp * this.rectHeight())) / tileSize);
 		if(this.CantWalkOffLedge) {
-			const l = this._GetCornerIndexEx(isMovingUp, -1, null, newPos);
-			const r = this._GetCornerIndexEx(isMovingUp, 1, null, newPos);
+			const l = this._GetCornerIndexEx(-1, isMovingUp, null, newPos);
+			const r = this._GetCornerIndexEx(1, isMovingUp, null, newPos);
 			const newHeightIndex = Math.max(l[0], r[0]);
 			const newKillIndex = Math.min(l[1], r[1]);
 			return oldIndexY === indexY || (newKillIndex === 0 && newHeightIndex === this.__PrecisePlayerHeightIndex);
