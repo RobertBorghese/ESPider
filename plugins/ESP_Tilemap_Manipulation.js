@@ -1,5 +1,29 @@
 // I lost years off my life coming up with this algorithm. Looks so simple in retrospect >.<
 
+Tilemap.prototype._sortChildren = function() {
+	//this._espSprites.forEach(s => this.removeChild(s));
+	//this._espSprites.forEach(s => this.addChild(s));
+	this.children.sort(this._compareChildOrder.bind(this));
+
+	let isHigher = null;
+	for(let i = this.children.length - 1; i >= 0; i--) {
+		if(this.children[i] === this._espPlayer) {
+			break;
+		}
+		if(this.children[i]._espWorldObject) {
+			if(this._compareChildOrder(this._espPlayer, this.children[i]) > 0) {
+				isHigher = i;
+				break;
+			}
+		}
+	}
+
+	if(isHigher !== null) {
+		this.removeChild(this._espPlayer);
+		this.addChildAt(this._espPlayer, isHigher);
+	}
+};
+
 Tilemap.prototype._compareChildOrder = function(a, b) {
 
 	// If both sprites are "tilemap walls", do comparison with objects.
@@ -34,6 +58,28 @@ Tilemap.prototype._compareChildOrder = function(a, b) {
 
 	let ay2 = Math.round(a._colY ?? 0);
 	let by2 = Math.round(b._colY ?? 0);
+
+	/*
+	if(typeof a._colZBase === "number") {
+		if(typeof b._colZBase === "number") {
+			if(a._colZBase !== b._colZBase) {
+				return a._colZBase - b._colZBase;
+			}
+		} else if(a._colZBase !== b._colZ) {
+			return a._colZBase - b._colZ;
+		}
+	} else if(typeof b._colZBase === "number" && b._colZBase !== a._colZ) {
+		return a._colZ - b._colZBase;
+	}*/
+
+	/*
+	if(a._espWorldObject && (b._colZBase ?? 0) > a._colZ) {
+		return -1;
+	}
+	if(b._espWorldObject && (a._colZBase ?? 0) > b._colZ) {
+		return 1;
+	}
+	*/
 
 	// If an entity is above another, the back needs to be compared, not the front.
 	if(a._espWorldObject && !b._espWorldObject && bz2 < az2) {

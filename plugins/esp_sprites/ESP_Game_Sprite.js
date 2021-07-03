@@ -428,6 +428,7 @@ modify_Spriteset_Map = class {
 					spr._colZ = regionId * TS;
 					spr.z = height == 1 ? 999 : 4;
 					spr._espWorldObject = true;
+					spr.alpha = 0.5;
 					this._espWorldSprites.push(spr);
 					//this._tilemap._espWorldSprites = this._espWorldSprites;
 					this._tilemap.addChild(spr);
@@ -545,7 +546,8 @@ class ESPGameSprite extends Sprite {
 	
 			this._colY = this.espObject.position.y + this.espObject.rectHeight();
 			this._objY = this.espObject.position.y;
-			this._colZ = this.espObject.position.z + (this.espObject.CollisionHeight * TS) + 1;
+			this._colZBase = (this.espObject.CollisionHeight * TS) + 1;
+			this._colZ = this.espObject.position.z + this._colZBase;
 		}
 	}
 
