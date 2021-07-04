@@ -12,6 +12,9 @@ class ESPGamePlayer extends ESPGameObject {
 		this.respawnPos = {x: 0, y: 0};
 		this.respawnCheckId = 0;
 
+		this.FlyCount = 0;
+		this.FlyData = {};
+
 		this._jumpHelp = 0;
 		this._triggerHelp = 0;
 		this._canControl = true;
@@ -176,7 +179,7 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	updateTransition() {
-		if(this.canControl() && this._canTransition) {
+		if(this.canControl() && this._canTransition && !$gameMap._isTranferring) {
 			const x = this.position.x;
 			const y = this.displayY();
 			let dir = null;
@@ -349,6 +352,8 @@ class ESPGamePlayer extends ESPGameObject {
 		const result = super.saveData();
 		result.respawnPos = this.respawnPos;
 		result.respawnCheckId = this.respawnCheckId;
+		result.FlyCount = this.FlyCount;
+		result.FlyData = this.FlyData;
 		return result;
 	}
 
@@ -357,9 +362,24 @@ class ESPGamePlayer extends ESPGameObject {
 		data.respawnPos = data.respawnPos ?? {};
 		this.respawnPos = { x: data.respawnPos.x ?? 0, y: data.respawnPos.y ?? 0 };
 		this.respawnCheckId = data.respawnCheckId ?? 0;
+		this.FlyCount = data.FlyCount ?? 0;
+		this.FlyData = data.FlyData ?? {};
 	}
 
 	shadowify() {
 		return true;
+	}
+
+	flies() {
+		return this.FlyCount;
+	}
+
+	incrementFlies(id) {
+		this.FlyCount++;
+		this.FlyData[id] = true;
+	}
+
+	hasFlyBeenEaten(id) {
+		return !!this.FlyData[id];
 	}
 }

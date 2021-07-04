@@ -22,6 +22,11 @@ Tilemap.prototype._sortChildren = function() {
 		this.removeChild(this._espPlayer);
 		this.addChildAt(this._espPlayer, isHigher);
 	}
+
+	if(this._uiHolder && this.children.contains(this._uiHolder)) {
+		this.removeChild(this._uiHolder);
+		this.addChild(this._uiHolder);
+	}
 };
 
 Tilemap.prototype._compareChildOrder = function(a, b) {

@@ -131,6 +131,41 @@ modify_Scene_Map = class {
 			this.removeChild(b);
 			this._titleButtonParent.addChild(b);
 		}.bind(this));
+
+		this.createFlyCounterDisplay();
+	}
+
+	createFlyCounterDisplay() {
+		if(!this._flyHolder) {
+			this._flyHolder = new Sprite();
+			this._flyHolder.x = -100;
+		} else {
+			this.removeChild(this._flyHolder);
+		}
+		this._flyHolder.x = -1000;
+		this._flyHolder.__aniIntroTime = 0;
+		this.addChild(this._flyHolder);
+
+		this._flyIcon = new Sprite(ImageManager.loadBitmapFromUrl("img/system/FlyIcon.png"));
+		this._flyIcon.scale.set(3);
+		this._flyIcon.move(12, Graphics.height - (2 * 24) - 12);
+
+		this._flyCountText = ESP.makeText("×" + $espGamePlayer.flies(), 30, "left");
+		this._flyCountText.anchor.set(0, 0.5);
+		this._flyCountText.x = (24 * 2) + 12;
+		this._flyCountText.y = this._flyIcon.y + 12;
+
+		this._flyBackground = new PIXI.Graphics();
+		this._flyBackground.beginFill(0xffffff);
+		this._flyBackground.drawRoundedRect(-30, 0, 130 + (this._flyCountText.width - 30), 35, 8);
+		this._flyBackground.endFill();
+		this._flyBackground.alpha = 0.5;
+		this._flyBackground.x = 0;
+		this._flyBackground.y = Graphics.height - 65;
+
+		this._flyHolder.addChild(this._flyBackground);
+		this._flyHolder.addChild(this._flyIcon);
+		this._flyHolder.addChild(this._flyCountText);
 	}
 
 	onUnpause() {
@@ -147,11 +182,33 @@ modify_Scene_Map = class {
 		this.removeChild(this._titleButtonParent);
 		this._titleButtonParent = null;
 
+		this.destroyFlyCounterDisplay();
+
 		this._pauseWindow.select(-1);
 
 		this._titleButtons = null;
 		this._myPauseMenuIndex = null;
 		this._oldButton = null;
+	}
+
+	destroyFlyCounterDisplay() {
+		if(this._flyBackground) {
+			this._flyHolder.removeChild(this._flyBackground);
+			this._flyBackground.destroy();
+			this._flyBackground = null;
+		}
+
+		if(this._flyIcon) {
+			this._flyHolder.removeChild(this._flyIcon);
+			this._flyIcon.destroy();
+			this._flyIcon = null;
+		}
+
+		if(this._flyCountText) {
+			this._flyHolder.removeChild(this._flyCountText);
+			this._flyCountText.destroy();
+			this._flyCountText = null;
+		}
 	}
 
 	commandVolume() {
@@ -184,6 +241,13 @@ modify_Scene_Map = class {
 				this._titleButtonParent.alpha = this._background.alpha;
 			}
 		}
+		if(this._flyHolder) {
+			if(this._flyHolder.__aniIntroTime < 1) {
+				this._flyHolder.__aniIntroTime += 0.05;
+				if(this._flyHolder.__aniIntroTime >= 1) this._flyHolder.__aniIntroTime = 1;
+				this._flyHolder.x = Easing.easeInBack(1 - this._flyHolder.__aniIntroTime) * -40;
+			}
+		}
 		if(this.isPauseInputTriggered()) {
 			this.onUnpause();
 		}
@@ -212,6 +276,14 @@ modify_Scene_Map = class {
 			}
 			if(this._pauseWindow) this._pauseWindow.select(index);
 		}
+	}
+
+	addUiChild(child) {
+		this._spriteset._tilemap._uiHolder.addChild(child);
+	}
+
+	removeUiChild(child) {
+		this._spriteset._tilemap._uiHolder.removeChild(child);
 	}
 
 	// no button allowed!

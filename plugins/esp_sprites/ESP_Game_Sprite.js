@@ -9,6 +9,9 @@ modify_Spriteset_Map = class {
 
 		ESP.Spriteset_Map.initialize.apply(this, arguments);
 
+		this._tilemap._uiHolder = new Sprite();
+		this._tilemap.addChild(this._tilemap._uiHolder);
+
 		this.initializeFadeMembers();
 	}
 
@@ -60,6 +63,7 @@ modify_Spriteset_Map = class {
 		ESP.Spriteset_Map.createTilemap.apply(this, arguments);
 
 		this._tilemap.visible = false;
+		this.visible = false;
 		this._loadedESPider = false;
 		for(const bitmap of this._tilemap._bitmaps) {
 			if(bitmap) {
@@ -117,9 +121,35 @@ modify_Spriteset_Map = class {
 			this._espPlayer.update();
 			this._unfreezable.forEach(s => s.update());
 		}
+		this.updateShake();
 		this.updateWorldTransparency();
 		this.updateFade();
 		this.updateTransition();
+	}
+
+	shake() {
+		this.x = 0;
+		this._shakeTimer = 5;
+		this._shakeXSpeed = Math.round($espGamePlayer.speed.x) > 0 ? -8 : 8;
+		this.__shakeThing = true;
+	}
+
+	updateShake() {
+		if(this.__shakeThing) {
+			if(!this._shakeXSpeed) {
+				this._shakeXSpeed = Math.round($espGamePlayer.speed.x) > 0 ? -6 : 6;
+			}
+			this.x += this._shakeXSpeed;
+			if(this._shakeXSpeed > 0) this._shakeXSpeed -= 0.5;
+			else if(this._shakeXSpeed < 0) this._shakeXSpeed += 0.5;
+			if(this._shakeTimer > 0) {
+				this._shakeTimer--;
+				if(this._shakeTimer <= 0) {
+					this.x = 0;
+					this.__shakeThing = false;
+				}
+			}
+		}
 	}
 
 	updateWorldTransparency() {
@@ -200,6 +230,14 @@ modify_Spriteset_Map = class {
 
 	updateTransition() {
 		const transitionTime = this.getGroundTransitionTime();
+
+		if(this.__oldESPPlayerX !== this._espPlayer.x || this.__oldESPPlayerY !== this._espPlayer.y) {
+			this.__oldESPPlayerX = this._espPlayer.x;
+			this.__oldESPPlayerY = this._espPlayer.y;
+			this._updateTransitionCirclePosition();
+			this._updateTransitionCircleSizedBasedOnPosition();
+		}
+
 		if(this._espTransitionMode > 0) {
 			this._espTransitionTime += (this._espTransitionMode === 1 ? 1 : -1);
 			if(this._espTransitionTime <= transitionTime) {
@@ -214,7 +252,6 @@ modify_Spriteset_Map = class {
 					this._espWorldSprites.forEach(w => w.alpha = (1 - Ratio));
 				}
 				if(this._espTransitionMode === 2) {
-					this._updateTransitionCirclePosition();
 					if(this._espTransitionTime === transitionTime) {
 						this.OnPlayerVisibleFromIn();
 					}
@@ -268,7 +305,7 @@ modify_Spriteset_Map = class {
 		this._espTransitionMode = 2;
 		this._espTransitionTime = this._calculateEndTime();
 		this._espBottomIndex = 0;
-		this._transitionCirlce.scale.set(1);
+		this._transitionCirlce.scale.set(9999);
 		this._transitionCirlce.visible = true;
 		this._updateTransitionCirclePosition();
 		this._updateTransitionCircleSizedBasedOnPosition();
@@ -348,11 +385,11 @@ modify_Spriteset_Map = class {
 	}
 
 	_randomizeTransitionIndexes(initValue) {
-		if(SceneManager._scene?.updateCameraPos) SceneManager._scene.updateCameraPos();
+		if(SceneManager._scene?.updateCameraPos) SceneManager._scene.updateCameraPos(true);
 		this._espTransitionIndexes = [];
 		const len = this._espWorldSprites.length;
-		const camX = -this._cameraTargetX;
-		const camY = -this._cameraTargetY;
+		const camX = $gameMap.ESPCameraX;
+		const camY = $gameMap.ESPCameraY;
 		const left = (camX - TS);
 		const top = (camY - TS);
 		const right = (Graphics.width + camX + (TS * 2));
@@ -381,6 +418,8 @@ modify_Spriteset_Map = class {
 	}
 
 	_updateTransitionCircleSizedBasedOnPosition() {
+		if(!this._transitionCirlce) return;
+		
 		if(!this.__oldTransitionCirlceSize) {
 			this.__oldTransitionCirlceSize = -1;
 		}
@@ -432,6 +471,7 @@ modify_Spriteset_Map = class {
 			this._tilemap.visible = true;
 			this.ConstructWorldBitmaps();
 			this.transitionIn();
+			this.visible = true;
 		}
 	}
 

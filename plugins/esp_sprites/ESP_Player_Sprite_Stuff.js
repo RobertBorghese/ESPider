@@ -36,6 +36,8 @@ class ESPPlayerSprite extends ESPGameSprite {
 
 		this.LegCount = 8;
 
+		this._showFlyCount = 0;
+
 		this.makeIdleLegs();
 		this.makeHorizontalLegs();
 		this.makeVerticalLegs();
@@ -321,6 +323,7 @@ class ESPPlayerSprite extends ESPGameSprite {
 		this.updateBodySprite();
 		this.updateDirection();
 		this.updateLegSpeed();
+		this.updateFlyCounter();
 		this.updateVisibility();
 		this.updateColor();
 		this.updateRotation();
@@ -400,6 +403,58 @@ class ESPPlayerSprite extends ESPGameSprite {
 	updateLegSpeed() {
 		this.updatePlayerSpeed2d();
 		this.setLegSpriteSpeed(this.__espPlayerSpeed2d.length() / 3);
+	}
+
+	updateFlyCounter() {
+		if(this.espObject.shouldShowFlyCount()) {
+			this._showFlyCount = 50;
+
+			if(this._flyHolder) {
+				this.ObjectHolder.removeChild(this._flyHolder);
+				this._flyHolder.destroy();
+				this._flyHolder = null;
+			}
+
+			this._flyHolder = new Sprite();
+			this._flyHolder.anchor.set(0.5);
+			this._flyHolder.z = 9999;
+
+			this._flyIcon = new Sprite(ImageManager.loadBitmapFromUrl("img/system/FlyIcon.png"));
+			this._flyIcon.scale.set(3);
+			this._flyIcon.move(-20, -20);
+
+			this._flyCountText = ESP.makeText("×" + $espGamePlayer.flies(), 24, "left");
+			this._flyCountText.anchor.set(0, 0.5);
+			this._flyCountText.x = 4;
+			this._flyCountText.y = 0;
+
+			this._flyHolder.addChild(this._flyIcon);
+			this._flyHolder.addChild(this._flyCountText);
+
+			SceneManager._scene.addUiChild(this._flyHolder);
+		}
+		if(this._showFlyCount > 0) {
+			this._showFlyCount--;
+
+			const full = 100;
+			const half = 50;
+			const third = 33;
+			const third2 = 66;
+
+			if(this._showFlyCount < third) {
+				this._flyHolder.scale.set(Easing.easeOutCubic(this._showFlyCount / third));
+			} else if(this._showFlyCount > third2) {
+				this._flyHolder.scale.set(Easing.easeOutCubic(((full - this._showFlyCount) / third)));
+			}
+			this._flyHolder.x = this.x - 2;
+			this._flyHolder.y = this.y - (10 + (40 * ((full - this._showFlyCount) / full)));
+
+			if(this._showFlyCount <= 0) {
+				SceneManager._scene.removeUiChild(this._flyHolder);
+				this._flyHolder.destroy();
+				this._flyHolder = null;
+			}
+		}
 	}
 
 	setLegSpriteSpeed(speed) {

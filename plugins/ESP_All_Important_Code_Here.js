@@ -45,6 +45,26 @@ ESP.ApplyModifies = function() {
 	}
 };
 
+ESP.lerp = function(a, b, x) {
+	if(Math.abs(a - b) < 0.1) return b;
+	return a + (b - a) * x;
+};
+
+ESP.makeText = function(text, fontSize = 20, align = "center") {
+	const Text = new PIXI.Text(text, {
+		fontFamily: $gameSystem.mainFontFace(),
+		fontSize: fontSize,
+		fill: 0xffffff,
+		align: align,
+		stroke: "rgba(0, 0, 0, 0.75)",
+		strokeThickness: 4,
+		lineJoin: "round"
+	});
+	Text.anchor.set(0.5, 1);
+	Text.resolution = 2;
+	return Text;
+}
+
 // do these do anything?? :/
 /*
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;

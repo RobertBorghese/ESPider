@@ -81,7 +81,9 @@ modify_Scene_Title = class {
 			SceneManager.goto(Scene_Map);
 			$gameSystem.onAfterLoad();
 			$gameMapTemp._shouldLoad = true;
-		}.bind(this)).catch(function() {});
+		}.bind(this)).catch(function(e) {
+			console.log("ERROR: ", e);
+		});
 	}
 
 	commandVolume() {

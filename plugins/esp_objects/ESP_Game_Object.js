@@ -7,6 +7,8 @@ class ESPGameObject {
 		this.CollisionHeight = 0;
 		this.CanCollide = true;
 		this.CantWalkOffLedge = false;
+
+		this._showFlyCount = false;
 	}
 
 	reset(x, y) {
@@ -25,6 +27,14 @@ class ESPGameObject {
 
 	constructSprite() {
 		return new ESPGameSprite(...arguments);
+	}
+
+	condition() {
+		return true;
+	}
+
+	delete() {
+		$gameMap.removeGameObject(this);
 	}
 
 	displayY() {
@@ -254,6 +264,18 @@ class ESPGameObject {
 	}
 
 	shadowify() {
+		return false;
+	}
+
+	showFlyCount() {
+		this._showFlyCount = true;
+	}
+
+	shouldShowFlyCount() {
+		if(this._showFlyCount) {
+			this._showFlyCount = false;
+			return true;
+		}
 		return false;
 	}
 }

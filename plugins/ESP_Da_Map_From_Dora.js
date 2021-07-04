@@ -41,6 +41,7 @@ modify_Game_Map = class {
 	resetESPGame() {
 		this.setFrozen(false);
 		this.removeAllGameObjects();
+		this.initMapEval();
 		this.initStartingGameObjects();
 		$espGamePlayer.restoreRespawnPos();
 	}
@@ -288,21 +289,23 @@ modify_Game_Map = class {
 	// add game object when needed
 	addGameObject(object, x, y, z) {
 		if(SceneManager._scene.constructor === Scene_Map) {
-			if(typeof x === "number" && typeof y === "number") {
-				object.position.x = x;
-				object.position.y = y;
-			}
-			if(typeof z === "number") {
-				object.position.z = z;
-			}
-			object.updatePosition();
-			this.getGameObjects().push(object);
-			if(object.isGravityManipulator()) {
-				$gameMapTemp._gravityManipulators.push(object);
-			}
-			const spriteset = SceneManager._scene._spriteset;
-			if(spriteset) {
-				spriteset.addGameSprite(object);
+			if(object.condition()) {
+				if(typeof x === "number" && typeof y === "number") {
+					object.position.x = x;
+					object.position.y = y;
+				}
+				if(typeof z === "number") {
+					object.position.z = z;
+				}
+				object.updatePosition();
+				this.getGameObjects().push(object);
+				if(object.isGravityManipulator()) {
+					$gameMapTemp._gravityManipulators.push(object);
+				}
+				const spriteset = SceneManager._scene._spriteset;
+				if(spriteset) {
+					spriteset.addGameSprite(object);
+				}
 			}
 		}
 	}
