@@ -55,7 +55,7 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	canControl() {
-		return this._canControl && !this._isDying;
+		return this._canControl && !this._isDying && !$gameTemp._isNewGame;
 	}
 
 	update() {
@@ -92,23 +92,29 @@ class ESPGamePlayer extends ESPGameObject {
 		this.speed.y = Input.InputVector.y * 3;
 	}
 
+	canJump() {
+		return $gameVariables.value(0) >= 1;
+	}
+
 	isJumpButtonTriggered() {
 		return Input.isTriggeredEx("space") || Input.isTriggered("button_a");
 	}
 
 	updateJump() {
-		if(this.position.z <= 0) {
-			this._jumpHelp = 6;
-		} else if(this._jumpHelp > 0) {
-			this._jumpHelp--;
-		}
-		if(this.isJumpButtonTriggered()) {
-			this._triggerHelp = 4;
-		} else if(this._triggerHelp > 0) {
-			this._triggerHelp--;
-		}
-		if(this._triggerHelp > 0 && this._jumpHelp > 0) {
-			this.speed.z = this.JUMP_POWER;
+		if(this.canJump()) {
+			if(this.position.z <= 0) {
+				this._jumpHelp = 6;
+			} else if(this._jumpHelp > 0) {
+				this._jumpHelp--;
+			}
+			if(this.isJumpButtonTriggered()) {
+				this._triggerHelp = 4;
+			} else if(this._triggerHelp > 0) {
+				this._triggerHelp--;
+			}
+			if(this._triggerHelp > 0 && this._jumpHelp > 0) {
+				this.speed.z = this.JUMP_POWER;
+			}
 		}
 	}
 
@@ -122,6 +128,7 @@ class ESPGamePlayer extends ESPGameObject {
 			}
 			this._playerIsGravity = !this._playerIsGravity;
 		}*/
+		/*
 		if(TouchInput.isTriggered()) {
 			const x = $gameMap.canvasToMapXPrecise(TouchInput.x);
 			const y = $gameMap.canvasToMapYPrecise(TouchInput.y);
@@ -134,7 +141,7 @@ class ESPGamePlayer extends ESPGameObject {
 				$gameMap.removeGameObject(gravityObjects[i]);
 			}
 			gravityObjects = [];
-		}
+		}*/
 	}
 
 	updateFalling() {
@@ -267,6 +274,7 @@ class ESPGamePlayer extends ESPGameObject {
 
 	kill(offsetX, offsetY, offsetZ) {
 		$gameMap.espFreezeWorld();
+		$gameMap.onPlayerKilled();
 		this._isDying = true;
 		this._deathAnimationData = {
 			x: offsetX,

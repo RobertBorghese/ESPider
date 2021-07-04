@@ -14,6 +14,20 @@
  * @desc 
  * @type number
  * @default 140
+ *
+ * @arg Looking Left
+ * @desc 
+ * @type boolean
+ * @default true
+ *
+ * @arg Text Type
+ * @desc 
+ * @type select
+ * @option All
+ * @value all
+ * @option Room Deaths
+ * @value roomDeaths
+ * @default all
  */
 
 class ESPInfoBeetleObject extends ESPGameObject {
@@ -25,13 +39,19 @@ class ESPInfoBeetleObject extends ESPGameObject {
 
 		this._triggerDist = parseInt(data["Trigger Distance"]) || 100;
 		this._untriggerDist = parseInt(data["Untrigger Distance"]) || 140;
+		this._mirror = data["Looking Left"] === "false";
+		this._textType = data["Text Type"];
 
-		this._text = data.text.join("\n");
+		if(this._textType === "roomDeaths") {
+			this._text = data.text[$gameMap.RoomKillCount.clamp(0, data.text.length - 1)];
+		} else {
+			this._text = data.text.join("\n");
+		}
 		this._shouldShowText = false;
 	}
 
 	constructSprite() {
-		return new ESPInfoBeetleSprite(this, this._text);
+		return new ESPInfoBeetleSprite(this, this._text, this._mirror);
 	}
 
 	update() {

@@ -14,6 +14,9 @@ modify_Game_Map = class {
 		this._espNewMapPosition = null;
 		this._isTranferring = false;
 		this._worldFrozen = false;
+		this.RoomKillCount = 0;
+		this.ESPCameraX = 0;
+		this.ESPCameraY = 0;
 		this.initESPFields();
 	}
 
@@ -25,11 +28,12 @@ modify_Game_Map = class {
 
 	// setup the map for ESPider
 	setupESPGame() {
+		this.onTransferReady();
 		this.setFrozen(false);
 		this.initESPFields();
+		this.initMapEval();
 		this.setupCollisionMap();
 		this.initStartingGameObjects();
-		this.initMapEval();
 		this.initPlayerPos();
 	}
 
@@ -101,12 +105,20 @@ modify_Game_Map = class {
 				if(regionId > 0) {
 					const newX = x;
 					const newY = y + regionId;
+
+					const killIdUp = this.getColKill(x, y - 1);
 					let offset = 0;
 					for(let i = newY; i >= y; i--) {
 						const index = newX + (i * mapWidth);
 						this.espCollisionShowMap[index] = Math.max(this.espCollisionShowMap[index], regionId - offset);
-						if(i !== newY) offset++;
+						if(i !== newY) {
+							offset++;
+							if(!this._manualBehindKills && killIdUp !== 0) {
+								this.espCollisionKillers[newX + (i * mapWidth)] = killIdUp;
+							}
+						}
 					}
+
 					this.espCollisionMap[newX + (newY * mapWidth)] = regionId ?? 0;
 					this.espCollisionKillers[newX + (newY * mapWidth)] = killId;
 					if(newY > mapHeight) {
@@ -198,11 +210,18 @@ modify_Game_Map = class {
 			}
 		}
 
+		this._espStartX = $dataSystem.startX;
+		this._espStartY = $dataSystem.startY;
+		this._manualBehindKills = false;
+
 		if(code) {
 			const addGameObject = this.addGameObject.bind(this);
 			function addTransitionDir(dir, mapId, destDir, dest, requiredZ) {
 				this._espTransitions[dir] = [mapId, destDir, dest, requiredZ];
 			};
+			const manualBehindKills = function() {
+				this._manualBehindKills = true;
+			}.bind(this);
 			const start = function(x, y) {
 				this._espStartX = x;
 				this._espStartY = y;
@@ -333,6 +352,7 @@ modify_Game_Map = class {
 					return false;
 				}
 			}
+			this.RoomKillCount = 0;
 			this._espTransferDirection = direction;
 			SceneManager._scene._spriteset.transitionOut();
 			return true;
@@ -340,23 +360,33 @@ modify_Game_Map = class {
 		return false;
 	}
 
-	// upon "fade out" of transition, this is called
-	onTransferReady() {
+	goToNewMap() {
 		const direction = this._espTransferDirection;
 		const data = this._espTransitions[direction];
 		if(data) {
-			const newDir = data[1];
-			const offset = 0.6;
-			const x = newDir === "left" ? 11 : (newDir === "right" ? $gameMap.width() * TS : (data[2] + offset) * TS);
-			const y = newDir === "up" ? 11 : (newDir === "down" ? $gameMap.height() * TS : (data[2] + offset) * TS);
-			this._espNewMapPosition = {
-				x: x,
-				y: y,
-				xSpd: newDir === "left" ? 1 : (newDir === "right" ? -1 : 0),
-				ySpd: newDir === "up" ? 1 : (newDir === "down" ? -1 : 0)
-			};
 			$gamePlayer.reserveTransfer(data[0], 0, 0, 0, 2);
-			this._espTransferDirection = null;
+		}
+	}
+
+	// upon "fade out" of transition, this is called
+	onTransferReady() {
+		if(this._espTransferDirection && this._espTransitions) {
+			const direction = this._espTransferDirection;
+			const data = this._espTransitions[direction];
+			if(data) {
+				const newDir = data[1];
+				const offset = 0.6;
+				const x = newDir === "left" ? 11 : (newDir === "right" ? $gameMap.width() * TS : (data[2] + offset) * TS);
+				const y = newDir === "up" ? 11 : (newDir === "down" ? $gameMap.height() * TS : (data[2] + offset) * TS);
+				this._espNewMapPosition = {
+					x: x,
+					y: y,
+					xSpd: newDir === "left" ? 1 : (newDir === "right" ? -1 : 0),
+					ySpd: newDir === "up" ? 1 : (newDir === "down" ? -1 : 0)
+				};
+				
+				this._espTransferDirection = null;
+			}
 		}
 	}
 
@@ -394,6 +424,11 @@ modify_Game_Map = class {
 		}
 	}
 
+	// increment the RoomKillCount
+	onPlayerKilled() {
+		this.RoomKillCount++;
+	}
+
 	// save the game
 	save() {
 		$gameSystem.setSavefileId(1);
@@ -421,6 +456,11 @@ modify_Game_Map = class {
 
 	getShadowifyObjects() {
 		return $gameMapTemp._mapObjects.filter(obj => obj.shadowify()).concat([$espGamePlayer]);
+	}
+
+	inCamera(left, right, top, bottom) {
+		return !(right < this.ESPCameraX || left > (this.ESPCameraX + Graphics.width) ||
+			bottom < this.ESPCameraY || top > (this.ESPCameraY + Graphics.height));
 	}
 
 	// need more precise method for getting touch x/y

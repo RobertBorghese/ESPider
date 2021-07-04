@@ -26,6 +26,10 @@ Tilemap.prototype._sortChildren = function() {
 
 Tilemap.prototype._compareChildOrder = function(a, b) {
 
+	if(a.visible && !b.visible) return 1;
+	else if(!a.visible && b.visible) return -1;
+	else if(!a.visible && !b.visible) return 0;
+
 	// If both sprites are "tilemap walls", do comparison with objects.
 	if(a._espWorldObject && b._espWorldObject) {
 		{

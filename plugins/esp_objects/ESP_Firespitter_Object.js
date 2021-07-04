@@ -14,6 +14,11 @@
  * @desc 
  * @type number
  * @default 0
+ *
+ * @arg Fireball Speed
+ * @desc 
+ * @type number
+ * @default 2
  * 
  * @arg Look Dir
  * @desc 
@@ -56,6 +61,7 @@ class ESPFirespitterObject extends ESPGameObject {
 
 		this._lookDir = data["Look Dir"] === "true";
 		this._shootDir = data["Shoot Dir"] ?? "left";
+		this._fireballSpeed = parseInt(data["Fireball Speed"]) || 2;
 		this._shootRate = parseInt(data["Shoot Rate"]) || 60;
 		this._shootRateOffset = parseInt(data["Shoot Rate Offset"]) || 0;
 		this._zLevel = data["Z Level Shift"] === "grounded" ? 1 : (data["Z Level Shift"] === "random" ? 2 : 0);
@@ -87,11 +93,12 @@ class ESPFirespitterObject extends ESPGameObject {
 
 	shoot() {
 		this._latestFireball = new ESPFireballObject(true, this._zLevel);
+		this._latestFireball.speed.x = this._latestFireball.speed.y = 0;
 		switch(this._shootDir) {
-			case "left": { this._latestFireball.speed.x = -2; break; }
-			case "right": { this._latestFireball.speed.x = 2; break; }
-			case "up": { this._latestFireball.speed.y = -2; break; }
-			case "down": { this._latestFireball.speed.y = 2; break; }
+			case "left": { this._latestFireball.speed.x = -this._fireballSpeed; break; }
+			case "right": { this._latestFireball.speed.x = this._fireballSpeed; break; }
+			case "up": { this._latestFireball.speed.y = -this._fireballSpeed; break; }
+			case "down": { this._latestFireball.speed.y = this._fireballSpeed; break; }
 		}
 		$gameMap.addGameObject(this._latestFireball, this.position.x, this.position.y, 25);
 	}

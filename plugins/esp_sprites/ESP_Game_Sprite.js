@@ -102,7 +102,7 @@ modify_Spriteset_Map = class {
 		this._ESP_GROUND_EASING = Easing.easeInOutCubic;
 		this._ESP_OBJECT_TRANSITION_OFFSET = 0.02;//0.01;
 		this._ESP_OBJECT_DISTANCEX = 1300;
-		this._ESP_OBJECT_DISTANCEY = 800;
+		this._ESP_OBJECT_DISTANCEY = 1000;
 		this._ESP_OBJECT_PER_FRAME = 7;
 		this._ESP_OBJECT_EASING = Easing.easeInOutCubic;
 	}
@@ -245,7 +245,7 @@ modify_Spriteset_Map = class {
 					if($gameTemp._isNewGame) {
 						spr.visible = false;
 					}
-					if(!spr.__espDuration) spr.__espDuration = 0;
+					//if(!spr.__espDuration) spr.__espDuration = 0;
 					spr.__espDuration += this._ESP_OBJECT_TRANSITION_OFFSET * (this._espTransitionMode === 1 ? 1 : -1);
 					spr.__espDuration = spr.__espDuration.clamp(0, 1);
 					const Ratio = (this._ESP_OBJECT_EASING(spr.__espDuration) * (data[1] >= 2 ? this._ESP_OBJECT_DISTANCEY : this._ESP_OBJECT_DISTANCEX));
@@ -276,6 +276,7 @@ modify_Spriteset_Map = class {
 		this._myFilter.alpha = 0.5;
 		this._espWorldSprites.forEach(s => { s.parent.removeChild(s); this._filterHolder.addChild(s); });
 		$gameMap._isTranferring = true;
+		SceneManager?._scene?.updateCameraPos?.(true);
 	}
 
 	transitionOut() {
@@ -416,7 +417,7 @@ modify_Spriteset_Map = class {
 		this._espWorldSprites.forEach(s => { s.parent.removeChild(s); this._filterHolder.parent.addChild(s); });
 		//this._espWorldSprites.forEach(s => s.filters = null);
 		this._myFilter = null;
-		if(!wasIn) $gameMap.onTransferReady();
+		if(!wasIn) $gameMap.goToNewMap();
 		else $gameMap.onTransferInReady();
 		if(wasIn) this._espWorldSprites.forEach(s => s.visible = true);
 	}
@@ -527,6 +528,10 @@ modify_Spriteset_Map = class {
 			if(this._tilemap.y !== this._cameraTargetY) {
 				this._tilemap.y = this.lerp(this._tilemap.y, this._cameraTargetY, 0.1);
 			}
+		}
+		if(this._tilemap) {
+			this._tilemap.x = Math.round(this._tilemap.x);
+			this._tilemap.y = Math.round(this._tilemap.y);
 		}
 	}
 }

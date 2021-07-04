@@ -1,7 +1,7 @@
 // Info beetle, da display.
 
 class ESPInfoBeetleSprite extends ESPGameSprite {
-	constructor(object, text) {
+	constructor(object, text, mirror) {
 		super();
 
 		this.espObject = object;
@@ -9,7 +9,7 @@ class ESPInfoBeetleSprite extends ESPGameSprite {
 		this.ObjectHolderOffsetY = 10;//-8;
 
 		this.Graphics = new ESPAnimatedSprite(ImageManager.loadBitmapFromUrl("img/other/Beetle.png"), 20);
-		this.Graphics.scale.set(2);
+		this.Graphics.scale.set(mirror ? -2 : 2, 2);
 		this.Graphics.anchor.set(0.5, 1);
 		this.ObjectHolder.addChild(this.Graphics);
 

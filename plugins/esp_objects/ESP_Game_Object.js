@@ -119,8 +119,8 @@ class ESPGameObject {
 	}
 
 	findKill() {
-		const expandX = 12;
-		const expandY = 6;
+		const expandX = 5;
+		const expandY = 5;
 		return Math.min(
 			this._GetCornerKill(-1, -1, expandX, expandY),
 			this._GetCornerKill(1, -1, expandX, expandY),

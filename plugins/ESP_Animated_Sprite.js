@@ -108,6 +108,6 @@ class ESPAnimatedSprite extends Sprite {
 	}
 
 	isDone() {
-		return this.Invert ? this.Index <= 0 : this.Index >= this.MaxIndex - 1;
+		return this.Invert ? this.Index <= 0 : (this.MaxIndex > 0 && this.Index >= this.MaxIndex - 1);
 	}
 }

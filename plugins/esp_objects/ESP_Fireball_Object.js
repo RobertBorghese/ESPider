@@ -7,7 +7,7 @@ class ESPFireballObject extends ESPGameObject {
 		super();
 
 		this.position.set(300, 350, 6);
-		this.speed.set(2, 0, 0);
+		this.speed.set(0, 0, 0);
 
 		//this._particles = [];
 		this._time = 0;
@@ -49,7 +49,13 @@ class ESPFireballObject extends ESPGameObject {
 				}
 			}
 
-			if(this._groundedStyle === 1) {
+			if(this._groundedStyle === 0) {
+				if(this.position.z > 10) {
+					this.speed.z = -1;
+				} else {
+					this.speed.z = 0;
+				}
+			} else if(this._groundedStyle === 1) {
 				if(!this._onGroundShift) {
 					///this.position.z += 0.01;
 					if(this.speed.z < 0.2) this.speed.z = 0.2;
@@ -66,7 +72,7 @@ class ESPFireballObject extends ESPGameObject {
 			}
 		}
 
-		const size = 20;
+		const size = 26;
 		if(this.getDistance($espGamePlayer) < size) {
 			const spd = 60;
 			const distX = Math.abs(this.position.x - $espGamePlayer.position.x) / size;
