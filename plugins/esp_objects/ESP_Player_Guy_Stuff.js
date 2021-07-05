@@ -122,6 +122,13 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	updateAbilities() {
+		if($gameTemp.isPlaytest()) {
+			if(Input.isTriggered("button_x")) {
+				this.position.x += this.speed.x * 20;
+				this.position.y += this.speed.y * 20;
+			}
+		}
+		
 		/*
 		if(TouchInput.isTriggered()) {
 			if(this._playerIsGravity) {

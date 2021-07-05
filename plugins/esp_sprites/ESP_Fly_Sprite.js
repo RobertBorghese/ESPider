@@ -44,6 +44,7 @@ class ESPFlySprite extends ESPGameSprite {
 				this._isConsuming = 1;
 			}
 		} else if(this._isConsuming === 1) {
+			this._flyHolder.y = 0;
 			this._consumeTime += 2;
 			this._flyHolder.rotation = (this._consumeTime / 100) * 4;
 			this._flyHolder.scale.set(this._consumeTime < 50 ? 1 : 1 - ((this._consumeTime - 50) / 50));
