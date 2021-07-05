@@ -85,7 +85,7 @@ class ESPFireballSprite extends ESPGameSprite {
 	update() {
 		super.update();
 
-		this.visible = $gameMap.inCamera(this.x - 45, this.x + 45, this.y - 30, this.y + 30);
+		this.visible = $gameMap.inCamera(this.x - 100, this.x + 100, this.y - 100, this.y + 100);
 
 		if(this._isInitializing) {
 			if(this._mainParticle.isDone()) {

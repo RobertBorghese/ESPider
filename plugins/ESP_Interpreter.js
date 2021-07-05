@@ -7,6 +7,7 @@ class ESPInterpreter {
 		this._index = -1;
 		this._updateFunc = null;
 		this._input = null;
+		this._waitTime = 0;
 	}
 
 	update() {
@@ -19,8 +20,8 @@ class ESPInterpreter {
 	increment() {
 		this._index++;
 		if(this._index < this._list.length) {
-			this._input = this._list[this._index][0]();
-			this._updateFunc = this._list[this._index][1].bind(null, this._input);
+			this._input = this._list[this._index][0].call(this);
+			this._updateFunc = this._list[this._index][1].bind(this, this._input);
 		} else {
 			this._updateFunc = null;
 		}
@@ -48,6 +49,31 @@ class ESPInterpreter {
 		return this.setVariable(varId, val | amount);
 	}
 
+	wait(amount) {
+		this._list.push([
+			function() {
+				this._waitTime = amount;
+			},
+			function() {
+				this._waitTime--;
+				return this._waitTime <= 0;
+			}
+		]);
+		return this;
+	}
+
+	save() {
+		this._list.push([
+			function() {
+				$gameMap.saveRespawnPosAndSave(-1);
+			},
+			function() {
+				return true;
+			}
+		]);
+		return this;
+	}
+	
 	moveCameraTo(x, y) {
 		this._list.push([
 			function() {
@@ -70,7 +96,7 @@ class ESPInterpreter {
 				SceneManager._scene.setCameraToPlayer();
 			},
 			function() {
-				return SceneManager._scene.isCameraAtTarget();
+				return SceneManager._scene.isCameraAtTarget(Graphics.height / 2);
 			}
 		]);
 		return this;

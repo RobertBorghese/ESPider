@@ -113,6 +113,12 @@ class ESPGameObject {
 		const xx =  Math.floor(((xPos ?? this.position.x) + (this.rectWidth() * x)) / tileSize);
 		const yy = Math.floor(((yPos ?? this.position.y) + (this.rectHeight() * y)) / tileSize);
 		if(xx < 0 || yy < 0 || xx >= $gameMap.width() || (xx + (yy * $dataMap.width)) >= $gameMap.espCollisionMap.length) return 99;
+		if(this.CantWalkOffLedge) {
+			const index = xx + (yy * $dataMap.width);
+			if($gameMap.espMetaMap[index] === 1 || $gameMap.espCollisionKillers[index] > 0 || $gameMap.espCollisionShowMap[index] > 0) {
+				return 99;
+			}
+		}
 		return $gameMap.espCollisionMap[xx + (yy * $dataMap.width)] ?? 0;
 	}
 
@@ -122,6 +128,11 @@ class ESPGameObject {
 		const yy = Math.floor(((yPos ?? this.position.y) + (this.rectHeight() * y)) / tileSize);
 		if(xx < 0 || yy < 0 || xx >= $gameMap.width() || (xx + (yy * $dataMap.width)) >= $gameMap.espCollisionMap.length) return [99, 0];
 		const index = xx + (yy * $dataMap.width);
+		if(this.CantWalkOffLedge) {
+			if($gameMap.espMetaMap[index] === 1 || $gameMap.espCollisionKillers[index] > 0 || $gameMap.espCollisionShowMap[index] > 0) {
+				return [99, 0];
+			}
+		}
 		return [$gameMap.espCollisionMap[index] ?? 0, $gameMap.espCollisionKillers[index] ?? 0];
 	}
 

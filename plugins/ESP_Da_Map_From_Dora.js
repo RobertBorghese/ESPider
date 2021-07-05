@@ -59,6 +59,7 @@ modify_Game_Map = class {
 	// get height
 	getColHeight(x, y) {
 		let result = this.tileId(x, y, 5) ?? 0;
+		if(result >= 150) result -= 50;
 		if(result >= 100) result -= 100;
 		return result;
 	}
@@ -66,7 +67,13 @@ modify_Game_Map = class {
 	// get killer type
 	getColKill(x, y) {
 		let result = this.tileId(x, y, 5) ?? 0;
-		if(result >= 100) return 1;
+		if(result >= 100 && result < 150) return 1;
+		return 0;
+	}
+
+	getMeta(x, y) {
+		let result = this.tileId(x, y, 5) ?? 0;
+		if(result === 150) return 1;
 		return 0;
 	}
 
@@ -78,11 +85,13 @@ modify_Game_Map = class {
 		this.espCollisionMap = [];
 		this.espCollisionKillers = [];
 		this.espCollisionShowMap = [];
+		this.espMetaMap = [];
 		for(let x = 0; x < mapWidth; x++) {
 			for(let y = 0; y < mapHeight; y++) {
 				this.espCollisionMap.push(0);
 				this.espCollisionKillers.push(0);
 				this.espCollisionShowMap.push(0);
+				this.espMetaMap.push(0);
 				const regionId = this.getColHeight(x, y);
 				if(largestRegion < regionId) {
 					largestRegion = regionId;
@@ -105,6 +114,7 @@ modify_Game_Map = class {
 			for(let y = 0; y < mapHeight; y++) {
 				const regionId = this.getColHeight(x, y);
 				const killId = this.getColKill(x, y);
+				const metaId = this.getMeta(x, y);
 				if(regionId > 0) {
 					const newX = x;
 					const newY = y + regionId;
@@ -122,8 +132,10 @@ modify_Game_Map = class {
 						}
 					}
 
-					this.espCollisionMap[newX + (newY * mapWidth)] = regionId ?? 0;
-					this.espCollisionKillers[newX + (newY * mapWidth)] = killId;
+					const index = newX + (newY * mapWidth);
+					this.espMetaMap[index] = metaId;
+					this.espCollisionMap[index] = regionId ?? 0;
+					this.espCollisionKillers[index] = killId;
 					if(newY > mapHeight) {
 						this.MapBottom = newY;
 					}
@@ -132,8 +144,10 @@ modify_Game_Map = class {
 							this.espCollisionMap[newX + (i * mapWidth)] = 99;
 						}
 					}
-				} else if(killId > 0) {
-					this.espCollisionKillers[x + (y * mapWidth)] = killId;
+				} else if(killId > 0 || metaId > 0) {
+					const index = x + (y * mapWidth);
+					this.espCollisionKillers[index] = killId;
+					this.espMetaMap[index] = metaId;
 				}
 			}
 		}
@@ -258,6 +272,12 @@ modify_Game_Map = class {
 	// save respawn point and save
 	saveRespawnPosAndSave(checkId) {
 		if($espGamePlayer.saveRespawnPos(checkId)) {
+			const checkpoints = this.findObjectGroup("checkpoint");
+			for(let i = 0; i < checkpoints.length; i++) {
+				if(checkpoints[i].genId() !== checkId) {
+					checkpoints[i].close();
+				}
+			}
 			this.save();
 		}
 	}

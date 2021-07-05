@@ -76,7 +76,7 @@ class ESPCheckpointSprite extends ESPGameSprite {
 	}
 
 	updateRate() {
-		const r = Easing.easeOutBack(this._rate);
+		const r = (this._mode === 2 ? Easing.easeInCubic : Easing.easeOutBack)(this._rate);
 		if(r > 1.0) {
 			this._flagHolder.y = -50 * (r - 1);
 			this._flagHolder.rotation = -1 * (r - 1);
@@ -97,7 +97,7 @@ class ESPCheckpointSprite extends ESPGameSprite {
 
 	updateShadowSprite() {
 		this.ShadowSprite.move(0, 0);
-		const r = Easing.easeOutBack(this._rate);
+		const r = (this._mode === 2 ? Easing.easeInCubic : Easing.easeOutBack)(this._rate);
 		this.ShadowSprite.scale.set(0.8 + (0.6 * (1 - r)));
 		this.ShadowSprite.alpha = this.ShadowSprite.scale.x;
 	}

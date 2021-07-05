@@ -36,10 +36,17 @@
  * @option Left
  * @value left
  * @option Right
- * @value right
+ * @value righ
+ * @option Shoot Player
+ * @value player
  * @desc
  * @default left
  *
+ * @arg Shoot Distance
+ * @desc 
+ * @type number
+ * @default 0
+ * 
  * @arg Z Level Shift
  * @type select
  * @option No Change
@@ -64,13 +71,12 @@ class ESPFirespitterObject extends ESPGameObject {
 		this._fireballSpeed = parseInt(data["Fireball Speed"]) || 2;
 		this._shootRate = parseInt(data["Shoot Rate"]) || 60;
 		this._shootRateOffset = parseInt(data["Shoot Rate Offset"]) || 0;
+		this._distance = parseInt(data["Shoot Distance"]) || 0;
 		this._zLevel = data["Z Level Shift"] === "grounded" ? 1 : (data["Z Level Shift"] === "random" ? 2 : 0);
 
-		this._shootTime = this._shootRateOffset;
+		this._shootTime = this._shootRateOffset > 0 ? this._shootRateOffset : this._shootRate;
 
 		this._fastAnimation = false;
-
-		this.CantWalkOffLedge = true;
 	}
 
 	constructSprite() {
@@ -92,6 +98,10 @@ class ESPFirespitterObject extends ESPGameObject {
 	}
 
 	shoot() {
+		if(this._distance !== 0 && this.getDistance($espGamePlayer) >= this._distance) {
+			return;
+		}
+
 		this._latestFireball = new ESPFireballObject(true, this._zLevel);
 		this._latestFireball.speed.x = this._latestFireball.speed.y = 0;
 		switch(this._shootDir) {
@@ -99,6 +109,12 @@ class ESPFirespitterObject extends ESPGameObject {
 			case "right": { this._latestFireball.speed.x = this._fireballSpeed; break; }
 			case "up": { this._latestFireball.speed.y = -this._fireballSpeed; break; }
 			case "down": { this._latestFireball.speed.y = this._fireballSpeed; break; }
+			case "player": {
+				const radians = Math.atan2(this.position.x - $espGamePlayer.position.x, this.position.y - $espGamePlayer.position.y);
+				this._latestFireball.speed.x = Math.sin(radians) * -this._fireballSpeed;
+				this._latestFireball.speed.y = Math.cos(radians) * -this._fireballSpeed;
+				break;
+			}
 		}
 		$gameMap.addGameObject(this._latestFireball, this.position.x, this.position.y, 25);
 	}

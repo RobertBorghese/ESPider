@@ -29,6 +29,10 @@ Game_Map.presetObjects[4] = class ESPCheckpointObject extends ESPGameObject {
 		return new ESPCheckpointSprite(this);
 	}
 
+	saveGroup() {
+		return "checkpoint";
+	}
+
 	update() {
 		super.update();
 
@@ -37,6 +41,13 @@ Game_Map.presetObjects[4] = class ESPCheckpointObject extends ESPGameObject {
 
 	genId() {
 		return ($gameMap.mapId() * 10000) + (Math.floor(this.position.x / TS) + (Math.floor(this.position.y / TS) * $gameMap.width()));
+	}
+
+	close() {
+		if(this._isOpen) {
+			this._shouldOpen = 2;
+			this._isOpen = false;
+		}
 	}
 
 	updatePlayerTouch() {
