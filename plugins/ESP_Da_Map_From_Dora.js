@@ -151,6 +151,38 @@ modify_Game_Map = class {
 				}
 			}
 		}
+
+		let newCollisionMap = this.espCollisionMap;
+		for(let x = 0; x < mapWidth; x++) {
+			for(let y = 0; y < mapHeight; y++) {
+				const index = x + (y * mapWidth);
+				const height = this.espCollisionMap[index];
+				if(height > 0) {
+					const newY = y - height - 1;
+					const aboveHeight = this.espCollisionMap[x + (newY * mapWidth)] ?? 0;
+					if(aboveHeight > 0 && aboveHeight < height) {
+						let doThis = true;
+						for(let i = y - 1; i >= (y - height); i--) {
+							const replaceHeight = this.espCollisionMap[x + (i * mapWidth)];
+							if(replaceHeight === 0) {
+								//console.log(x, i, y);
+								//doThis = false;
+								this.espCollisionMap[x + (i * mapWidth)] = aboveHeight;
+							}
+						}
+						/*
+						if(doThis) {
+							for(let i = y - 1; i >= (y - height); i--) {
+								this.espCollisionMap[x + (i * mapWidth)] = aboveHeight;
+							}
+						}*/
+					}
+				}
+				//this.espCollisionMap[index] = regionId ?? 0;
+			}
+
+			//this.espCollisionMap = newCollisionMap;
+		}
 	}
 
 	// any starting game objects get initiated here
@@ -235,8 +267,8 @@ modify_Game_Map = class {
 
 		if(code) {
 			const addGameObject = this.addGameObject.bind(this);
-			function addTransitionDir(dir, mapId, destDir, dest, requiredZ) {
-				this._espTransitions[dir] = [mapId, destDir, dest, requiredZ];
+			function addTransitionDir(dir, mapId, destDir, dest, requiredZ, newZ) {
+				this._espTransitions[dir] = [mapId, destDir, dest, requiredZ, newZ ?? 0];
 			};
 			const manualBehindKills = function() {
 				this._manualBehindKills = true;
@@ -261,7 +293,8 @@ modify_Game_Map = class {
 		if(this._espNewMapPosition === null) {
 			$espGamePlayer.movexy((this._espStartX + 0.5) * TS, (this._espStartY + 0.5) * TS);
 		} else {
-			$espGamePlayer.movexy(this._espNewMapPosition.x, this._espNewMapPosition.y);
+			$espGamePlayer.movexy(this._espNewMapPosition.x, this._espNewMapPosition.y + (this._espNewMapPosition.z * TS));
+			$espGamePlayer.forceCollisionHeight(this._espNewMapPosition.z);
 		}
 		$espGamePlayer.makeCustscene();
 		$espGamePlayer.CollisionHeight = 0;
@@ -295,7 +328,7 @@ modify_Game_Map = class {
 	// upon transferring in and the player is visible (even if transparent)
 	onTransferInVisible() {
 		if(this._espNewMapPosition !== null) {
-			$espGamePlayer.reset(this._espNewMapPosition.x, this._espNewMapPosition.y, this._espNewMapPosition.xSpd, this._espNewMapPosition.ySpd);
+			$espGamePlayer.reset(this._espNewMapPosition.x, this._espNewMapPosition.y + (this._espNewMapPosition.z * TS), this._espNewMapPosition.xSpd, this._espNewMapPosition.ySpd, this._espNewMapPosition.z);
 		} else {
 			$espGamePlayer.makePlayable();
 			this.saveRespawnPosAndSave();
@@ -438,6 +471,7 @@ modify_Game_Map = class {
 				this._espNewMapPosition = {
 					x: x,
 					y: y,
+					z: data[4],
 					xSpd: newDir === "left" ? 1 : (newDir === "right" ? -1 : 0),
 					ySpd: newDir === "up" ? 1 : (newDir === "down" ? -1 : 0)
 				};

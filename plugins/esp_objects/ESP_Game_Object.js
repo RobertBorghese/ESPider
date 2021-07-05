@@ -257,15 +257,27 @@ class ESPGameObject {
 		}
 
 		if(this.CanCollide) {
-			const NewCollisionHeight = this.findCollisionHeight();
-			if(this.CollisionHeight < 99) this.CollisionHeight = NewCollisionHeight;
-
-			if(this.__OldCollisionHeight !== this.CollisionHeight) {
-				const Diff = this.__OldCollisionHeight - this.CollisionHeight;
-				this.position.z += (Diff * TS);
-				this.onCollisionHeightChange(this.__OldCollisionHeight);
-			}
+			this.updateCollisionHeight();
 		}
+	}
+
+	updateCollisionHeight() {
+		this.setCollisionHeight(this.findCollisionHeight());
+	}
+
+	setCollisionHeight(NewCollisionHeight) {
+		if(this.CollisionHeight < 99) this.CollisionHeight = NewCollisionHeight;
+
+		if(this.__OldCollisionHeight !== this.CollisionHeight) {
+			const Diff = this.__OldCollisionHeight - this.CollisionHeight;
+			this.position.z += (Diff * TS);
+			this.onCollisionHeightChange(this.__OldCollisionHeight);
+		}
+	}
+
+	forceCollisionHeight(NewCollisionHeight) {
+		this.CollisionHeight = NewCollisionHeight;
+		this.__OldCollisionHeight = NewCollisionHeight;
 	}
 
 	updateZPosition() {

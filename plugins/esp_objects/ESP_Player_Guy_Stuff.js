@@ -35,7 +35,7 @@ class ESPGamePlayer extends ESPGameObject {
 		this.GRAVITY = 0.2;
 	}
 
-	reset(x, y, xSpd, ySpd) {
+	reset(x, y, xSpd, ySpd, collisionHeight) {
 		super.reset(x, y);
 		this._canControl = true;
 		this.CanCollide = true;
@@ -45,6 +45,9 @@ class ESPGamePlayer extends ESPGameObject {
 			this._noPlayerControlTimer = 36;
 			this.speed.x = xSpd ?? 0;
 			this.speed.y = ySpd ?? 0;
+		}
+		if(collisionHeight !== undefined) {
+			this.forceCollisionHeight(collisionHeight);
 		}
 	}
 
@@ -208,7 +211,7 @@ class ESPGamePlayer extends ESPGameObject {
 			const Threshold = 3;
 			if(y - this.rectHeight() <= Threshold) {
 				dir = "up";
-			} else if(y + this.rectHeight() >= (($gameMap.MapBottom * TS) +  - Threshold)) {
+			} else if(y + ((this.CollisionHeight - 1).clamp(0, 99) * TS) + this.rectHeight() >= (($gameMap.MapBottom * TS) - Threshold)) {
 				dir = "down";
 			} else if(x - this.rectWidth() <= Threshold) {
 				dir = "left";
