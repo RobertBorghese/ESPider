@@ -1,7 +1,7 @@
 // Okay, here comes the hard part.
 
 class ESPGameObject {
-	constructor() {
+	constructor(data) {
 		this.position = new Vector3(0, 0, 0);
 		this.speed = new Vector3(0, 0, 0);
 		this.CollisionHeight = 0;
@@ -9,6 +9,13 @@ class ESPGameObject {
 		this.CantWalkOffLedge = false;
 
 		this._showFlyCount = false;
+
+		if(data && data["Is Variable Cond"] === "true") {
+			this._isUsingVariableCondition = true;
+			this._variableCond = parseInt(data["Variable Cond"]) || 0;
+			this._variableComparison = parseInt(data["Variable Comparison"]) || 0;
+			this._variableBitBool = parseInt(data["Variable Bit Bool"]) || 0;
+		}
 	}
 
 	reset(x, y) {
@@ -30,7 +37,24 @@ class ESPGameObject {
 	}
 
 	condition() {
+		if(this._isUsingVariableCondition) {
+			if(this._variableCond === 0) return true;
+			const val = $gameVariables.value(this._variableCond);
+			if(this._variableBitBool) {
+				return val >= this._variableComparison;
+			} else {
+				return (val & this._variableComparison) === 0;
+			}
+		}
 		return true;
+	}
+
+	saveIndividual() {
+		return false;
+	}
+
+	saveGroup() {
+		return null;
 	}
 
 	delete() {

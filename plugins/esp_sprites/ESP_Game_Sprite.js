@@ -569,9 +569,17 @@ modify_Spriteset_Map = class {
 			}
 		}
 		if(this._tilemap) {
-			this._tilemap.x = Math.round(this._tilemap.x);
-			this._tilemap.y = Math.round(this._tilemap.y);
+			if(Math.abs(this._tilemap.x - Math.round(this._tilemap.x)) < 0.1) {
+				this._tilemap.x = Math.round(this._tilemap.x);
+			}
+			if(Math.abs(this._tilemap.y - Math.round(this._tilemap.y)) < 0.1) {
+				this._tilemap.y = Math.round(this._tilemap.y);
+			}
 		}
+	}
+
+	isCameraAtTarget(threshold) {
+		return Math.abs(this._tilemap.x - this._cameraTargetX) < threshold && Math.abs(this._tilemap.y - this._cameraTargetY) < threshold;
 	}
 }
 

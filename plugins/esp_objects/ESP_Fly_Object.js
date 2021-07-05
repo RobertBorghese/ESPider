@@ -13,7 +13,7 @@
 
 class ESPFlyObject extends ESPGameObject {
 	constructor(data) {
-		super();
+		super(data);
 
 		this.position.set(300, 350, 0);
 		this.speed.set(0, 0, 0);

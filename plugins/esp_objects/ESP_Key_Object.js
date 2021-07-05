@@ -4,20 +4,23 @@
  * @command Key
  * @text Options for key.
  * @desc
+ *
+ * @arg On Touch
+ * @desc The code to run when touched.
+ * @type multiline_string
+ * @default
  */
 
 class ESPKeyObject extends ESPGameObject {
 	constructor(data) {
-		super();
+		super(data);
 
 		this.position.set(300, 350, 0);
 		this.speed.set(0, 0, 0);
 
+		this._code = data["On Touch"];
+		
 		this._isTouched = false;
-	}
-
-	condition() {
-		return true;//!$espGamePlayer.hasFlyBeenEaten(this.makeId());
 	}
 
 	constructSprite() {
@@ -42,6 +45,10 @@ class ESPKeyObject extends ESPGameObject {
 		this.position.x = ESP.lerp(this.position.x, $espGamePlayer.position.x - 2, 0.5);
 		this.position.y = ESP.lerp(this.position.y, $espGamePlayer.position.y, 0.5);
 		this.position.z += speedZ;
+	}
+
+	execute() {
+		if(this._code) eval(this._code);
 	}
 }
 

@@ -13,6 +13,8 @@ var $plugins =
 {"name":"ESP_Animated_Sprite","status":true,"description":"","parameters":{}},
 {"name":"ESP_Button_On_A_Jacket","status":true,"description":"","parameters":{}},
 {"name":"---","status":true,"description":"","parameters":{}},
+{"name":"ESP_Interpreter","status":true,"description":"","parameters":{}},
+{"name":"---","status":true,"description":"","parameters":{}},
 {"name":"ESP_Window_Window","status":true,"description":"","parameters":{}},
 {"name":"ESP_Options_Are_Good","status":true,"description":"","parameters":{}},
 {"name":"---","status":true,"description":"","parameters":{}},

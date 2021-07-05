@@ -17,6 +17,8 @@ modify_Scene_Map = class {
 		ESP.Scene_Map.initialize.apply(this, arguments);
 		this._isPaused = false;
 		this._titleButtons = null;
+		this._targetCameraX = null;
+		this._targetCameraY = null;
 	}
 
 	updateMain() {
@@ -37,15 +39,36 @@ modify_Scene_Map = class {
 		this.updateCameraPos();
 	}
 
+	// sets camera x y to certain position
+	setCameraTargetXY(x, y) {
+		this._targetCameraX = x;
+		this._targetCameraY = y;
+	}
+
+	// sets camera back to player
+	setCameraToPlayer() {
+		this._targetCameraX = this._targetCameraY = null;
+	}
+
 	updateCameraPos(force = false) {
 		if(this._spriteset && (this._spriteset.canMoveCamera())) {
-			this._spriteset.setCameraPos(
-				($espGamePlayer.position.x * this._spriteset._tilemap.scale.x) - (Graphics.width / 2),
-				($espGamePlayer.position.y * this._spriteset._tilemap.scale.y) - (Graphics.height / 2),
-				$gameTemp._isNewGame || $gameMap._isTranferring || force);
+			const letsForce = $gameTemp._isNewGame || $gameMap._isTranferring || force;
+			this._spriteset.setCameraPos(this.genCameraPosX(), this.genCameraPosY(), letsForce);
 			$gameMap.ESPCameraX = -this._spriteset._tilemap.x;
 			$gameMap.ESPCameraY = -this._spriteset._tilemap.y;
 		}
+	}
+
+	isCameraAtTarget(threshold = 2) {
+		return this._spriteset.isCameraAtTarget(threshold);
+	}
+
+	genCameraPosX() {
+		return ((this._targetCameraX ?? $espGamePlayer.position.x) * this._spriteset._tilemap.scale.x) - (Graphics.width / 2);
+	}
+
+	genCameraPosY() {
+		return ((this._targetCameraY ?? $espGamePlayer.position.y) * this._spriteset._tilemap.scale.y) - (Graphics.height / 2);
 	}
 
 	// update game objects

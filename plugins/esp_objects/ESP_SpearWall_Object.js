@@ -23,7 +23,7 @@
 
 class ESPSpearWallObject extends ESPGameObject {
 	constructor(data, showAni) {
-		super();
+		super(data);
 
 		this.position.set(300, 350, 0);
 		this.speed.set(0, 0, 0);
@@ -40,10 +40,14 @@ class ESPSpearWallObject extends ESPGameObject {
 		return new ESPSpearWallSprite(this);
 	}
 
+	saveIndividual() {
+		return true;
+	}
+
 	update() {
 		super.update();
 
-		if(this._showAnimation !== 0) {
+		if(this.isChanging()) {
 			this._showTime += 0.04 * (this._showAnimation === 1 ? 1 : -1);
 
 			this._scaleState = Easing.easeOutBack(this._showTime);
@@ -89,6 +93,10 @@ class ESPSpearWallObject extends ESPGameObject {
 	hideSpears() {
 		this._showAnimation = 2;
 		this._showTime = 1;
+	}
+
+	isChanging() {
+		return this._showAnimation !== 0;
 	}
 }
 

@@ -27,6 +27,8 @@ class ESPGamePlayer extends ESPGameObject {
 		this._deathParticles = null;
 		this._isVisible = true;
 
+		this._interpreter = null;
+
 		this.lastDeathTime = -1;
 
 		this.JUMP_POWER = 5;
@@ -37,6 +39,7 @@ class ESPGamePlayer extends ESPGameObject {
 		super.reset(x, y);
 		this._canControl = true;
 		this.CanCollide = true;
+		Input._ESP_isDisabled = false;
 		if(xSpd || ySpd) {
 			this.makeCustscene();
 			this._noPlayerControlTimer = 36;
@@ -62,6 +65,7 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	update() {
+		this.updateInterpreter();
 		this.updatePlayerControl();
 		this.updateInput();
 		this.updateFalling();
@@ -69,6 +73,17 @@ class ESPGamePlayer extends ESPGameObject {
 		this.updateTransition();
 		this.updateDeathTiles();
 		this.updateDying();
+	}
+
+	updateInterpreter() {
+		if(this._interpreter) {
+			if(this._interpreter.update()) {
+				this.makePlayable();
+				this.clearInterpreter();
+			}
+			return false;
+		}
+		return true;
 	}
 
 	updatePlayerControl() {
@@ -388,5 +403,15 @@ class ESPGamePlayer extends ESPGameObject {
 
 	hasFlyBeenEaten(id) {
 		return !!this.FlyData[id];
+	}
+
+	setInterpreter(interpreter) {
+		this._interpreter = interpreter;
+		Input._ESP_isDisabled = true;
+	}
+
+	clearInterpreter() {
+		this._interpreter = null;
+		Input._ESP_isDisabled = false;
 	}
 }

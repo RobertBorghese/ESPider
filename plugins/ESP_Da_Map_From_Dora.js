@@ -49,6 +49,8 @@ modify_Game_Map = class {
 	// initialize fields for each map
 	initESPFields() {
 		$gameMapTemp._mapObjects = [];
+		$gameMapTemp._mapReferences = {};
+		$gameMapTemp._mapGroupReferences = {};
 		$gameMapTemp._gravityManipulators = [];
 		this._espStartX = 0;
 		this._espStartY = 0;
@@ -166,19 +168,21 @@ modify_Game_Map = class {
 							}
 						}
 					});
-					this.createPresetObject(index, event.x, event.y, objectData);
+					this.createPresetObject(index, event.x, event.y, event.name, objectData);
 				}
 			}
 		}
 	}
 
 	// create objects based on id
-	createPresetObject(id, x, y, objectData) {
+	createPresetObject(id, x, y, eventName, objectData) {
 		if(Game_Map.presetObjects[id]) {
 			//Game_Map
 			const cls = Game_Map.presetObjects[id];
 			const regionId = this.getColHeight(x, y);
-			this.addGameObject(new cls(objectData), (x * TS) + (TS / 2), (y * TS) + (regionId * TS) + (TS / 2));
+			const obj = new cls(objectData);
+			obj.__eventName = eventName;
+			this.addGameObject(obj, (x * TS) + (TS / 2), (y * TS) + (regionId * TS) + (TS / 2));
 		}
 		/*
 		switch(id) {
@@ -298,16 +302,38 @@ modify_Game_Map = class {
 					object.position.z = z;
 				}
 				object.updatePosition();
+
 				this.getGameObjects().push(object);
 				if(object.isGravityManipulator()) {
 					$gameMapTemp._gravityManipulators.push(object);
 				}
+
+				if(object.saveIndividual()) {
+					$gameMapTemp._mapReferences[object.__eventName] = object;
+				}
+
+				const groupName = object.saveGroup();
+				if(groupName) {
+					if(!$gameMapTemp._mapGroupReferences[groupName]) {
+						$gameMapTemp._mapGroupReferences[groupName] = [];
+					}
+					$gameMapTemp._mapGroupReferences[groupName].push(object);
+				}
+
 				const spriteset = SceneManager._scene._spriteset;
 				if(spriteset) {
 					spriteset.addGameSprite(object);
 				}
 			}
 		}
+	}
+
+	findObject(name) {
+		return $gameMapTemp._mapReferences[name] ?? null;
+	}
+
+	findObjectGroup(name) {
+		return $gameMapTemp._mapGroupReferences[name] ?? [];
 	}
 
 	canRemoveGameObjects() {
@@ -321,6 +347,12 @@ modify_Game_Map = class {
 				$gameMapTemp._toBeDeleted.push(object);
 			} else {
 				$gameMapTemp._mapObjects.remove(object);
+				if(object.saveIndividual()) {
+					delete $gameMapTemp._mapReferences[object.__eventName];
+				}
+				if(object.saveGroup()) {
+					$gameMapTemp._mapGroupReferences[object.saveGroup()].remove(gameMapTemp);
+				}
 			}
 			this.onGameObjectRemoved(object);
 		}
@@ -344,6 +376,8 @@ modify_Game_Map = class {
 			}
 		}
 		$gameMapTemp._mapObjects = [];
+		$gameMapTemp._mapReferences = {};
+		$gameMapTemp._mapGroupReferences = {};
 	}
 
 	// called once the player leaves the map "zones"

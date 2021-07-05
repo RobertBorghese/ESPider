@@ -24,6 +24,8 @@ Input.gamepadMapper = {
 	15: "dpad_right"
 };
 
+Input._ESP_isDisabled = false;
+
 modify_Input = class {
 	static clear() {
 		ESP.Input.clear.apply(this, arguments);
@@ -55,11 +57,23 @@ modify_Input = class {
 		}
 	}
 
+	static isPressed(keyName) {
+		if(Input._ESP_isDisabled) return false;
+		return ESP.Input.isPressed.apply(this, arguments);
+	}
+
+	static isTriggered(keyName) {
+		if(Input._ESP_isDisabled) return false;
+		return ESP.Input.isTriggered.apply(this, arguments);
+	}
+
 	static isTriggeredEx(keyName) {
+		if(Input._ESP_isDisabled) return false;
 		return (this.TrueTriggeredTimes[keyName] ?? 0) === this.TrueTriggerTimer;
 	}
 
 	static isDirectionTriggered(dir) {
+		if(Input._ESP_isDisabled) return false;
 		const Threshold = 0.5;
 		switch(dir) {
 			case "right": {
@@ -98,6 +112,12 @@ modify_Input = class {
 	static updateInputVector() {
 		this.InputVector.x = 0;
 		this.InputVector.y = 0;
+
+		if(Input._ESP_isDisabled) {
+			this.InputDir = 0;
+			this.Input4Dir = 0;
+			return false;
+		}
 
 		const LowThreshold = 0.2;
 		const HighThreshold = 0.95;
