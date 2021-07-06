@@ -239,8 +239,8 @@ class ESPGameObject {
 	updatePosition() {
 		const isMovingLeft = this.speed.x < 0 ? -1 : 1;
 		const isMovingUp = this.speed.y < 0 ? -1 : 1;
-		const newPosX = this.position.x + (this.speed.x);
-		const newPosY = this.position.y + (this.speed.y);
+		const newPosX = this.position.x + (this.speed.x * ESP.WS);
+		const newPosY = this.position.y + (this.speed.y * ESP.WS);
 
 		this.__OldCollisionHeight = this.findCollisionHeight();
 		this.__PrecisePlayerHeightIndex = Math.floor(this.position.z / TS) + this.__OldCollisionHeight;
@@ -281,8 +281,8 @@ class ESPGameObject {
 	}
 
 	updateZPosition() {
-		this.position.z += this.speed.z;
-		if(this.position.z <= 0) {
+		this.position.z += (this.speed.z * ESP.WS);
+		if(this.position.z <= 0 && ESP.WS > 0.2) {
 			this.position.z = 0;
 			this.speed.z = 0;
 		}

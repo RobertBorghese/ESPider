@@ -38,7 +38,7 @@ class ESPUpdaterObject extends ESPGameObject {
 		try {
 			return !!eval(this._condition);
 		} catch(e) {
-			console.log(e);
+			console.error(e);
 		}
 		return false;
 	}
@@ -51,4 +51,4 @@ class ESPUpdaterObject extends ESPGameObject {
 	}
 }
 
-Game_Map.presetObjects[6] = ESPUpdaterObject;
+Game_Map.presetObjects[7] = ESPUpdaterObject;

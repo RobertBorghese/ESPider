@@ -172,3 +172,13 @@ Tilemap.prototype.updateTransform = function() {
     this._sortChildren();
     PIXI.Container.prototype.updateTransform.call(this);
 };
+
+Tilemap.prototype.update = function() {
+    this.animationCount += ESP.WS;
+    this.animationFrame = Math.floor(this.animationCount / 30);
+    for (const child of this.children) {
+        if (child.update) {
+            child.update();
+        }
+    }
+};

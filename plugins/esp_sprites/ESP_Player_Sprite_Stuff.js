@@ -25,7 +25,7 @@ class ESPPlayerSprite extends ESPGameSprite {
 		this.LegContainerBack = new PIXI.Container();
 		this.PlayerHolder.addChild(this.LegContainerBack);
 
-		this.BodySprite = new ESPAnimatedSprite(ImageManager.loadBitmapFromUrl("img/characters/Player/SpiderBody.png"), 10);
+		this.BodySprite = new ESPAnimatedSprite("img/characters/Player/SpiderBody.png", 10);
 		this.BodySprite.anchor.set(0.5);
 		this.BodySprite.move(-1, 1);
 		this._bodyOffsetY = 0;
@@ -82,7 +82,7 @@ class ESPPlayerSprite extends ESPGameSprite {
 	makeLegs(container, side, front, speed, offset) {
 		for(let i = 0; i < this.LegCount; i++) {
 			const SpriteName = i < 4 ? side : front;
-			const Sprite = new ESPAnimatedSprite(ImageManager.loadESPPlayerLegs(SpriteName), speed, false, !!offset ? ((i * 2) % 6) : 0);
+			const Sprite = new ESPAnimatedSprite("img/characters/Player/Legs/" + (SpriteName) + ".png", speed, false, !!offset ? ((i * 2) % 6) : 0);
 			Sprite.anchor.set(0.5);
 			container.push(Sprite);
 			if(i === 0 || i === 3 || i === 4 || i === 5) {
@@ -351,7 +351,7 @@ class ESPPlayerSprite extends ESPGameSprite {
 			this.BodySprite.move(-2, 2 - Offset - this._bodyOffsetY);
 		} else if(this.isMovingHorizontal() || this.isMovingVertical()) {
 			let Offset = this.BodySprite.Index;
-			this.BodySprite.move(-2, 2 - (Offset >= 2 ? 2 : 0) - this._bodyOffsetY);
+			this.BodySprite.move(-2, 2 - (Offset >= 2 ? 1 : 0) - this._bodyOffsetY);
 		}
 
 		if(this.espObject.canControl()) {

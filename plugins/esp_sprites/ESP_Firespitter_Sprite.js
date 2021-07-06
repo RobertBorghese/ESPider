@@ -8,7 +8,7 @@ class ESPFirespitterSprite extends ESPGameSprite {
 
 		this.ObjectHolderOffsetY = 8;
 
-		this._spitterSprite = new ESPAnimatedSprite(ImageManager.loadBitmapFromUrl("img/enemies/Firespitter.png"), 10);
+		this._spitterSprite = new ESPAnimatedSprite("img/enemies/Firespitter.png", 10);
 		this._spitterSprite.scale.set(2 * (lookLeft ? -1 : 1), 2);
 		this._spitterSprite.anchor.set(0.5, 1);
 		this.ObjectHolder.addChild(this._spitterSprite);
@@ -21,7 +21,7 @@ class ESPFirespitterSprite extends ESPGameSprite {
 
 	updateShadowSprite() {
 		this.ShadowSprite.move(0, 0);
-		this.ShadowSprite.scale.set(1 + ((this._spitterSprite.Index === 0 ? 1 : 0) * 0.1));
+		this.ShadowSprite.scale.set(((500 - this.espObject.position.z).clamp(0, 500) / 500) + ((this._spitterSprite.Index === 0 ? 1 : 0) * 0.1));
 		this.ShadowSprite.alpha = this.ShadowSprite.scale.x;
 	}
 }

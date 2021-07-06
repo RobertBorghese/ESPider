@@ -19,17 +19,36 @@ modify_Scene_Map = class {
 		this._titleButtons = null;
 		this._targetCameraX = null;
 		this._targetCameraY = null;
+		this._slideshowList = null;
+	}
+
+	createDisplayObjects() {
+		ESP.Scene_Map.createDisplayObjects.apply(this, arguments);
+
+		this._slideshowHolder = new Sprite();
+		this.addChild(this._slideshowHolder);
+
+		this._overlay = new PIXI.Graphics();
+		this._overlay.beginFill(0xffffff);
+		this._overlay.drawRect(0, 0, Graphics.width, Graphics.height);
+		this._overlay.endFill();
+		this._overlay.alpha = 0;
+		this.addChild(this._overlay);
 	}
 
 	updateMain() {
-		if(!this._isPaused) {
-			ESP.Scene_Map.updateMain.apply(this, arguments);
-			this.updateESPPlayer();
-			this.updateESPGameObjects();
-			this.updatePauseInput();
-			this.updateESPBackground();
+		if(this._slideshowList !== null) {
+			this.updateSlideshow();
 		} else {
-			this.updatePause();
+			if(!this._isPaused) {
+				ESP.Scene_Map.updateMain.apply(this, arguments);
+				this.updateESPPlayer();
+				this.updateESPGameObjects();
+				this.updatePauseInput();
+				this.updateESPBackground();
+			} else {
+				this.updatePause();
+			}
 		}
 	}
 
@@ -52,14 +71,14 @@ modify_Scene_Map = class {
 
 	updateCameraPos(force = false) {
 		if(this._spriteset && (this._spriteset.canMoveCamera())) {
-			const letsForce = $gameTemp._isNewGame || $gameMap._isTranferring || force;
+			const letsForce = $gameTemp._isNewGame || ($gameMap._isTranferring && !$espGamePlayer._canControl) || force || this._spriteset._tilemap.scale.x > 1;
 			this._spriteset.setCameraPos(this.genCameraPosX(), this.genCameraPosY(), letsForce);
 			$gameMap.ESPCameraX = -this._spriteset._tilemap.x;
 			$gameMap.ESPCameraY = -this._spriteset._tilemap.y;
 		}
 	}
 
-	isCameraAtTarget(threshold = 2) {
+	isCameraAtTarget(threshold = 4) {
 		return this._spriteset.isCameraAtTarget(threshold);
 	}
 
@@ -307,6 +326,84 @@ modify_Scene_Map = class {
 
 	removeUiChild(child) {
 		this._spriteset._tilemap._uiHolder.removeChild(child);
+	}
+
+	updateSlideshow() {
+		if(this._slideshowTimer > 0) {
+			this._slideshowTimer--;
+		} else {
+			if(this._slideshowFadingOut) {
+				if(this._overlay.alpha < 1) {
+					this._overlay.alpha += (this._slideshowEnding ? 0.02 : 0.1);
+					if(this._overlay.alpha >= 1) {
+						this.incrementSlideshow();
+						this._overlay.alpha = 1;
+						this._slideshowFadingOut = false;
+					}
+				}
+			} else {
+				if(this._overlay.alpha > 0) {
+					this._overlay.alpha -= (this._slideshowEnding ? 0.02 : 0.1);
+					if(this._overlay.alpha <= 0 && this._slideshowEnding) {
+						this.endSlideshow();
+					}
+				}
+				if(!this._slideshowEnding && this._overlay.alpha <= 0 && this.isSlideshowIncrementTriggered()) {
+					{
+						this._slideshowFadingOut = true;
+						this._slideshowEnding = ((this._slideshowIndex + 1) >= this._slideshowList.length);
+					}
+				}
+			}
+		}
+	}
+
+	startSlideshow(list) {
+		this._slideshowList = list;
+		this._slideshowIndex = -1;
+		this._slideshowTimer = 60;
+		this._slideshowFadingOut = false;
+		this._slideshowEnding = false;
+		this.incrementSlideshow();
+	}
+
+	endSlideshow() {
+		this._slideshowList = null;
+		this._slideshowIndex = -1;
+		this._slideshowTimer = 60;
+		this._slideshowFadingOut = false;
+		this._slideshowEnding = true;
+	}
+
+	incrementSlideshow() {
+		this._slideshowIndex++;
+		while(this._slideshowHolder.children.length > 0) {
+			const child = this._slideshowHolder.children[0];
+			this._slideshowHolder.removeChild(child);
+			//child.destroy();
+		}
+		if(this._slideshowList && this._slideshowIndex < this._slideshowList.length) {
+			const data = this._slideshowList[this._slideshowIndex];
+			if(Array.isArray(data)) {
+				const spr = new Sprite(ImageManager.loadBitmapFromUrl(data[0]));
+				this._slideshowHolder.addChild(spr);
+			} else if(typeof data === "string") {
+				const background = new PIXI.Graphics();
+				background.beginFill(0x000000);
+				background.drawRect(0, 0, Graphics.width, Graphics.height);
+				background.endFill();
+				this._slideshowHolder.addChild(background);
+
+				const text = ESP.makeText(data);
+				text.x = Graphics.width / 2;
+				text.y = Graphics.height / 2;
+				this._slideshowHolder.addChild(text);
+			}
+		}
+	}
+
+	isSlideshowIncrementTriggered() {
+		return Input.isTriggeredEx("space") || Input.isTriggeredEx("enter") || TouchInput.isTriggered() || Input.isTriggered("button_a");
 	}
 
 	// no button allowed!

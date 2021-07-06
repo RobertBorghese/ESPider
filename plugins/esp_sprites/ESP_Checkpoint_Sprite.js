@@ -13,7 +13,7 @@ class ESPCheckpointSprite extends ESPGameSprite {
 		this._flagHolder = new Sprite();
 		this.ObjectHolder.addChild(this._flagHolder);
 
-		this._flag = new ESPAnimatedSprite(ImageManager.loadBitmapFromUrl("img/other/CheckpointFlag.png"), 6, {
+		this._flag = new ESPAnimatedSprite("img/other/CheckpointFlag.png", 6, {
 			FrameCount: 6
 		});
 		this._flag.anchor.set(0.5, 1);
@@ -89,9 +89,9 @@ class ESPCheckpointSprite extends ESPGameSprite {
 			this._flag.Index = 0;
 		}
 		const r3 = this._rate >= 1 ? 0 : (r > 0.5 ? (1 - r) * 255 : 0);
-		if(this._flag._blendColor[0] !== r3) {
+		/*if(this._flag._blendColor[0] !== r3) {
 			this._flag.setBlendColor([r3, r3, r3, r3]);
-		}
+		}*/
 		//this._flag.setHue((1 - r2) * 240);
 	}
 

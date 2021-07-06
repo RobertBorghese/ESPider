@@ -46,6 +46,10 @@ class ESPSpearWallObject extends ESPGameObject {
 		return true;
 	}
 
+	saveGroup() {
+		return "spearwall";
+	}
+
 	update() {
 		super.update();
 
@@ -81,19 +85,21 @@ class ESPSpearWallObject extends ESPGameObject {
 
 	updatePlayerKill() {
 		const size = 20;
-		const playerX = $espGamePlayer.position.x;
-		const playerY = $espGamePlayer.position.y;
-		const playerZ = $espGamePlayer.realZ();
-		const TS2 = TS / 2;
-		if(playerX >= (this.position.x - TS2) && playerX < (this.position.x + TS2 + ((this._width - 1) * TS)) &&
-			(playerY >= this.position.y - TS2) && (playerY < this.position.y + TS2) && 
-			(playerZ >= this.realZ()) && (playerZ < this.realZ() + TS * 2)) {
-
+		if(this.isTouching($espGamePlayer)) {
 			const spd = 60;
 			const distY = Math.abs(this.position.y - $espGamePlayer.position.y) / size;
 			$espGamePlayer.kill(0, spd * (this.position.y > $espGamePlayer.position.y ? -distY : distY), 40);
-
 		}
+	}
+
+	isTouching(other) {
+		const TS2 = TS / 2;
+		const playerX = other.position.x;
+		const playerY = other.position.y;
+		const playerZ = other.realZ();
+		return playerX >= (this.position.x - TS2) && playerX < (this.position.x + TS2 + ((this._width - 1) * TS)) &&
+		(playerY >= this.position.y - TS2) && (playerY < this.position.y + TS2) && 
+		(playerZ >= this.realZ()) && (playerZ < this.realZ() + TS * 2);
 	}
 
 	hideSpears() {

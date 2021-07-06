@@ -74,7 +74,24 @@ class ESPInterpreter {
 		return this;
 	}
 	
+	setCameraSmoothing(smoothing = 0.08) {
+		this._list.push([
+			function() {
+				ESP.CameraSmoothing = smoothing;
+			},
+			function() {
+				return true;
+			}
+		]);
+		return this;
+	}
+
+	resetCameraSmoothing() {
+		return this.setCameraSmoothing(0.04);
+	}
+
 	moveCameraTo(x, y) {
+		this.setCameraSmoothing();
 		this._list.push([
 			function() {
 				SceneManager._scene.setCameraTargetXY(x, y);
@@ -83,6 +100,7 @@ class ESPInterpreter {
 				return SceneManager._scene.isCameraAtTarget();
 			}
 		]);
+		this.resetCameraSmoothing();
 		return this;
 	}
 
@@ -91,12 +109,44 @@ class ESPInterpreter {
 	}
 
 	moveCameraToPlayer() {
+		this.setCameraSmoothing();
 		this._list.push([
 			function() {
 				SceneManager._scene.setCameraToPlayer();
 			},
 			function() {
 				return SceneManager._scene.isCameraAtTarget(Graphics.height / 2);
+			}
+		]);
+		this.resetCameraSmoothing();
+		return this;
+	}
+
+	fadeOut() {
+		this._list.push([
+			function() {
+			},
+			function() {
+				if(SceneManager._scene._overlay.alpha < 1) {
+					SceneManager._scene._overlay.alpha += 0.02;
+					return false;
+				}
+				return true;
+			}
+		]);
+		return this;
+	}
+
+	fadeIn() {
+		this._list.push([
+			function() {
+			},
+			function() {
+				if(SceneManager._scene._overlay.alpha > 0) {
+					SceneManager._scene._overlay.alpha -= 0.02;
+					return false;
+				}
+				return true;
 			}
 		]);
 		return this;
@@ -113,6 +163,88 @@ class ESPInterpreter {
 			},
 			function(obj) {
 				return !obj.isChanging();
+			}
+		]);
+		return this;
+	}
+
+	createSpearWall(xGrid, yGrid, size, name) {
+		this._list.push([
+			function() {
+				const regionId = $gameMap.getColHeight(xGrid, yGrid);
+				const obj = new ESPSpearWallObject({ Width: size, StartingState: "down" }, true);
+				obj.__eventName = name;
+				$gameMap.addGameObject(obj, (xGrid * TS) + (TS / 2), (yGrid * TS) + (regionId * TS) + (TS / 2));
+				return obj;
+			},
+			function(obj) {
+				return !obj.isChanging();
+			}
+		]);
+		return this;
+	}
+
+	removeGameObject(obj) {
+		this._list.push([
+			function() {
+				$gameMap.removeGameObject(obj);
+			},
+			function() {
+				return true;
+			}
+		]);
+		return this;
+	}
+
+	createInfoBug(xGrid, yGrid, text, trigDist, unTrigDist, name) {
+		this._list.push([
+			function() {
+				const regionId = $gameMap.getColHeight(xGrid, yGrid);
+				const obj = new ESPInfoBeetleObject({ text: [text], "Trigger Distance": trigDist.toString(), "Untrigger Distance": unTrigDist.toString() });
+				obj.__eventName = name;
+				obj.saveIndividual = function() { return true; };
+				$gameMap.addGameObject(obj, (xGrid * TS) + (TS / 2), (yGrid * TS) + (regionId * TS) + (TS / 2));
+				return obj;
+			},
+			function(obj) {
+				return true;
+			}
+		]);
+		return this;
+	}
+
+	callCode(code, thisObj) {
+		this._list.push([
+			function() {
+				const func = new Function(code);
+				func.call(thisObj);
+			},
+			function() {
+				return true;
+			}
+		]);
+		return this;
+	}
+
+	startBoss1() {
+		this._list.push([
+			function() {
+				$gameMap.startBoss1();
+			},
+			function() {
+				return true;
+			}
+		]);
+		return this;
+	}
+
+	finishBoss1() {
+		this._list.push([
+			function() {
+				$gameMap.finishBoss1();
+			},
+			function() {
+				return true;
 			}
 		]);
 		return this;

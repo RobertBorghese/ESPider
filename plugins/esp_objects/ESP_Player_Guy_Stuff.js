@@ -64,7 +64,7 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	canControl() {
-		return this._canControl && !this._isDying && !$gameTemp._isNewGame;
+		return this._canControl && !this._isDying && !$gameTemp._isNewGame && ESP.WS > 0.2;
 	}
 
 	update() {
@@ -114,11 +114,21 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	canJump() {
-		return $gameVariables.value(0) >= 1;
+		return $gameVariables.value(1) >= 1;
+	}
+
+	enableJump() {
+		if(!this.canJump()) {
+			$gameVariables.setValue(1, 1);
+		}
+	}
+
+	disableJump() {
+		$gameVariables.setValue(1, 0);
 	}
 
 	isJumpButtonTriggered() {
-		return Input.isTriggeredEx("space") || Input.isTriggered("button_a");
+		return Input.isTriggeredEx("space") || Input.isTriggeredEx("button_a");
 	}
 
 	updateJump() {
@@ -141,7 +151,7 @@ class ESPGamePlayer extends ESPGameObject {
 
 	updateAbilities() {
 		if($gameTemp.isPlaytest()) {
-			if(Input.isTriggered("button_x")) {
+			if(Input.isTriggeredEx("button_x")) {
 				this.position.x += this.speed.x * 20;
 				this.position.y += this.speed.y * 20;
 			}
@@ -175,7 +185,7 @@ class ESPGamePlayer extends ESPGameObject {
 	updateFalling() {
 		if(this._isDying) return;
 		if(this.speed.z > -10) {
-			this.speed.z -= this.GRAVITY;
+			this.speed.z -= (this.GRAVITY * ESP.WS);
 		}
 
 		/*if(this.__PlayerHeightIndex !== NewPlayerHeightIndex) {
@@ -301,6 +311,7 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	kill(offsetX, offsetY, offsetZ) {
+		$gameMap.initiateKillSequence();
 		$gameMap.espFreezeWorld();
 		$gameMap.onPlayerKilled();
 		this._isDying = true;

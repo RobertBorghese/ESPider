@@ -9,16 +9,16 @@ modify_Window_Selectable = class {
 		if(this.isCursorMovable()) {
 			const lastIndex = this.index();
 			if(Input.isRepeated("s") || Input.isRepeated("dpad_down") || Input.isDirectionTriggered("down")) {
-				this.cursorDown(Input.isTriggered("s"));
+				this.cursorDown(true);
 			}
 			if(Input.isRepeated("w") || Input.isRepeated("dpad_up") || Input.isDirectionTriggered("up")) {
-				this.cursorUp(Input.isTriggered("w"));
+				this.cursorUp(true);
 			}
 			if(Input.isRepeated("d") || Input.isRepeated("dpad_right") || Input.isDirectionTriggered("right")) {
-				this.cursorRight(Input.isTriggered("d"));
+				this.cursorRight(true);
 			}
 			if(Input.isRepeated("a") || Input.isRepeated("dpad_left") || Input.isDirectionTriggered("left")) {
-				this.cursorLeft(Input.isTriggered("a"));
+				this.cursorLeft(true);
 			}
 		}
 	}

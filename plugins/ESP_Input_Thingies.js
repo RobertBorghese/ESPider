@@ -25,7 +25,11 @@ Input.gamepadMapper = {
 };
 
 Input._ESP_isDisabled = false;
-
+/*
+Input.update = function() {
+    
+};
+*/
 modify_Input = class {
 	static clear() {
 		ESP.Input.clear.apply(this, arguments);
@@ -41,8 +45,32 @@ modify_Input = class {
 	}
 	
 	static update() {
-		ESP.Input.update.apply(this, arguments);
 		this.TrueTriggerTimer++;
+		
+		
+		this._pollGamepads();
+		if(this._currentState[this._latestButton]) {
+			this._pressedTime++;
+		} else {
+			this._latestButton = null;
+		}
+		for(const name in this._currentState) {
+			if(this._currentState[name] && !this._previousState[name]) {
+				this.TrueTriggeredTimes[name] = this.TrueTriggerTimer + 1;
+				this._latestButton = name;
+				this._pressedTime = 0;
+				this._date = Date.now();
+			}
+			this._previousState[name] = this._currentState[name];
+		}
+		if(this._virtualButton) {
+			this._latestButton = this._virtualButton;
+			this._pressedTime = 0;
+			this._virtualButton = null;
+		}
+		this._updateDirection();
+
+
 		this.updateInputVector();
 	}
 

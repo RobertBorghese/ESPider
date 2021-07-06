@@ -73,11 +73,15 @@ class ESPFireballObject extends ESPGameObject {
 		}
 
 		const size = 26;
-		if(this.getDistance($espGamePlayer) < size) {
+		if(this.getDistance($espGamePlayer) <= size) {
 			const spd = 60;
 			const distX = Math.abs(this.position.x - $espGamePlayer.position.x) / size;
 			const distY = Math.abs(this.position.y - $espGamePlayer.position.y) / size;
 			$espGamePlayer.kill(spd * (this.position.x > $espGamePlayer.position.x ? -distX : distX), spd * (this.position.y > $espGamePlayer.position.y ? -distY : distY), 40);
+		}
+
+		if($gameMap.findObjectGroup("spearwall").filter((s) => s.isTouching(this)).length > 0) {
+			this.onCollided();
 		}
 	}
 

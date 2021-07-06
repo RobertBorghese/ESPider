@@ -11,7 +11,7 @@ class ESPParticleSprite extends ESPGameSprite {
 
 		this.ObjectHolderOffsetY = -8;
 
-		this.Animation = new ESPAnimatedSprite(ImageManager.loadBitmapFromUrl("img/particles/Particle.png"), spd);
+		this.Animation = new ESPAnimatedSprite("img/particles/Particle.png", spd);
 		this.Animation.await();
 		this.Animation.scale.set(2);
 		this.Animation.anchor.set(0.5);

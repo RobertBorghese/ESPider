@@ -1,11 +1,12 @@
 // A quick lil sprite util for all your util needs.
 
-class ESPAnimatedSprite extends Sprite {
-	constructor(Bitmap, FrameDelay, InvertOrObj, Offset, InitOffset) {
+class ESPAnimatedSprite extends PIXI.Sprite {
+	constructor(sourceUrl, FrameDelay, InvertOrObj, Offset, InitOffset) {
 		super();
 
-		this.bitmap = Bitmap;
-		this.bitmap.smooth = false;
+		if(!ESPAnimatedSprite.bitmapFrames) {
+			ESPAnimatedSprite.bitmapFrames = {};
+		}
 
 		this.FrameDelay = FrameDelay ?? 10;
 		if(typeof InvertOrObj === "object") {
@@ -26,9 +27,43 @@ class ESPAnimatedSprite extends Sprite {
 		this.FrameHeight = 0;
 		this.IsAwaiting = false;
 		this.IsFrozen = false;
-		this.setFrame(0, 0, 0, 0);
+		//this.setFrame(0, 0, 0, 0);
 
-		this.bitmap.addLoadListener(this.setup.bind(this));
+		this._espUrl = sourceUrl;
+
+		if(!ESPAnimatedSprite.baseTextures) {
+			ESPAnimatedSprite.baseTextures = {};
+		}
+		let asyncLoad = false;
+		if(!ESPAnimatedSprite.baseTextures[this._espUrl]) {
+			this._espBaseTexture = PIXI.BaseTexture.from(sourceUrl);
+			this._espBaseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+			ESPAnimatedSprite.baseTextures[this._espUrl] = [this._espBaseTexture, false];
+			asyncLoad = true;
+		} else {
+			const data = ESPAnimatedSprite.baseTextures[this._espUrl];
+			this._espBaseTexture = data[0];
+			if(!data[1]) {
+				asyncLoad = true;
+			}
+		}
+
+		if(asyncLoad) {
+			this._espIsLoaded = false;
+			this._espBaseTexture.on("loaded", function() {
+				this.setup();
+			}.bind(this));
+		} else {
+			this._espIsLoaded = true;
+			this.setup();
+		}
+		
+		//this.bitmap.addLoadListener(this.setup.bind(this));
+	}
+
+	move(x, y) {
+		this.x = x;
+		this.y = y;
 	}
 
 	await() {
@@ -44,21 +79,46 @@ class ESPAnimatedSprite extends Sprite {
 		this.unawait();
 		this.Frame = 0;
 		this.Index = 0;
-		this.setFrame(0, 0, this.FrameWidth, this.FrameHeight);
+		if(this.TextureFrames) this.texture = (this.TextureFrames[this.Index]);
+		//this.setFrame(0, 0, this.FrameWidth, this.FrameHeight);
 	}
 
 	setup() {
-		const Width = this.bitmap.width;
-		const Height = this.bitmap.height;
-		this.MaxIndex = this.FrameCount ?? Math.floor(Width / Height);
-		if(this.bitmap._url.match(/_(\d+)\.png$/)) {
-			const Num = parseInt(RegExp.$1);
-			if(Num !== NaN) {
-				this.MaxIndex = Num;
+
+		this._espIsLoaded = true;
+
+		ESPAnimatedSprite.baseTextures[this._espUrl][1] = true;
+
+		if(!ESPAnimatedSprite.bitmapFrames[this._espUrl]) {
+
+			const result = {};
+			const Width = this._espBaseTexture.width;
+			const Height = this._espBaseTexture.height;
+			result.MaxIndex = this.FrameCount ?? Math.floor(Width / Height);
+			if(this._espUrl.match(/_(\d+)\.png$/)) {
+				const Num = parseInt(RegExp.$1);
+				if(Num !== NaN) {
+					result.MaxIndex = Num;
+				}
 			}
+			result.FrameWidth = result.MaxIndex > 0 ? (Width / result.MaxIndex) : 0;
+			result.FrameHeight = Height;
+
+			result.TextureFrames = [];
+			for(let i = 0; i < result.MaxIndex; i++) {
+				result.TextureFrames.push(new PIXI.Texture(this._espBaseTexture, new PIXI.Rectangle(i * result.FrameWidth, 0, result.FrameWidth, result.FrameHeight)));
+			}
+
+			ESPAnimatedSprite.bitmapFrames[this._espUrl] = result;
+
 		}
-		this.FrameWidth = this.MaxIndex > 0 ? (Width / this.MaxIndex) : 0;
-		this.FrameHeight = Height;
+
+		const data = ESPAnimatedSprite.bitmapFrames[this._espUrl];
+		this.MaxIndex = data.MaxIndex;
+		this.FrameWidth = data.FrameWidth;
+		this.FrameHeight = data.FrameHeight;
+		this.TextureFrames = data.TextureFrames;
+		
 		if(this.Invert) {
 			this.Index = this.MaxIndex - 1;
 		}
@@ -66,14 +126,15 @@ class ESPAnimatedSprite extends Sprite {
 			this.Index += this.InitOffset;
 			this.Index = this.Index % this.MaxIndex;
 		}
-		this.setFrame(this.Index * this.FrameWidth, 0, this.FrameWidth, this.FrameHeight);
+		this.texture = (this.TextureFrames[this.Index]);
+		//this.setFrame(this.Index * this.FrameWidth, 0, this.FrameWidth, this.FrameHeight);
 	}
 
 	update() {
-		super.update();
+		//super.update();
 
 		if(!this.IsFrozen && this.FrameWidth > 0) {
-			this.Frame++;
+			this.Frame += ESP.WS;
 			if(this.Frame >= this.FrameDelay) {
 				this.Frame = 0;
 				this.incrementFrame();
@@ -104,10 +165,19 @@ class ESPAnimatedSprite extends Sprite {
 			}
 		}
 
-		this.setFrame(FinalIndex * this.FrameWidth, 0, this.FrameWidth, this.FrameHeight);
+		this.texture = (this.TextureFrames[FinalIndex]);
+		//this.setFrame(FinalIndex * this.FrameWidth, 0, this.FrameWidth, this.FrameHeight);
 	}
 
 	isDone() {
+		if(!this._espIsLoaded) {
+			return false;
+		}
 		return this.Invert ? this.Index <= 0 : (this.MaxIndex > 0 && this.Index >= this.MaxIndex - 1);
+	}
+
+	destroy() {
+		this.texture = null;
+		super.destroy();
 	}
 }

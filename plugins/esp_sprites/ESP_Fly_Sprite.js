@@ -11,12 +11,12 @@ class ESPFlySprite extends ESPGameSprite {
 		this._flyHolder = new Sprite();
 		this.ObjectHolder.addChild(this._flyHolder);
 
-		this._flyWingRight = new ESPAnimatedSprite(ImageManager.loadBitmapFromUrl("img/other/FlyWing.png"), 1);
+		this._flyWingRight = new ESPAnimatedSprite("img/other/FlyWing.png", 1);
 		this._flyWingRight.scale.set(2);
 		this._flyWingRight.anchor.set(0.5);
 		this._flyHolder.addChild(this._flyWingRight);
 
-		this._flyWingLeft = new ESPAnimatedSprite(ImageManager.loadBitmapFromUrl("img/other/FlyWing.png"), 1);
+		this._flyWingLeft = new ESPAnimatedSprite("img/other/FlyWing.png", 1);
 		this._flyWingLeft.scale.set(-2, 2);
 		this._flyWingLeft.anchor.set(0.5);
 		this._flyHolder.addChild(this._flyWingLeft);

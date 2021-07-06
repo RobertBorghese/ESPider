@@ -82,7 +82,7 @@ modify_Scene_Title = class {
 			$gameSystem.onAfterLoad();
 			$gameMapTemp._shouldLoad = true;
 		}.bind(this)).catch(function(e) {
-			console.log("ERROR: ", e);
+			console.error("ERROR: ", e);
 		});
 	}
 

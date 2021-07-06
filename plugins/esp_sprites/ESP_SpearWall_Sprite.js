@@ -11,7 +11,7 @@ class ESPSpearWallSprite extends ESPGameSprite {
 		this._spears = [];
 		for(let i = 0; i < object._width; i++) {
 			for(let j = 0; j < 4; j++) {
-				const spear = new ESPAnimatedSprite(ImageManager.loadBitmapFromUrl("img/other/Spear.png"), 10, {
+				const spear = new ESPAnimatedSprite("img/other/Spear.png", 10, {
 					FrameCount: 2
 				});
 				spear.scale.set(2, this.espObject._showAnimation ? 0 : 2);

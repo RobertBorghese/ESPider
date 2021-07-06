@@ -14,7 +14,7 @@ class ESPWebGravitySprite extends ESPGameSprite {
 		this.WebBase.z = 0;
 		this.WebBase.__added = false;
 
-		this.WebBaseString = new ESPAnimatedSprite(ImageManager.loadBitmapFromUrl("img/projectiles/WebString_10.png"));
+		this.WebBaseString = new ESPAnimatedSprite("img/projectiles/WebString_10.png");
 		this.WebBaseString.anchor.set(0.5, 1);
 		this.WebBaseString.scale.set(2);
 		this.ObjectHolder.addChild(this.WebBaseString);

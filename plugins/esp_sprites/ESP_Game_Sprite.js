@@ -562,10 +562,10 @@ modify_Spriteset_Map = class {
 		}
 		if(!force) {
 			if(this._tilemap.x !== this._cameraTargetX) {
-				this._tilemap.x = this.lerp(this._tilemap.x, this._cameraTargetX, 0.1);
+				this._tilemap.x = this.lerp(this._tilemap.x, this._cameraTargetX, ESP.CameraSmoothing);
 			}
 			if(this._tilemap.y !== this._cameraTargetY) {
-				this._tilemap.y = this.lerp(this._tilemap.y, this._cameraTargetY, 0.1);
+				this._tilemap.y = this.lerp(this._tilemap.y, this._cameraTargetY, ESP.CameraSmoothing);
 			}
 		}
 		if(this._tilemap) {

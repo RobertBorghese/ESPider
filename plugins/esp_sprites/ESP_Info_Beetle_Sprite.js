@@ -8,14 +8,14 @@ class ESPInfoBeetleSprite extends ESPGameSprite {
 
 		this.ObjectHolderOffsetY = 10;//-8;
 
-		this.Graphics = new ESPAnimatedSprite(ImageManager.loadBitmapFromUrl("img/other/Beetle.png"), 20);
+		this.Graphics = new ESPAnimatedSprite("img/other/Beetle.png", 20);
 		this.Graphics.scale.set(mirror ? -2 : 2, 2);
 		this.Graphics.anchor.set(0.5, 1);
 		this.ObjectHolder.addChild(this.Graphics);
 
 		this.TextHolder = new Sprite();
 
-		this.Text = new PIXI.Text(text, {
+		this.Text = new PIXI.Text(text.replace("[STH]", "          "), {
 			fontFamily: $gameSystem.mainFontFace(),
 			fontSize: 20,
 			fill: 0xffffff,
@@ -26,6 +26,17 @@ class ESPInfoBeetleSprite extends ESPGameSprite {
 		});
 		this.Text.anchor.set(0.5, 1);
 		this.Text.resolution = 2;
+
+		if(text.includes("[STH]")) {
+			const bit = ImageManager.loadBitmapFromUrl("img/other/SouthButton.png");
+			bit.smooth = true;
+			this._button = new Sprite(bit);
+			this._button.x = 28;
+			this._button.y = -10;
+			this._button.scale.set(0.5);
+			this._button.anchor.set(0.5);
+			this.Text.addChild(this._button);
+		}
 
 		this.TextHolder._baseY = this.Text.height * -0.5;
 		this.TextHolder.scale.set(0);

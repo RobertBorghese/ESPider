@@ -65,6 +65,11 @@ ESP.makeText = function(text, fontSize = 20, align = "center") {
 	return Text;
 }
 
+// World Speed
+ESP.WS = 1;
+
+ESP.CameraSmoothing = 0.04;
+
 // do these do anything?? :/
 /*
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;

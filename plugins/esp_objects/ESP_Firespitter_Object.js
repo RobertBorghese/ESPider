@@ -69,7 +69,10 @@ class ESPFirespitterObject extends ESPGameObject {
 		this._lookDir = data["Look Dir"] === "true";
 		this._shootDir = data["Shoot Dir"] ?? "left";
 		this._fireballSpeed = parseInt(data["Fireball Speed"]) || 2;
-		this._shootRate = parseInt(data["Shoot Rate"]) || 60;
+		this._shootRate = parseInt(data["Shoot Rate"]);
+		if(!this._shootRate && this._shootRate !== 0) {
+			this._shootRate = 60;
+		}
 		this._shootRateOffset = parseInt(data["Shoot Rate Offset"]) || 0;
 		this._distance = parseInt(data["Shoot Distance"]) || 0;
 		this._zLevel = data["Z Level Shift"] === "grounded" ? 1 : (data["Z Level Shift"] === "random" ? 2 : 0);
@@ -84,16 +87,28 @@ class ESPFirespitterObject extends ESPGameObject {
 	}
 
 	update() {
+		if(this.position.z > 0) {
+			this.speed.z -= 0.1;
+			if(this.speed.z < -10) this.speed.z = -10;
+		}
+
 		super.update();
+
+		if(this.position.z < 0) {
+			this.speed.z = 0;
+			this.position.z = 0;
+		}
 
 		this.updatePlayerKill();
 
 		this._fastAnimation = this._latestFireball && this._latestFireball._isInitializing;
 
-		this._shootTime++;
-		if(this._shootTime >= this._shootRate) {
-			this._shootTime = 0;
-			this.shoot();
+		if(this._shootRate > 0) {
+			this._shootTime++;
+			if(this._shootTime >= this._shootRate) {
+				this._shootTime = 0;
+				this.shoot();
+			}
 		}
 	}
 

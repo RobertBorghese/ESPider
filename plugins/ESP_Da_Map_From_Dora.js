@@ -165,23 +165,12 @@ modify_Game_Map = class {
 						for(let i = y - 1; i >= (y - height); i--) {
 							const replaceHeight = this.espCollisionMap[x + (i * mapWidth)];
 							if(replaceHeight === 0) {
-								//console.log(x, i, y);
-								//doThis = false;
 								this.espCollisionMap[x + (i * mapWidth)] = aboveHeight;
 							}
 						}
-						/*
-						if(doThis) {
-							for(let i = y - 1; i >= (y - height); i--) {
-								this.espCollisionMap[x + (i * mapWidth)] = aboveHeight;
-							}
-						}*/
 					}
 				}
-				//this.espCollisionMap[index] = regionId ?? 0;
 			}
-
-			//this.espCollisionMap = newCollisionMap;
 		}
 	}
 
@@ -515,6 +504,12 @@ modify_Game_Map = class {
 		}
 	}
 
+	initiateKillSequence() {
+		if(this.isBoss1()) {
+			this.cleanUpBoss1();
+		}
+	}
+
 	// increment the RoomKillCount
 	onPlayerKilled() {
 		this.RoomKillCount++;
@@ -550,6 +545,7 @@ modify_Game_Map = class {
 	}
 
 	inCamera(left, right, top, bottom) {
+		if(SceneManager._scene._spriteset._tilemap.scale.x > 1) return true;
 		return !(right < this.ESPCameraX || left > (this.ESPCameraX + Graphics.width) ||
 			bottom < this.ESPCameraY || top > (this.ESPCameraY + Graphics.height));
 	}
@@ -568,4 +564,266 @@ modify_Game_Map = class {
 		const mapY = (originY + y);
 		return mapY;
 	}
+
+	isBoss1() {
+		return !!this._boss1Lefties;
+	}
+
+	cleanUpBoss1() {
+		this._boss1Timer = null;
+		this._boss1Lefties = null;
+		this._boss1Righties = null;
+		this._boss1Topies = null;
+		this._boss1DidJump = null;
+		if(!this._boss1Complete) $espGamePlayer.disableJump();
+		ESP.WS = 1;
+		SceneManager._scene._spriteset._tilemap.scale.set(1);
+		if(!this._boss1Complete) {
+			SceneManager._scene._overlay.alpha = 0;
+		} else {
+			$gameVariables.setValue(10, 1);
+		}
+	}
+
+	startBoss1() {
+		this._boss1Timer = 0;
+		this._boss1Lefties = [];
+		this._boss1Righties = [];
+		this._boss1Topies = [];
+		for(let y = 7; y <= 12; y++) {
+			let x = 7;
+			const regionId = this.getColHeight(x, y);
+			const obj = new ESPFirespitterObject({
+				"Look Dir": "false",
+				"Shoot Dir": "right",
+				"Shoot Rate": 0
+			});
+			this._boss1Lefties.push(obj);
+			this.addGameObject(obj, (x * TS) + (TS / 2), (y * TS) + (regionId * TS) + (TS / 2), 500 + (y - 7) * 100);
+		}
+		for(let y = 7; y <= 12; y++) {
+			let x = 19;
+			const regionId = this.getColHeight(x, y);
+			const obj = new ESPFirespitterObject({
+				"Look Dir": "true",
+				"Shoot Dir": "left",
+				"Shoot Rate": 0
+			});
+			this._boss1Righties.push(obj);
+			this.addGameObject(obj, (x * TS) + (TS / 2), (y * TS) + (regionId * TS) + (TS / 2), 500 + (12 - y) * 100);
+		}
+	}
+
+	startBoss1Phase2() {
+		for(let x = 10; x <= 16; x++) {
+			let y = 4;
+			const regionId = this.getColHeight(x, y);
+			const obj = new ESPFirespitterObject({
+				"Look Dir": x % 2 === 0 ? "false" : "true",
+				"Shoot Dir": "down",
+				"Shoot Rate": 0
+			});
+			this._boss1Topies.push(obj);
+			this.addGameObject(obj, (x * TS) + (TS / 2), (y * TS) + (regionId * TS) + (TS / 2), 500 + Math.abs(13 - x) * 100);
+		}
+	}
+
+	finishBoss1() {
+		this._boss1Lefties.forEach(b => this.removeGameObject(b));
+		this._boss1Righties.forEach(b => this.removeGameObject(b));
+		this._boss1Topies.forEach(b => this.removeGameObject(b));
+		this._boss1Complete = true;
+		this.cleanUpBoss1();
+	}
+
+	updateBoss1() {
+		if(!this.isBoss1()) return;
+
+		this._boss1Timer++;
+
+		switch(this._boss1Timer) {
+			case 60: { this._boss1Lefties.filterIndex(0).forEach(b => b.shoot()); break; }
+			case 260: { this._boss1Righties.filterIndex(5).forEach(b => b.shoot()); break; }
+			case 460: { this._boss1Lefties.filterIndex(2).forEach(b => b.shoot()); break; }
+			case 600: { this._boss1Righties.filterIndex(4).forEach(b => b.shoot()); break; }
+			case 700: { this._boss1Lefties.filterIndex(1).forEach(b => b.shoot()); break; }
+			case 780: { this._boss1Righties.filterIndex(5).forEach(b => b.shoot()); break; }
+			case 840: { this._boss1Lefties.filterIndex(3).forEach(b => b.shoot()); break; }
+
+			case 900: { this._boss1Righties.filterIndex(4).forEach(b => b.shoot()); break; }
+			case 960: { this._boss1Lefties.filterIndex(0).forEach(b => b.shoot()); break; }
+			case 1000: { this._boss1Righties.filterIndex(1).forEach(b => b.shoot()); break; }
+
+			case 1300: {
+				const interpreter = new ESPInterpreter();
+
+				interpreter
+				.moveCameraToGrid(13.5, 7)
+				.callCode("this.startBoss1Phase2()", this)
+				.wait(120)
+				.moveCameraToPlayer();
+
+				$espGamePlayer.setInterpreter(interpreter);
+			}
+
+			case 1600: { this._boss1Topies.filterIndex(3).forEach(b => b.shoot()); break; }
+			case 1700: { this._boss1Righties.filterIndex(2).forEach(b => b.shoot()); break; }
+			case 1800: { this._boss1Lefties.filterIndex(5).forEach(b => b.shoot()); break; }
+			case 1900: { this._boss1Topies.filterIndex(6).forEach(b => b.shoot()); break; }
+			case 2000: { this._boss1Lefties.filterIndex(3).forEach(b => b.shoot()); break; }
+			case 2100: { this._boss1Righties.filterIndex(5).forEach(b => b.shoot()); break; }
+			case 2200: { this._boss1Topies.filterIndex(1).forEach(b => b.shoot()); break; }
+
+			case 2400: {
+				this._boss1Lefties.filterIndex(2).forEach(b => b.shoot());
+				this._boss1Righties.filterIndex(3).forEach(b => b.shoot()); break;
+			}
+			case 2550: {
+				this._boss1Lefties.filterIndex(0).forEach(b => b.shoot());
+				this._boss1Righties.filterIndex(1).forEach(b => b.shoot()); break;
+			}
+			case 2700: {
+				this._boss1Lefties.filterIndex(2).forEach(b => b.shoot());
+				this._boss1Righties.filterIndex(2).forEach(b => b.shoot());
+				this._boss1Topies.filterIndex(3).forEach(b => b.shoot()); break;
+			}
+
+			case 3000: {
+				this._boss1Lefties.forEach(b => b.shoot());
+				this._boss1Righties.forEach(b => b.shoot());
+				this._boss1Topies.forEach(b => b.shoot()); break;
+			}
+		}
+
+		if(this._boss1Timer <= 3500) {
+			if(this._boss1Timer > 3075) {
+				const r = (150 - (this._boss1Timer - 3075).clamp(0, 150)) / 150;
+				ESP.WS = r;
+			}
+			if(this._boss1Timer >= 3275) {
+				const r = (200 - (this._boss1Timer - 3275).clamp(0, 200)) / 200;
+				const r2 = Easing.easeInCubic(1 - r);
+				SceneManager._scene._spriteset._tilemap.scale.set(1 + (6 * r2));
+				SceneManager._scene._overlay.alpha = r2;
+				SceneManager._scene.updateCameraPos(true);
+			}
+			if(this._boss1Timer === 3500) {
+				SceneManager._scene.startSlideshow([
+					["img/pictures/Scene1/Page1.png"],
+					["img/pictures/Scene1/Page2.png"],
+					"Are you really going to settle for that?",
+					["img/pictures/Scene1/Page3.png"],
+					"There are infinite lights greater than any spider has ever achieved.",
+					["img/pictures/Scene1/Page4.png"],
+					"How cute."
+				]);
+			}
+		}
+		
+		if(!$espGamePlayer.canJump()) {
+			if(this._boss1Timer === 3501) {
+				const regionId = this.getColHeight(13, 14);
+				this._boss1InfoBeetle = new ESPInfoBeetleObject({ text: ["Press [SPACE] or [STH] to jump."], "Trigger Distance": "10", "Untrigger Distance": "10" });
+				this._boss1InfoBeetle.__eventName = "";
+				this._boss1InfoBeetle.saveIndividual = function() { return true; };
+				this.addGameObject(this._boss1InfoBeetle, (13 * TS) + (TS / 2), (14 * TS) + (regionId * TS) + (TS / 2));
+			}
+			if(this._boss1Timer <= 3701) {
+				if(this._boss1Timer >= 3501) {
+					const r = (200 - (this._boss1Timer - 3501).clamp(0, 200)) / 200;
+					const r2 = Easing.easeOutCubic(r);
+					SceneManager._scene._spriteset._tilemap.scale.set(1 + (6 * r2));
+					SceneManager._scene._overlay.alpha = 0;
+					SceneManager._scene.updateCameraPos(true);
+				}
+			}
+			
+			if(this._boss1Timer === 3750) {
+				this._boss1InfoBeetle._triggerDist = 800;
+				this._boss1InfoBeetle._untriggerDist = 850;
+			}
+
+			if(!this._boss1DidJump && this._boss1Timer > 3701) {
+				if($espGamePlayer.isJumpButtonTriggered()) {
+					this._boss1DidJump = this._boss1Timer;
+					$espGamePlayer.speed.z = 8;
+				}
+			}
+
+			if(ESP.WS < 1 && this._boss1DidJump) {
+				const r = ((this._boss1Timer - this._boss1DidJump).clamp(0, 100)) / 100;
+				ESP.WS = r;
+			}
+
+			if(this._boss1DidJump) {
+				if($espGamePlayer.position.z > 0 || $espGamePlayer.speed.z > 0) {
+					$espGamePlayer.speed.x = 0;
+					$espGamePlayer.speed.y = $espGamePlayer.position.y > 585 ? -1 : 0;
+					$espGamePlayer._canControl = false;
+				} else {
+					$espGamePlayer.enableJump();
+					$espGamePlayer._canControl = true;
+					this._boss1Timer = 4000;
+				}
+			}
+		} else {
+
+			switch(this._boss1Timer) {
+				case 4100: { this._boss1Lefties.forEach(b => b.shoot()); break; }
+				case 4300: { this._boss1Righties.forEach(b => b.shoot()); break; }
+				case 4500: { this._boss1Topies.forEach(b => b.shoot()); break; }
+				case 4700: {
+					this._boss1Righties.forEach(b => b.shoot());
+					this._boss1Lefties.forEach(b => b.shoot()); break;
+				}
+				case 5000: {
+					this._boss1Lefties.forEach(b => b.shoot());
+					this._boss1Righties.forEach(b => b.shoot());
+					this._boss1Topies.forEach(b => b.shoot()); break;
+				}
+				case 5300: {
+					this._boss1Lefties.forEach(b => b.shoot());
+					this._boss1Righties.forEach(b => b.shoot());
+					this._boss1Topies.forEach(b => b.shoot()); break;
+				}
+				case 5600: {
+					this._boss1Lefties.forEach(b => b.shoot());
+					this._boss1Righties.forEach(b => b.shoot());
+					this._boss1Topies.forEach(b => b.shoot()); break;
+				}
+				case 6000: {
+					this._boss1InfoBeetle._triggerDist = 100;
+					this._boss1InfoBeetle._untriggerDist = 150;
+
+					const interpreter = new ESPInterpreter();
+
+					interpreter
+					.moveCameraToGrid(13.5, 9)
+					.wait(30)
+					.fadeOut()
+					.finishBoss1()
+					.removeGameObject(this._boss1InfoBeetle)
+					.createInfoBug(13, 14, "Nice buddy!", 80, 100, "InfoBug")
+					.fadeIn()
+					.wait(20)
+					.moveCameraToGrid(13.5, 13)
+					.closeSpearWall("Wall")
+					.wait(20)
+					.save()
+					.moveCameraToPlayer();
+
+					$espGamePlayer.setInterpreter(interpreter);
+				}
+			}
+
+		}
+
+		return false;
+	}
+}
+
+Array.prototype.filterIndex = function(index) {
+	return this.filter(function(_, i) {
+		return i !== index;
+	});
 }
