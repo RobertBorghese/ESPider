@@ -155,7 +155,7 @@ modify_Spriteset_Map = class {
 	updateWorldTransparency() {
 		if(this._espWorldSprites) {
 			const highest = $espGamePlayer.findLowestShow();
-			const makeWorldTransparent = $espGamePlayer.realZ() < ((highest * TS) - (TS * 0.75));
+			const makeWorldTransparent = !$gameMap._isTranferring && ($espGamePlayer.realZ() < ((highest * TS) - (TS * 0.75)));
 			if(this.__makeWorldTransparent !== makeWorldTransparent) {
 				this.__makeWorldTransparent = makeWorldTransparent;
 				this.__makeWorldTargetAlpha = makeWorldTransparent ? 0.5 : 1;
@@ -310,7 +310,7 @@ modify_Spriteset_Map = class {
 		this._updateTransitionCircleSizedBasedOnPosition();
 		this._createShadowFilter();
 		this._myFilter.alpha = 0.5;
-		this._espWorldSprites.forEach(s => { s.parent.removeChild(s); this._filterHolder.addChild(s); });
+		this._putWorldGeometryInFilterHolder();
 		$gameMap._isTranferring = true;
 		SceneManager?._scene?.updateCameraPos?.(true);
 	}
@@ -327,8 +327,31 @@ modify_Spriteset_Map = class {
 		this._updateTransitionCircleSizedBasedOnPosition();
 		this._createShadowFilter();
 		this._myFilter.alpha = 0;
-		this._espWorldSprites.forEach(s => { s.parent.removeChild(s); this._filterHolder.addChild(s); });
+		this._putWorldGeometryInFilterHolder();
 		$gameMap._isTranferring = true;
+	}
+
+	_putWorldGeometryInFilterHolder() {
+		const len = this._espWorldSprites.length;
+		for(let i = 0; i < len; i++) {
+			const s = this._espWorldSprites[i];
+			s.parent.removeChild(s);
+			if(s._colZ <= (($gameMap._espNewMapPosition ? $gameMap._espNewMapPosition.z : $espGamePlayer.CollisionHeight) * TS) + 1) {
+				this._underHolder.addChild(s);
+			} else {
+				this._filterHolder.addChild(s);
+			}
+		}
+		console.log(len, this._filterHolder.children.length, this._underHolder.children.length);
+	}
+
+	_removeWorldGeometryFromFilterHolder() {
+		const len = this._espWorldSprites.length;
+		for(let i = 0; i < len; i++) {
+			const s = this._espWorldSprites[i];
+			s.parent.removeChild(s);
+			this._filterHolder.parent.addChild(s);
+		}
 	}
 
 	_createShadowFilter() {
@@ -340,8 +363,13 @@ modify_Spriteset_Map = class {
 			this._filterHolder = new Sprite();
 			this._filterHolder.filters = [this._myFilter];
 			this._filterHolder.z = 99999999;
+
+			this._underHolder = new Sprite();
+			this._underHolder.z = 0;
+
 			if(this._espWorldSprites && this._espWorldSprites[0]) {
 				this._espWorldSprites[0].parent.addChild(this._filterHolder);
+				this._espWorldSprites[0].parent.addChild(this._underHolder);
 			}
 		}
 	}
@@ -452,7 +480,7 @@ modify_Spriteset_Map = class {
 
 	OnTransitionComplete(wasIn) {
 		$gameTemp._isNewGame = false;
-		this._espWorldSprites.forEach(s => { s.parent.removeChild(s); this._filterHolder.parent.addChild(s); });
+		this._removeWorldGeometryFromFilterHolder();
 		//this._espWorldSprites.forEach(s => s.filters = null);
 		this._myFilter = null;
 		if(!wasIn) $gameMap.goToNewMap();

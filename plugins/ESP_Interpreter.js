@@ -91,7 +91,6 @@ class ESPInterpreter {
 	}
 
 	moveCameraTo(x, y) {
-		//this.setCameraSmoothing();
 		this._list.push([
 			function() {
 				SceneManager._scene.setCameraTargetXY(x, y);
@@ -100,7 +99,6 @@ class ESPInterpreter {
 				return SceneManager._scene.isCameraAtTarget();
 			}
 		]);
-		//this.resetCameraSmoothing();
 		return this;
 	}
 
@@ -109,7 +107,6 @@ class ESPInterpreter {
 	}
 
 	moveCameraToPlayer() {
-		//this.setCameraSmoothing();
 		this._list.push([
 			function() {
 				SceneManager._scene.setCameraToPlayer();
@@ -118,7 +115,6 @@ class ESPInterpreter {
 				return SceneManager._scene.isCameraAtTarget(Graphics.height / 2);
 			}
 		]);
-		//this.resetCameraSmoothing();
 		return this;
 	}
 
