@@ -252,6 +252,8 @@ modify_Game_Map = class {
 
 		this._espStartX = $dataSystem.startX;
 		this._espStartY = $dataSystem.startY;
+		this._cameraXMinY = 0;
+		this._cameraXMaxY = 0;
 		this._manualBehindKills = false;
 
 		if(code) {
@@ -265,6 +267,10 @@ modify_Game_Map = class {
 			const start = function(x, y) {
 				this._espStartX = x;
 				this._espStartY = y;
+			}.bind(this);
+			const lockCameraXUnlessPlayerYIn = function(min, max) {
+				this._cameraXMinY = (min * TS);
+				this._cameraXMaxY = (max * TS);
 			}.bind(this);
 			const up = addTransitionDir.bind(this, "up");
 			const down = addTransitionDir.bind(this, "down");
@@ -548,6 +554,12 @@ modify_Game_Map = class {
 		if(SceneManager._scene._spriteset._tilemap.scale.x > 1) return true;
 		return !(right < this.ESPCameraX || left > (this.ESPCameraX + Graphics.width) ||
 			bottom < this.ESPCameraY || top > (this.ESPCameraY + Graphics.height));
+	}
+
+	canMoveCameraX() {
+		if($gameMap._isTranferring) return true;
+		if(this._cameraXMinY === 0 && this._cameraXMaxY === 0) return true;
+		return $espGamePlayer.position.y > this._cameraXMinY && $espGamePlayer.position.y <= this._cameraXMaxY;
 	}
 
 	// need more precise method for getting touch x/y

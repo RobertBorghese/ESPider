@@ -578,8 +578,11 @@ modify_Spriteset_Map = class {
 	setCameraPos(x, y, force) {
 		//x *= this._tilemap.scale.x;
 		//y *= this._tilemap.scale.y;
-		const newX = -(x.clamp(0, ((this._tilemap.width * this._tilemap.scale.x) - Graphics.width)));
+		let newX = -(x.clamp(0, ((this._tilemap.width * this._tilemap.scale.x) - Graphics.width)));
 		const newY = -(y.clamp(0, ((this._tilemap.height * this._tilemap.scale.y) - Graphics.height)));
+		if(!force && !$gameMap.canMoveCameraX()) {
+			newX = this._cameraTargetX;
+		}
 		if(this._cameraTargetX !== newX || this._cameraTargetY !== newY) {
 			this._cameraTargetX = newX;
 			this._cameraTargetY = newY;
