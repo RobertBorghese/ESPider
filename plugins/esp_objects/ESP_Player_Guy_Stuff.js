@@ -35,6 +35,14 @@ class ESPGamePlayer extends ESPGameObject {
 		this.GRAVITY = 0.2;
 	}
 
+	cameraY() {
+		if(!this.__cameraCollisionHeight) this.__cameraCollisionHeight = 0;
+		if(this.position.z <= 0 && this.__cameraCollisionHeight !== this.CollisionHeight) {
+			this.__cameraCollisionHeight = this.CollisionHeight;
+		}
+		return this.position.y + (this.__cameraCollisionHeight * -TS);
+	}
+
 	reset(x, y, xSpd, ySpd, collisionHeight) {
 		super.reset(x, y);
 		this._canControl = true;

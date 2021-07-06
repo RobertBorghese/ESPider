@@ -78,7 +78,7 @@ modify_Scene_Map = class {
 		}
 	}
 
-	isCameraAtTarget(threshold = 4) {
+	isCameraAtTarget(threshold = 10) {
 		return this._spriteset.isCameraAtTarget(threshold);
 	}
 
@@ -87,7 +87,7 @@ modify_Scene_Map = class {
 	}
 
 	genCameraPosY() {
-		return ((this._targetCameraY ?? $espGamePlayer.position.y) * this._spriteset._tilemap.scale.y) - (Graphics.height / 2);
+		return ((this._targetCameraY ?? $espGamePlayer.cameraY()) * this._spriteset._tilemap.scale.y) - (Graphics.height / 2);
 	}
 
 	// update game objects
