@@ -244,7 +244,7 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	updateDeathTiles() {
-		if(!this._isDying && this.findKill() === 1 && this.position.z <= 0) {
+		if(!this._isDying && !$gameMap._isTransferring && this.findKill() === 1 && this.position.z <= 0) {
 			this.kill(0, 0, 60);
 		}
 	}

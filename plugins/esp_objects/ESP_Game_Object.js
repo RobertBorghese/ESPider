@@ -142,6 +142,9 @@ class ESPGameObject {
 		const yy = Math.floor(((this.position.y) + ((this.rectHeight() + expandY) * y)) / tileSize);
 		if(xx < 0 || yy < 0 || xx >= $gameMap.width() || (xx + (yy * $dataMap.width)) >= $gameMap.espCollisionKillers.length) return 0;
 		const index = xx + (yy * $dataMap.width);
+		if($gameMap.espCollisionMap[index] > this.CollisionHeight) {
+			return -1;
+		}
 		return $gameMap.espCollisionKillers[index] ?? 0;
 	}
 
@@ -166,12 +169,25 @@ class ESPGameObject {
 	findKill() {
 		const expandX = 5;
 		const expandY = 5;
-		return Math.min(
-			this._GetCornerKill(-1, -1, expandX, expandY),
-			this._GetCornerKill(1, -1, expandX, expandY),
-			this._GetCornerKill(-1, 1, expandX, expandY),
-			this._GetCornerKill(1, 1, expandX, expandY)
-		);
+		const topLeft = this._GetCornerKill(-1, -1, expandX, expandY);
+		if(topLeft === 0) {
+			return 0;
+		}
+		const topRight = this._GetCornerKill(1, -1, expandX, expandY);
+		if(topRight === 0) {
+			return 0;
+		}
+		const bottomLeft = this._GetCornerKill(-1, 1, expandX, expandY);
+		if(bottomLeft === 0) {
+			return 0;
+		}
+		const bottomRight = this._GetCornerKill(1, 1, expandX, expandY);
+		if(bottomRight === 0) {
+			return 0;
+		}
+		const result = Math.max(topLeft, topRight, bottomLeft, bottomRight);
+		if(result === -1) return 0;
+		return result;
 	}
 
 	findLowestShow() {
