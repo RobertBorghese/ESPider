@@ -43,6 +43,7 @@ modify_Game_Map = class {
 		this.removeAllGameObjects();
 		this.initMapEval();
 		this.initStartingGameObjects();
+		this.cleanUpBosses();
 		$espGamePlayer.restoreRespawnPos();
 	}
 
@@ -399,7 +400,7 @@ modify_Game_Map = class {
 					delete $gameMapTemp._mapReferences[object.__eventName];
 				}
 				if(object.saveGroup()) {
-					$gameMapTemp._mapGroupReferences[object.saveGroup()].remove(gameMapTemp);
+					$gameMapTemp._mapGroupReferences[object.saveGroup()].remove(object);
 				}
 			}
 			this.onGameObjectRemoved(object);
@@ -511,6 +512,10 @@ modify_Game_Map = class {
 	}
 
 	initiateKillSequence() {
+		this.cleanUpBosses();
+	}
+
+	cleanUpBosses() {
 		if(this.isBoss1()) {
 			this.cleanUpBoss1();
 		}
@@ -578,7 +583,7 @@ modify_Game_Map = class {
 	}
 
 	isBoss1() {
-		return !!this._boss1Lefties;
+		return $gameMap.mapId() === 13 && !!this._boss1Lefties;
 	}
 
 	cleanUpBoss1() {

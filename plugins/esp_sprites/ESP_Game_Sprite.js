@@ -342,7 +342,6 @@ modify_Spriteset_Map = class {
 				this._filterHolder.addChild(s);
 			}
 		}
-		console.log(len, this._filterHolder.children.length, this._underHolder.children.length);
 	}
 
 	_removeWorldGeometryFromFilterHolder() {
@@ -398,7 +397,7 @@ modify_Spriteset_Map = class {
 		const bottom = (Graphics.height + camY + (TS * 2));
 		for(let i = 0; i < len; i++) {
 			const spr = this._espWorldSprites[i];
-			spr.visible = !(spr.x < left || spr.x > right || spr.y < top || spr.y > bottom);
+			spr.visible = !(spr.x + spr._espLeft < left || spr.x + spr._espRight > right || spr.y + spr._espTop < top || spr.y + spr._espBottom > bottom);
 			/*
 			if(spr.visible) {
 				if(Math.abs(spr.x - $espGamePlayer.position.x) < (TS / 2)) {
@@ -555,6 +554,10 @@ modify_Spriteset_Map = class {
 					spr.espMove(spr._espBaseX, spr._espBaseY);
 					spr._colY = ((y + regionId) * TS);
 					spr._colZ = regionId * TS;
+					spr._espLeft = (bitmap.width / -2) - 10;
+					spr._espRight = (bitmap.width / 2) + 10;
+					spr._espTop = (-bitmap.height) - 10;
+					spr._espBottom = 10;
 					spr.z = height == 1 ? 999 : 4;
 					spr._espWorldObject = true;
 					//if((y + height) >= mapHeight) spr.alpha = 0.5;

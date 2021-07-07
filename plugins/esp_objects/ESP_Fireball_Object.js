@@ -83,6 +83,10 @@ class ESPFireballObject extends ESPGameObject {
 		if($gameMap.findObjectGroup("spearwall").filter((s) => s.isTouching(this)).length > 0) {
 			this.onCollided();
 		}
+
+		$gameMap.findObjectGroup("triggerbug").filter((s) => !s._isTouched && this.getDistance(s) <= size).forEach(function(s) {
+			s.hitWithFire();
+		});
 	}
 
 	onCollisionHeightChange(oldHeight) {

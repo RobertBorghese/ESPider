@@ -36,9 +36,12 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	cameraY() {
-		if(!this.__cameraCollisionHeight) this.__cameraCollisionHeight = 0;
+		if(this.__cameraCollisionHeight === undefined) this.__cameraCollisionHeight = 0;
 		if(this.position.z <= 0 && this.__cameraCollisionHeight !== this.CollisionHeight) {
 			this.__cameraCollisionHeight = this.CollisionHeight;
+		}
+		if($gameMap._espNewMapPosition && typeof $gameMap._espNewMapPosition.z === "number") {
+			this.__cameraCollisionHeight = $gameMap._espNewMapPosition.z;
 		}
 		return this.position.y + (this.__cameraCollisionHeight * -TS);
 	}
