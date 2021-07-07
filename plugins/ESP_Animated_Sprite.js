@@ -14,6 +14,7 @@ class ESPAnimatedSprite extends PIXI.Sprite {
 			this.Offset = InvertOrObj.Offset ?? 0;
 			this.InitOffset = InvertOrObj.InitOffset ?? 0;
 			this.FrameCount = InvertOrObj.FrameCount ?? null;
+			this.TopCutoff = InvertOrObj.TopCutoff ?? -1;
 		} else {
 			this.Invert = InvertOrObj ?? false;
 			this.Offset = Offset ?? 0;

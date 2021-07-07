@@ -36,7 +36,7 @@
  * @option Left
  * @value left
  * @option Right
- * @value righ
+ * @value right
  * @option Shoot Player
  * @value player
  * @desc

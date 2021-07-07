@@ -168,11 +168,19 @@ modify_Input = class {
 	
 		if(this.InputVector.length() >= 1) this.InputVector.normalize();
 
-		this.InputDir = Math.round((Input.InputVector.direction() * (180.0 / Math.PI)) / 45);
-		if(this.InputDir < 0) this.InputDir = 10 + this.InputDir;
-		else if(this.InputDir > 0 && this.InputDir < 4) this.InputDir = 4 - this.InputDir;
-		if(this.InputPressed && this.InputDir === 0) this.InputDir = 6;
-	
+		const degrees = (Input.InputVector.direction() * (180.0 / Math.PI));
+		this.InputDir = Math.round(degrees / 45);
+		if(degrees >= -157.5 && degrees < -112.5) {
+			this.InputDir = 7;
+		} else if((degrees >= -180 && degrees <= -157.5) ||
+				(degrees <= 180 && degrees >= 157.5)) {
+			this.InputDir = 4;
+		} else {
+			if(this.InputDir < 0) this.InputDir = 10 + this.InputDir;
+			else if(this.InputDir > 0 && this.InputDir < 4) this.InputDir = 4 - this.InputDir;
+			if(this.InputPressed && this.InputDir === 0) this.InputDir = 6;
+		}
+
 		this.Input4Dir = (this.InputDir === 1 || this.InputDir === 7) ? 4 : ((this.InputDir === 9 || this.InputDir === 3) ? 6 : this.InputDir);
 	}
 }

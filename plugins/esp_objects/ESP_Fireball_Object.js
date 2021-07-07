@@ -27,27 +27,6 @@ class ESPFireballObject extends ESPGameObject {
 	update() {
 		if(!this._isInitializing) {
 			super.update();
-			const manipulators = $gameMapTemp._gravityManipulators;
-			const len = manipulators.length;
-			for(let i = 0; i < len; i++) {
-				const manipulator = manipulators[i];
-				const distance = this.getDistance2d(manipulator);
-				if(distance < 100) {
-					const ratio = (distance / 100) * manipulator.gravity();
-
-					if(this.position.x < manipulator.position.x) {
-						this.speed.x += ratio;
-					} else if(this.position.x > manipulator.position.x) {
-						this.speed.x -= ratio;
-					}
-
-					if(this.position.y < manipulator.position.y) {
-						this.speed.y += ratio;
-					} else if(this.position.y > manipulator.position.y) {
-						this.speed.y -= ratio;
-					}
-				}
-			}
 
 			if(this._groundedStyle === 0) {
 				if(this.position.z > 10) {
@@ -87,6 +66,12 @@ class ESPFireballObject extends ESPGameObject {
 		$gameMap.findObjectGroup("triggerbug").filter((s) => !s._isTouched && this.getDistance(s) <= size).forEach(function(s) {
 			s.hitWithFire();
 		});
+
+		if(!this._isInitializing) {
+			$gameMap.findObjectGroup("webdevice").filter((s) => s.isOpen() && !s.isConnectedTo(this) && this.getDistance(s) <= 200).forEach(s => s.connect(this));
+		}
+
+		//webdevice
 	}
 
 	onCollisionHeightChange(oldHeight) {

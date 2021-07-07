@@ -41,6 +41,7 @@ class ESPTriggerBugObject extends ESPGameObject {
 
 	hitWithFire() {
 		this._isTouched = true;
+		SceneManager._scene._spriteset.shake();
 	}
 
 	execute() {
