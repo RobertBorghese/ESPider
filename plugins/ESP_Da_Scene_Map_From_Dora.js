@@ -101,10 +101,12 @@ modify_Scene_Map = class {
 			}
 		}
 		$gameMapTemp._objectsUpdating = false;
-		$gameMapTemp._toBeDeleted.forEach(function(obj) {
-			$gameMapTemp._mapObjects.remove(obj);
-		});
-		$gameMapTemp._toBeDeleted = [];
+		if($gameMapTemp._toBeDeleted.length > 0) {
+			$gameMapTemp._toBeDeleted.forEach(function(obj) {
+				$gameMapTemp._mapObjects.remove(obj);
+			});
+			$gameMapTemp._toBeDeleted = [];
+		}
 	}
 
 	isPauseInputTriggered() {

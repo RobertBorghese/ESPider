@@ -32,7 +32,7 @@ class ESPSpearWallObject extends ESPGameObject {
 		this._startingUp = data["StartingState"] === "up";
 
 		this._showAnimation = showAni ? 1 : 0;
-		this._showTime = 0;
+		this._showTime = showAni ? 0 : 1;
 		this._scaleState = showAni ? 0 : 1;
 
 		this._deleteNextFrame = false;
@@ -60,7 +60,7 @@ class ESPSpearWallObject extends ESPGameObject {
 				$gameMap.removeGameObject(this);
 			}
 
-			this._showTime = 0;
+			//this._showTime = 0;
 			this._showAnimation = 0;
 		} else if(this.isChanging()) {
 			this._showTime += 0.04 * (this._showAnimation === 1 ? 1 : -1);
@@ -102,9 +102,14 @@ class ESPSpearWallObject extends ESPGameObject {
 		(playerZ >= this.realZ()) && (playerZ < this.realZ() + TS * 2);
 	}
 
-	hideSpears() {
+	showSpears(refresh = true) {
+		this._showAnimation = 1;
+		if(refresh) this._showTime = 0;
+	}
+
+	hideSpears(refresh = true) {
 		this._showAnimation = 2;
-		this._showTime = 1;
+		if(refresh) this._showTime = 1;
 	}
 
 	isChanging() {

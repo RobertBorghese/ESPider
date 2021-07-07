@@ -38,7 +38,7 @@ class ESPKeySprite extends ESPGameSprite {
 			this.espObject.updateConsumeAnimation(this._touchFlySpeed);
 			this._touchFlySpeed -= 0.45;
 			if(this._touchTime === 100) {
-				this.espObject.execute();
+				if(!this.espObject._immediate) this.espObject.execute();
 				this.espObject.delete();
 				this._isTouching = 2;
 			}

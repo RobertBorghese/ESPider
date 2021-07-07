@@ -9,6 +9,11 @@
  * @desc The code to run when touched.
  * @type multiline_string
  * @default
+ *
+ * @arg Immediate
+ * @desc Whether on touch is run the second the key is touched
+ * @type boolean
+ * @default false
  */
 
 class ESPKeyObject extends ESPGameObject {
@@ -19,6 +24,7 @@ class ESPKeyObject extends ESPGameObject {
 		this.speed.set(0, 0, 0);
 
 		this._code = data["On Touch"];
+		this._immediate = data["Immediate"] === "true";
 		
 		this._isTouched = false;
 	}
@@ -36,6 +42,7 @@ class ESPKeyObject extends ESPGameObject {
 		const size = 20;
 		if(!this._isTouched && this.getDistance($espGamePlayer) < size) {
 			//this.consumeFly();
+			if(this._immediate) this.execute();
 			SceneManager._scene._spriteset.shake();
 			this._isTouched = true;
 		}

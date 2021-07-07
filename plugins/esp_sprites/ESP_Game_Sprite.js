@@ -42,20 +42,26 @@ modify_Spriteset_Map = class {
 		}
 	}
 
-	removeGameSprite(obj) {
+	findGameSprite(obj) {
 		const sprites = this._tilemap._espSprites;
 		const len = sprites.length;
 		for(let i = 0; i < len; i++) {
 			const spr = sprites[i];
 			if(spr.espObject === obj) {
-				this._tilemap.removeChild(spr);
-				this._tilemap._espSprites.remove(spr);
-				if(this._unfreezable.contains(spr)) {
-					this._unfreezable.remove(spr);
-				}
-				spr.destroy();
-				break;
+				return spr;
 			}
+		}
+	}
+
+	removeGameSprite(obj) {
+		const spr = this.findGameSprite(obj);
+		if(spr) {
+			this._tilemap.removeChild(spr);
+			this._tilemap._espSprites.remove(spr);
+			if(this._unfreezable.contains(spr)) {
+				this._unfreezable.remove(spr);
+			}
+			spr.destroy();
 		}
 	}
 

@@ -184,30 +184,43 @@ modify_Game_Map = class {
 	// setup ESP objects
 	setupObjects() {
 		for(const event of $dataMap.events.filter(event => !!event)) {
-			if(event && event.pages && event.pages[0]) {
-				const data = event.pages[0];
-				if(data.image && data.image.characterName === "_Entities") {
-					const d = data.image;
-					const ci = d.characterIndex;
-					const x = (ci > 3 ? ((ci - 3) * 3) : (ci * 3)) + d.pattern;
-					const y = (ci > 3 ? 4 : 0) + (d.direction / 2) - 1
-					const index = (y * 12) + x;
-					const objectData = { text: [] };
-					data.list.forEach(function(event) {
-						if(event.code === 401) {
-							objectData.text.push(event.parameters[0]);
-						} else if(event.code === 357) {
-							const data = event.parameters[3];
-							const keys = Object.keys(data);
-							for(let i = 0; i < keys.length; i++) {
-								objectData[keys[i]] = data[keys[i]];
-							}
+			this.createEventObject(event);
+		}
+	}
+
+	findGameSprite(obj) {
+		return SceneManager._scene._spriteset.findGameSprite(obj);
+	}
+
+	createEventObjectFromId(id) {
+		return this.createEventObject($dataMap.events[id]);
+	}
+
+	createEventObject(event) {
+		if(event && event.pages && event.pages[0]) {
+			const data = event.pages[0];
+			if(data.image && data.image.characterName === "_Entities") {
+				const d = data.image;
+				const ci = d.characterIndex;
+				const x = (ci > 3 ? ((ci - 3) * 3) : (ci * 3)) + d.pattern;
+				const y = (ci > 3 ? 4 : 0) + (d.direction / 2) - 1
+				const index = (y * 12) + x;
+				const objectData = { text: [] };
+				data.list.forEach(function(event) {
+					if(event.code === 401) {
+						objectData.text.push(event.parameters[0]);
+					} else if(event.code === 357) {
+						const data = event.parameters[3];
+						const keys = Object.keys(data);
+						for(let i = 0; i < keys.length; i++) {
+							objectData[keys[i]] = data[keys[i]];
 						}
-					});
-					this.createPresetObject(index, event.x, event.y, event.name, objectData);
-				}
+					}
+				});
+				return this.createPresetObject(index, event.x, event.y, event.name, objectData);
 			}
 		}
+		return null;
 	}
 
 	// create objects based on id
@@ -219,7 +232,9 @@ modify_Game_Map = class {
 			const obj = new cls(objectData);
 			obj.__eventName = eventName;
 			this.addGameObject(obj, (x * TS) + (TS / 2), (y * TS) + (regionId * TS) + (TS / 2));
+			return obj;
 		}
+		return null;
 		/*
 		switch(id) {
 			case 0: {
@@ -396,12 +411,12 @@ modify_Game_Map = class {
 				$gameMapTemp._toBeDeleted.push(object);
 			} else {
 				$gameMapTemp._mapObjects.remove(object);
-				if(object.saveIndividual()) {
-					delete $gameMapTemp._mapReferences[object.__eventName];
-				}
-				if(object.saveGroup()) {
-					$gameMapTemp._mapGroupReferences[object.saveGroup()].remove(object);
-				}
+			}
+			if(object.saveIndividual()) {
+				delete $gameMapTemp._mapReferences[object.__eventName];
+			}
+			if(object.saveGroup()) {
+				$gameMapTemp._mapGroupReferences[object.saveGroup()].remove(object);
 			}
 			this.onGameObjectRemoved(object);
 		}
