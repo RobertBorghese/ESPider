@@ -39,6 +39,8 @@ class ESPWebDeviceObject extends ESPGameObject {
 
 		this._connections = [];
 		this._distances = [];
+		this._connectTime = [];
+		this._speed = [];
 		this._graphics = [];
 	}
 
@@ -65,11 +67,31 @@ class ESPWebDeviceObject extends ESPGameObject {
 		return this._connections.contains(obj);
 	}
 	
+	maxConnections() {
+		return 5;
+	}
+
 	connect(obj) {
+		if(this._connections.length > this.maxConnections()) {
+			return;
+			/*
+			if(obj.__forcefullyDisconnected) {
+				return;
+			} else {
+				const oldObj = this._connections[0];
+				oldObj.__forcefullyDisconnected = true;
+				this.disconnect(oldObj);
+			}
+			*/
+		}
+
 		this._connections.push(obj);
 
-		const speed = new Vector2(obj.speed.x, obj.speed.y);
 		this._distances.push(this.getDistance2d(obj));
+
+		this._connectTime.push(-12);
+
+		this._speed.push(Vector2._length(obj.speed.x, obj.speed.y));
 
 		const graphics = new PIXI.Graphics();
 		this._spr._webHolder.addChild(graphics);
@@ -81,6 +103,8 @@ class ESPWebDeviceObject extends ESPGameObject {
 		this._connections.remove(obj);
 
 		this._distances.splice(index, 1);
+		this._connectTime.splice(index, 1);
+		this._speed.splice(index, 1);
 
 		const graphics = this._graphics[index];
 		this._spr._webHolder.removeChild(graphics);
@@ -103,25 +127,55 @@ class ESPWebDeviceObject extends ESPGameObject {
 				i--;
 				continue;
 			}
+
+			let ratio = 1;
+			if(this._connectTime[i] > 0) {
+				this._connectTime[i]--;
+			} else {
+				this._connectTime[i]++;
+				ratio = Easing.easeOutCubic(1 - ((-this._connectTime[i]) / 12));
+				if(this._connectTime[i] >= 0) {
+					ratio = 1;
+					this._connectTime[i] = 40000;
+				}
+			}
+
 			const graphics = this._graphics[i];
 			graphics.clear();
 			graphics.lineStyle(2, 0xffffff, 0.8);
-			graphics.moveTo(obj.position.x - this.position.x, (obj.position.y - 40) - (this.position.y));
-			graphics.lineTo(0, -40);
+			graphics.moveTo(0, -40);
 
 			const desiredDistance = this._distances[i];
-			const newX = obj.position.x + obj.speed.x;
-			const newY = obj.position.y + obj.speed.y;
-			const newDist = Math.sqrt(
-				Math.pow(newX - this.position.x, 2) +
-				Math.pow(newY - this.position.y, 2)
-			);
-			if(newDist > desiredDistance) {
-				const radians = Math.atan2(this.position.x - newX, this.position.y - newY);
-				obj.speed.x = (this.position.x + -Math.sin(radians) * desiredDistance) - obj.position.x;
-				obj.speed.y = (this.position.y + -Math.cos(radians) * desiredDistance) - obj.position.y;
+
+			if(ratio < 1) {
+				const radians = Math.atan2(this.position.x - obj.position.x, this.position.y - obj.position.y);
+				const x = (-Math.sin(radians) * (desiredDistance * ratio));
+				const y = (-Math.cos(radians) * (desiredDistance * ratio));
+				graphics.lineTo(x, y - 40);
 			} else {
-				this._distances[i] = newDist;
+				graphics.lineTo(obj.position.x - this.position.x, (obj.position.y - 40) - this.position.y);
+			}
+
+			if(this._connectTime[i] === 0) {
+				this.disconnect(obj);
+				obj.onCollided();
+			} else {
+				const newX = obj.position.x + obj.speed.x;
+				const newY = obj.position.y + obj.speed.y;
+				const newDist = Math.sqrt(
+					Math.pow(newX - this.position.x, 2) +
+					Math.pow(newY - this.position.y, 2)
+				);
+				if(newDist > desiredDistance) {
+					const radians = Math.atan2(this.position.x - newX, this.position.y - newY);
+					const spdX = (this.position.x + -Math.sin(radians) * desiredDistance) - obj.position.x;
+					const spdY = (this.position.y + -Math.cos(radians) * desiredDistance) - obj.position.y;
+					const result = Vector2.normalized(spdX, spdY, this._speed[i]);
+					obj.speed.x = result.x;
+					obj.speed.y = result.y;
+				} else {
+					this._distances[i] = newDist;
+				}
 			}
 		}
 
