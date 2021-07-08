@@ -38,6 +38,7 @@ class ESPWebDeviceObject extends ESPGameObject {
 		this._deleteNextFrame = false;
 
 		this._connections = [];
+		this._distances = [];
 		this._graphics = [];
 	}
 
@@ -67,6 +68,9 @@ class ESPWebDeviceObject extends ESPGameObject {
 	connect(obj) {
 		this._connections.push(obj);
 
+		const speed = new Vector2(obj.speed.x, obj.speed.y);
+		this._distances.push(this.getDistance2d(obj));
+
 		const graphics = new PIXI.Graphics();
 		this._spr._webHolder.addChild(graphics);
 		this._graphics.push(graphics);
@@ -75,6 +79,8 @@ class ESPWebDeviceObject extends ESPGameObject {
 	disconnect(obj) {
 		const index = this._connections.indexOf(obj);
 		this._connections.remove(obj);
+
+		this._distances.splice(index, 1);
 
 		const graphics = this._graphics[index];
 		this._spr._webHolder.removeChild(graphics);
@@ -103,36 +109,26 @@ class ESPWebDeviceObject extends ESPGameObject {
 			graphics.moveTo(obj.position.x - this.position.x, (obj.position.y - 40) - (this.position.y));
 			graphics.lineTo(0, -40);
 
-			const distance = this.getDistance2d(obj);
-			if(distance < 100) {
-				const ratio = (distance / 100) * 0.1;
-
-				if(obj.position.x < this.position.x) {
-					obj.speed.x += ratio;
-				} else if(obj.position.x > this.position.x) {
-					obj.speed.x -= ratio;
-				}
-
-				if(obj.position.y < this.position.y) {
-					obj.speed.y += ratio;
-				} else if(obj.position.y > this.position.y) {
-					obj.speed.y -= ratio;
-				}
+			const desiredDistance = this._distances[i];
+			const newX = obj.position.x + obj.speed.x;
+			const newY = obj.position.y + obj.speed.y;
+			const newDist = Math.sqrt(
+				Math.pow(newX - this.position.x, 2) +
+				Math.pow(newY - this.position.y, 2)
+			);
+			if(newDist > desiredDistance) {
+				const radians = Math.atan2(this.position.x - newX, this.position.y - newY);
+				obj.speed.x = (this.position.x + -Math.sin(radians) * desiredDistance) - obj.position.x;
+				obj.speed.y = (this.position.y + -Math.cos(radians) * desiredDistance) - obj.position.y;
 			} else {
-				this.disconnect(obj);
-				i--;
+				this._distances[i] = newDist;
 			}
 		}
 
 		if(this._deleteNextFrame) {
 			this._deleteNextFrame = false;
-
-			//this._showTime = 0;
 			this._isOpen = this._showAnimation === 1 ? true : false;
 			this._showAnimation = 0;
-			/*if(!this._isOpen) {
-				this.disconnectAll();
-			}*/
 		} else if(this.isChanging()) {
 			this._showTime += 0.04 * (this._showAnimation === 1 ? 1 : -1);
 
@@ -143,8 +139,6 @@ class ESPWebDeviceObject extends ESPGameObject {
 
 				this._deleteNextFrame = true;
 			}
-		} else {
-			//this._animationState = 1;
 		}
 	}
 
@@ -154,7 +148,6 @@ class ESPWebDeviceObject extends ESPGameObject {
 
 	open() {
 		if(!this._isOpen) {
-			//this._isOpen = true;
 			this._showAnimation = 1;
 		}
 	}

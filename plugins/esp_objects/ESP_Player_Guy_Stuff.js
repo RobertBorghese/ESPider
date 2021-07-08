@@ -322,6 +322,10 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	kill(offsetX, offsetY, offsetZ) {
+		if(this._interpreter) {
+			SceneManager._scene.setCameraToPlayer();
+			this.clearInterpreter();
+		}
 		$gameMap.initiateKillSequence();
 		$gameMap.espFreezeWorld();
 		$gameMap.onPlayerKilled();
