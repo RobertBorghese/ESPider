@@ -615,6 +615,7 @@ modify_Game_Map = class {
 		} else {
 			$gameVariables.setValue(10, 1);
 		}
+		SceneManager._scene._spriteset.unfreezeWorldSpriteVisibility();
 	}
 
 	startBoss1() {
@@ -644,6 +645,10 @@ modify_Game_Map = class {
 			this._boss1Righties.push(obj);
 			this.addGameObject(obj, (x * TS) + (TS / 2), (y * TS) + (regionId * TS) + (TS / 2), 500 + (12 - y) * 100);
 		}
+
+		SceneManager._scene._spriteset.freezeWorldSpriteVisibility([
+			[10, 16], [11, 16], [12, 16], [14, 16], [15, 16], [16, 16]
+		])
 	}
 
 	startBoss1Phase2() {

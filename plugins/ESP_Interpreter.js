@@ -222,6 +222,30 @@ class ESPInterpreter {
 		return this;
 	}
 
+	freezeWorldRendering(locations) {
+		this._list.push([
+			function() {
+				SceneManager._scene._spriteset.freezeWorldSpriteVisibility(locations);
+			},
+			function() {
+				return true;
+			}
+		]);
+		return this;
+	}
+
+	freezeWorldRendering(locations) {
+		this._list.push([
+			function() {
+				SceneManager._scene._spriteset.unfreezeWorldSpriteVisibility();
+			},
+			function() {
+				return true;
+			}
+		]);
+		return this;
+	}
+
 	startBoss1() {
 		this._list.push([
 			function() {

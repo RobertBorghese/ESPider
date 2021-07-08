@@ -392,7 +392,31 @@ modify_Spriteset_Map = class {
 		return (this.getGroundTransitionTime()) + ((1 / this._ESP_OBJECT_TRANSITION_OFFSET) + Math.ceil(this._espWorldSprites.length / this.getObjectPerFrame()));
 	}
 
+	freezeWorldSpriteVisibility(locations) {
+		this._espWorldRenderingFrozen = true;
+		{
+			const len = this._espWorldSprites.length;
+			for(let i = 0; i < len; i++) {
+				this._espWorldSprites[i].visible = false;
+			}
+		}
+		{
+			const width = $dataMap.width;
+			const len = locations.length;
+			for(let i = 0; i < len; i++) {
+				const x = locations[i][0];
+				const y = locations[i][1];
+				this._espWorldSpriteIndexes[x + (y * width)].visible = true;
+			}
+		}
+	}
+
+	unfreezeWorldSpriteVisibility() {
+		this._espWorldRenderingFrozen = false;
+	}
+
 	updateWorldSpriteVisibility() {
+		if(this._espWorldRenderingFrozen) return;
 		if(!this._espWorldSprites) return;
 		const len = this._espWorldSprites.length;
 		const camX = -this._cameraTargetX;
@@ -403,7 +427,7 @@ modify_Spriteset_Map = class {
 		const bottom = (Graphics.height + camY + (TS * 2));
 		for(let i = 0; i < len; i++) {
 			const spr = this._espWorldSprites[i];
-			spr.visible = !(spr.x + spr._espLeft < left || spr.x + spr._espRight > right || spr.y + spr._espTop < top || spr.y + spr._espBottom > bottom);
+			spr.visible = !((spr.x + spr._espLeft) > right || (spr.x + spr._espRight) < left || (spr.y + spr._espTop) > bottom || (spr.y + spr._espBottom) < top);
 			/*
 			if(spr.visible) {
 				if(Math.abs(spr.x - $espGamePlayer.position.x) < (TS / 2)) {
@@ -428,7 +452,7 @@ modify_Spriteset_Map = class {
 		const bottom = (Graphics.height + camY + (TS * 2));
 		for(let i = 0; i < len; i++) {
 			const spr = this._espWorldSprites[i];
-			if(spr.x < left || spr.x > right || spr.y < top || spr.y > bottom) {
+			if((spr.x + spr._espLeft) > right || (spr.x + spr._espRight) < left || (spr.y + spr._espTop) > bottom || (spr.y + spr._espBottom) < top) {
 				spr.visible = false;
 			} else {
 				spr.visible = true;
@@ -512,6 +536,7 @@ modify_Spriteset_Map = class {
 		const mapHeight = $dataMap.height;
 
 		this._espWorldSprites = [];
+		this._espWorldSpriteIndexes = [];
 
 		this._transitionCirlce = new PIXI.Graphics();
 		this._transitionCirlce.beginFill(0xffffff);
@@ -567,6 +592,7 @@ modify_Spriteset_Map = class {
 					spr.z = height == 1 ? 999 : 4;
 					spr._espWorldObject = true;
 					//if((y + height) >= mapHeight) spr.alpha = 0.5;
+					this._espWorldSpriteIndexes[x + (y * mapWidth)] = spr;
 					this._espWorldSprites.push(spr);
 					//this._tilemap._espWorldSprites = this._espWorldSprites;
 					this._tilemap.addChild(spr);

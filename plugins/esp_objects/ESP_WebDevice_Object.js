@@ -72,7 +72,7 @@ class ESPWebDeviceObject extends ESPGameObject {
 	}
 
 	connect(obj) {
-		if(this._connections.length > this.maxConnections()) {
+		if(this._connections.length >= this.maxConnections()) {
 			return;
 			/*
 			if(obj.__forcefullyDisconnected) {
