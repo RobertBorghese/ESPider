@@ -23,11 +23,17 @@ modify_Spriteset_Map = class {
 		this._tilemap.addChild(this._espPlayer);
 
 		this._tilemap._espSprites = [this._espPlayer];
+		this._tilemap._espMovingPlatforms = [];
 
 		const objects = $gameMap.getGameObjects();
 		const len = objects.length;
 		for(let i = 0; i < len; i++) {
 			this.addGameSprite(objects[i]);
+		}
+
+		const movingPlatforms = $gameMap.getMovingPlatforms();
+		for(let i = 0; i < movingPlatforms.length; i++) {
+			this.addGameSprite(movingPlatforms[i]);
 		}
 	}
 
@@ -35,7 +41,11 @@ modify_Spriteset_Map = class {
 		const spr = obj.constructSprite();
 		spr.espObject = obj;
 		this._tilemap.addChild(spr);
-		this._tilemap._espSprites.push(spr);
+		if(obj.isMovingPlatform()) {
+			this._tilemap._espMovingPlatforms.push(spr);
+		} else {
+			this._tilemap._espSprites.push(spr);
+		}
 		if(!spr.freezable()) {
 			if(!this._unfreezable) this._unfreezable = [];
 			this._unfreezable.push(spr);
@@ -43,7 +53,7 @@ modify_Spriteset_Map = class {
 	}
 
 	findGameSprite(obj) {
-		const sprites = this._tilemap._espSprites;
+		const sprites = obj.isMovingPlatform() ? this._tilemap._espMovingPlatforms : this._tilemap._espSprites;
 		const len = sprites.length;
 		for(let i = 0; i < len; i++) {
 			const spr = sprites[i];
@@ -57,7 +67,11 @@ modify_Spriteset_Map = class {
 		const spr = this.findGameSprite(obj);
 		if(spr) {
 			this._tilemap.removeChild(spr);
-			this._tilemap._espSprites.remove(spr);
+			if(obj.isMovingPlatform()) {
+				this._tilemap._espMovingPlatforms.remove(spr);
+			} else {
+				this._tilemap._espSprites.remove(spr);
+			}
 			if(this._unfreezable.contains(spr)) {
 				this._unfreezable.remove(spr);
 			}
@@ -499,6 +513,11 @@ modify_Spriteset_Map = class {
 	setAllSpriteAlpha(alpha) {
 		if(this?._tilemap?._espSprites) {
 			this._tilemap._espSprites.forEach(function(spr) {
+				spr.alpha = alpha;
+			});
+		}
+		if(this?._tilemap?._espMovingPlatforms) {
+			this._tilemap._espMovingPlatforms.forEach(function(spr) {
 				spr.alpha = alpha;
 			});
 		}

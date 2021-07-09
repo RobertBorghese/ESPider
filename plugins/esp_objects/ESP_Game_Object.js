@@ -89,6 +89,10 @@ class ESPGameObject {
 		return false;
 	}
 
+	isMovingPlatform() {
+		return false;
+	}
+
 	gravity() {
 		return 0;
 	}
@@ -108,11 +112,42 @@ class ESPGameObject {
 		);
 	}
 
+	movingPlatformsExist() {
+		return !!$gameMapTemp._mapMovingPlatforms && $gameMapTemp._mapMovingPlatforms.length > 0;
+	}
+
+	willEncounterMovingPlatform() {
+		return false;
+	}
+
+	_GetMovingPlatform(x, y, xPos, yPos) {
+		if(this.movingPlatformsExist() && this.willEncounterMovingPlatform()) {
+			const realX = ((xPos ?? this.position.x) + (this.rectWidth() * x));
+			const realY = ((yPos ?? this.position.y) + (this.rectHeight() * y));
+			const len = $gameMapTemp._mapMovingPlatforms.length;
+			const thresholdX = x < 0 ? 30 : 26;
+			const thresholdY = 16;
+			for(let i = 0; i < len; i++) {
+				const p = $gameMapTemp._mapMovingPlatforms[i];
+				if(this.realZ() >= p.realZ()) {
+					if(realX > (p.position.x - thresholdX) && realX < (p.position.x + thresholdX) && realY > (p.position.y - thresholdY) && realY < (p.position.y + thresholdY)) {
+						return p;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
 	_GetCornerIndex(x, y, xPos, yPos) {
 		const tileSize = TS;
 		const xx =  Math.floor(((xPos ?? this.position.x) + (this.rectWidth() * x)) / tileSize);
 		const yy = Math.floor(((yPos ?? this.position.y) + (this.rectHeight() * y)) / tileSize);
 		if(xx < 0 || yy < 0 || xx >= $gameMap.width() || (xx + (yy * $dataMap.width)) >= $gameMap.espCollisionMap.length) return 99;
+		const movingPlatform = this._GetMovingPlatform(x, y, xPos, yPos);
+		if(movingPlatform !== null) {
+			return Math.floor(movingPlatform.position.z / TS);
+		}
 		if(this.CantWalkOffLedge) {
 			const index = xx + (yy * $dataMap.width);
 			if($gameMap.espMetaMap[index] === 1 || $gameMap.espCollisionKillers[index] > 0 || $gameMap.espCollisionShowMap[index] > 0) {
@@ -128,6 +163,9 @@ class ESPGameObject {
 		const yy = Math.floor(((yPos ?? this.position.y) + (this.rectHeight() * y)) / tileSize);
 		if(xx < 0 || yy < 0 || xx >= $gameMap.width() || (xx + (yy * $dataMap.width)) >= $gameMap.espCollisionMap.length) return [99, 0];
 		const index = xx + (yy * $dataMap.width);
+		if(movingPlatform !== null) {
+			return [Math.floor(movingPlatform.position.z / TS), $gameMap.espCollisionKillers[index] ?? 0];
+		}
 		if(this.CantWalkOffLedge) {
 			if($gameMap.espMetaMap[index] === 1 || $gameMap.espCollisionKillers[index] > 0 || $gameMap.espCollisionShowMap[index] > 0) {
 				return [99, 0];
@@ -213,6 +251,21 @@ class ESPGameObject {
 		);
 	}
 
+	findMovingPlatform() {
+		let result = null;
+		const process = (x, y) => {
+			const newResult = this._GetMovingPlatform(x, y);
+			if(newResult !== null && (result === null || (newResult !== result && this.getDistance2d(newResult) < this.getDistance2d(result)))) {
+				result = newResult;
+			}
+		}
+		process(-1, -1);
+		process(-1, 1);
+		process(1, -1);
+		process(1, 1);
+		return result;
+	}
+
 	update() {
 		this.updatePosition();
 		this.updateZPosition();
@@ -228,10 +281,10 @@ class ESPGameObject {
 			const r = this._GetCornerIndexEx(isMovingLeft, 1, newPos);
 			const newHeightIndex = Math.max(l[0], r[0]);
 			const newKillIndex = Math.min(l[1], r[1]);
-			return oldIndexX === indexX || (newKillIndex === 0 && newHeightIndex === this.__PrecisePlayerHeightIndex);
+			return (!this.willEncounterMovingPlatform() && oldIndexX === indexX) || (newKillIndex === 0 && newHeightIndex === this.__PrecisePlayerHeightIndex);
 		} else {
 			const newHeightIndex = Math.max(this._GetCornerIndex(isMovingLeft, -1, newPos), this._GetCornerIndex(isMovingLeft, 1, newPos));
-			return oldIndexX === indexX || (newHeightIndex <= this.__PrecisePlayerHeightIndex);
+			return (!this.willEncounterMovingPlatform() && oldIndexX === indexX) || (newHeightIndex <= this.__PrecisePlayerHeightIndex);
 		}
 	}
 
@@ -245,20 +298,35 @@ class ESPGameObject {
 			const r = this._GetCornerIndexEx(1, isMovingUp, null, newPos);
 			const newHeightIndex = Math.max(l[0], r[0]);
 			const newKillIndex = Math.min(l[1], r[1]);
-			return oldIndexY === indexY || (newKillIndex === 0 && newHeightIndex === this.__PrecisePlayerHeightIndex);
+			return (!this.willEncounterMovingPlatform() && oldIndexY === indexY) || (newKillIndex === 0 && newHeightIndex === this.__PrecisePlayerHeightIndex);
 		} else {
 			const newHeightIndex = Math.max(this._GetCornerIndex(-1, isMovingUp, null, newPos), this._GetCornerIndex(1, isMovingUp, null, newPos));
-			return oldIndexY === indexY || (newHeightIndex <= this.__PrecisePlayerHeightIndex);
+			return (!this.willEncounterMovingPlatform() && oldIndexY === indexY) || (newHeightIndex <= this.__PrecisePlayerHeightIndex);
 		}
 	}
 
 	updatePosition() {
+
+		let offsetX = 0;
+		let offsetY = 0;
+
+		if(this.willEncounterMovingPlatform()) {
+			const movingPlatform = this.position.z === 0 ? this.findMovingPlatform() : null;
+			if(movingPlatform) {
+				offsetX = movingPlatform.deltaX;
+				offsetY = movingPlatform.deltaY;
+			} else if(movingPlatform !== null) {
+				
+			}
+		}
+
 		const isMovingLeft = this.speed.x < 0 ? -1 : 1;
 		const isMovingUp = this.speed.y < 0 ? -1 : 1;
-		const newPosX = this.position.x + (this.speed.x * ESP.WS);
-		const newPosY = this.position.y + (this.speed.y * ESP.WS);
+		const newPosX = this.position.x + (this.speed.x * ESP.WS) + offsetX;
+		const newPosY = this.position.y + (this.speed.y * ESP.WS) + offsetY;
 
-		this.__OldCollisionHeight = this.findCollisionHeight();
+		//this.__OldCollisionHeight = this.findCollisionHeight();
+		this.__OldCollisionHeight = this.CollisionHeight;
 		this.__PrecisePlayerHeightIndex = Math.floor(this.position.z / TS) + this.__OldCollisionHeight;
 
 		if(!this.CanCollide || this.canMoveToX(newPosX)) {

@@ -94,13 +94,13 @@ Tilemap.prototype._compareChildOrder = function(a, b) {
 	if(a._espWorldObject && !b._espWorldObject && bz2 < az2) {
 		ay2 += TS;
 		if(typeof b._objY === "number") {
-			by2 = b._objY;
+			by2 = (a._espMovingPlatform ? (b._objY + (by2 - b._objY) * 0.5) : b._objY);
 		}
 	}
 	if(b._espWorldObject && !a._espWorldObject && az2 < bz2) {
 		by2 += TS;
 		if(typeof a._objY === "number") {
-			ay2 = a._objY;
+			ay2 = (b._espMovingPlatform ? (a._objY + (ay2 - a._objY) * 0.5) : a._objY);
 		}
 	}
 

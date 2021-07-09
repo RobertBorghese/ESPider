@@ -68,7 +68,7 @@ modify_Game_Map = class {
 	// get killer type
 	getColKill(x, y) {
 		let result = this.tileId(x, y, 5) ?? 0;
-		if(result >= 100 && result < 150) return 1;
+		if(result >= 100 && result < 150) return result - 99;
 		return 0;
 	}
 
@@ -354,6 +354,13 @@ modify_Game_Map = class {
 		return $gameMapTemp._mapObjects;
 	}
 
+	getMovingPlatforms() {
+		if(!$gameMapTemp._mapMovingPlatforms) {
+			$gameMapTemp._mapMovingPlatforms = [];
+		}
+		return $gameMapTemp._mapMovingPlatforms;
+	}
+
 	// add game object when needed
 	addGameObject(object, x, y, z) {
 		if(SceneManager._scene.constructor === Scene_Map) {
@@ -367,7 +374,11 @@ modify_Game_Map = class {
 				}
 				object.updatePosition();
 
-				this.getGameObjects().push(object);
+				if(object.isMovingPlatform()) {
+					this.getMovingPlatforms().push(object);
+				} else {
+					this.getGameObjects().push(object);
+				}
 				if(object.isGravityManipulator()) {
 					$gameMapTemp._gravityManipulators.push(object);
 				}
@@ -410,7 +421,11 @@ modify_Game_Map = class {
 			if($gameMapTemp._objectsUpdating) {
 				$gameMapTemp._toBeDeleted.push(object);
 			} else {
-				$gameMapTemp._mapObjects.remove(object);
+				if(object.isMovingPlatform()) {
+					$gameMapTemp._mapMovingPlatforms.remove(object);
+				} else {
+					$gameMapTemp._mapObjects.remove(object);
+				}
 			}
 			if(object.saveIndividual()) {
 				delete $gameMapTemp._mapReferences[object.__eventName];
@@ -433,10 +448,21 @@ modify_Game_Map = class {
 	// remove every game object in existance
 	removeAllGameObjects() {
 		if(this.canRemoveGameObjects()) {
-			const objects = this.getGameObjects();
-			const len = objects.length;
-			for(let i = 0; i < len; i++) {
-				this.onGameObjectRemoved(objects[i]);
+			{
+				const objects = this.getGameObjects();
+				const len = objects.length;
+				for(let i = 0; i < len; i++) {
+					this.onGameObjectRemoved(objects[i]);
+				}
+			}
+
+			if($gameMapTemp._mapMovingPlatforms && $gameMapTemp._mapMovingPlatforms.length > 0) {
+				const objects = $gameMapTemp._mapMovingPlatforms;
+				const len = objects.length;
+				for(let i = 0; i < len; i++) {
+					this.onGameObjectRemoved(objects[i]);
+				}
+				$gameMapTemp._mapMovingPlatforms = [];
 			}
 		}
 		$gameMapTemp._mapObjects = [];

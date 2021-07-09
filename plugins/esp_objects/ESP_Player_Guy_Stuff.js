@@ -247,7 +247,7 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	updateDeathTiles() {
-		if(!this._isDying && !$gameMap._isTransferring && this.findKill() === 1 && this.position.z <= 0) {
+		if(!this._isDying && !$gameMap._isTransferring && (this.findKill() - 1) >= this.CollisionHeight && this.position.z <= 0) {
 			this.kill(0, 0, 60);
 		}
 	}
@@ -378,6 +378,10 @@ class ESPGamePlayer extends ESPGameObject {
 
 	visible() {
 		return this._isVisible;
+	}
+
+	willEncounterMovingPlatform() {
+		return this.movingPlatformsExist();
 	}
 
 	saveRespawnPos(checkId) {

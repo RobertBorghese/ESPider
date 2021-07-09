@@ -42,6 +42,7 @@ modify_Scene_Map = class {
 		} else {
 			if(!this._isPaused) {
 				ESP.Scene_Map.updateMain.apply(this, arguments);
+				this.updateESPMovingPlatforms();
 				this.updateESPPlayer();
 				this.updateESPGameObjects();
 				this.updatePauseInput();
@@ -91,6 +92,27 @@ modify_Scene_Map = class {
 	}
 
 	// update game objects
+	updateESPMovingPlatforms() {
+		if($gameMapTemp._mapMovingPlatforms && $gameMapTemp._mapMovingPlatforms.length > 0) {
+			$gameMapTemp._objectsUpdating = true;
+			if(!$gameMap.espIsFrozen()) {
+				const objs = $gameMapTemp._mapMovingPlatforms;
+				const len = objs.length;
+				for(let i = 0; i < len; i++) {
+					objs[i].update();
+				}
+			}
+			$gameMapTemp._objectsUpdating = false;
+			if($gameMapTemp._toBeDeleted.length > 0) {
+				$gameMapTemp._toBeDeleted.forEach(function(obj) {
+					$gameMapTemp._mapMovingPlatforms.remove(obj);
+				});
+				$gameMapTemp._toBeDeleted = [];
+			}
+		}
+	}
+
+	// update game objects
 	updateESPGameObjects() {
 		$gameMapTemp._objectsUpdating = true;
 		if(!$gameMap.espIsFrozen()) {
@@ -103,7 +125,11 @@ modify_Scene_Map = class {
 		$gameMapTemp._objectsUpdating = false;
 		if($gameMapTemp._toBeDeleted.length > 0) {
 			$gameMapTemp._toBeDeleted.forEach(function(obj) {
-				$gameMapTemp._mapObjects.remove(obj);
+				if(obj.isMovingPlatform()) {
+					$gameMapTemp._mapMovingPlatforms.remove(obj);
+				} else {
+					$gameMapTemp._mapObjects.remove(obj);
+				}
 			});
 			$gameMapTemp._toBeDeleted = [];
 		}
