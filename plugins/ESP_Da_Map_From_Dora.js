@@ -233,7 +233,13 @@ modify_Game_Map = class {
 			obj.__eventName = eventName;
 			obj.__eventX = x;
 			obj.__eventY = y;
-			this.addGameObject(obj, (x * TS) + (TS / 2), (y * TS) + (regionId * TS) + (TS / 2));
+			let objX = (x * TS) + (TS / 2);
+			let objY = (y * TS) + (regionId * TS) + (TS / 2);
+			if(objectData["Specific X"] && objectData["Specific Y"]) {
+				objX = parseInt(objectData["Specific X"]) || objX;
+				objY = parseInt(objectData["Specific Y"]) || objY;
+			}
+			this.addGameObject(obj, objX, objY);
 			return obj;
 		}
 		return null;
@@ -272,6 +278,10 @@ modify_Game_Map = class {
 		this._espStartY = $dataSystem.startY;
 		this._cameraXMinY = 0;
 		this._cameraXMaxY = 0;
+
+		this._cameraMaxX = -1;
+		this._cameraMaxXIfYBelow = -1;
+
 		this._manualBehindKills = false;
 
 		if(code) {
@@ -608,6 +618,19 @@ modify_Game_Map = class {
 		if($gameMap._isTranferring) return true;
 		if(this._cameraXMinY === 0 && this._cameraXMaxY === 0) return true;
 		return $espGamePlayer.position.y > this._cameraXMinY && $espGamePlayer.position.y <= this._cameraXMaxY;
+	}
+
+	maxCameraX() {
+		if(this._cameraMaxX > 0) {
+			if(($espGamePlayer.position.y / TS) > this._cameraMaxXIfYBelow) {
+				return this._cameraMaxX;
+			}
+		}
+		return $dataMap.width;
+	}
+
+	maxCameraY() {
+		return $dataMap.height;
 	}
 
 	// need more precise method for getting touch x/y

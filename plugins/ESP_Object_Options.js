@@ -31,4 +31,19 @@
  * @desc If true, will always be above the ground it stands on.
  * @type boolean
  * @default false
+ * 
+ * 
+ * @command Specific Position
+ * @text Options for positioning.
+ * @desc
+ *
+ * @arg Specific X
+ * @desc The specific x the object will spawn at.
+ * @type number
+ * @default 0
+ *
+ * @arg Specific Y
+ * @desc The specific y the object will spawn at.
+ * @type number
+ * @default 0
  */

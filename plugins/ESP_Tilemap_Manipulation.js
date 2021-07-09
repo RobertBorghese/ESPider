@@ -35,6 +35,7 @@ Tilemap.prototype._sortChildren = function() {
 		this.addChildAt(this._espPlayer, isHigher);
 	}
 
+	/*
 	if($gameMapTemp._mapMovingPlatforms && $gameMapTemp._mapMovingPlatforms.length > 0) {
 		const playerIndex = this.children.indexOf(this._espPlayer);
 		const platforms = [];
@@ -47,7 +48,7 @@ Tilemap.prototype._sortChildren = function() {
 			this.removeChild(p);
 			this.addChildAt(p, playerIndex - 1);
 		});
-	}
+	}*/
 
 	{ // TODO: if web device exists
 		const results = [];
