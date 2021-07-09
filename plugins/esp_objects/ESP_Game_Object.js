@@ -7,6 +7,7 @@ class ESPGameObject {
 		this.CollisionHeight = 0;
 		this.CanCollide = true;
 		this.CantWalkOffLedge = false;
+		this._currentMovingPlatform = null;
 
 		this._showFlyCount = false;
 
@@ -15,6 +16,10 @@ class ESPGameObject {
 			this._variableCond = parseInt(data["Variable Cond"]) || 0;
 			this._variableComparison = parseInt(data["Variable Comparison"]) || 0;
 			this._variableBitBool = parseInt(data["Variable Bit Bool"]) || 0;
+		}
+
+		if(data && data["Force Above Ground"] === "true") {
+			this._forceAboveGround = true;
 		}
 	}
 
@@ -129,7 +134,7 @@ class ESPGameObject {
 			const thresholdY = 16;
 			for(let i = 0; i < len; i++) {
 				const p = $gameMapTemp._mapMovingPlatforms[i];
-				if(this.realZ() >= p.realZ()) {
+				if(this.realZ() >= p.realZ() && p.canTouch()) {
 					if(realX > (p.position.x - thresholdX) && realX < (p.position.x + thresholdX) && realY > (p.position.y - thresholdY) && realY < (p.position.y + thresholdY)) {
 						return p;
 					}
@@ -146,7 +151,7 @@ class ESPGameObject {
 		if(xx < 0 || yy < 0 || xx >= $gameMap.width() || (xx + (yy * $dataMap.width)) >= $gameMap.espCollisionMap.length) return 99;
 		const movingPlatform = this._GetMovingPlatform(x, y, xPos, yPos);
 		if(movingPlatform !== null) {
-			return Math.floor(movingPlatform.position.z / TS);
+			return Math.floor(movingPlatform.realZ() / TS);
 		}
 		if(this.CantWalkOffLedge) {
 			const index = xx + (yy * $dataMap.width);
@@ -163,8 +168,9 @@ class ESPGameObject {
 		const yy = Math.floor(((yPos ?? this.position.y) + (this.rectHeight() * y)) / tileSize);
 		if(xx < 0 || yy < 0 || xx >= $gameMap.width() || (xx + (yy * $dataMap.width)) >= $gameMap.espCollisionMap.length) return [99, 0];
 		const index = xx + (yy * $dataMap.width);
+		const movingPlatform = this._GetMovingPlatform(x, y, xPos, yPos);
 		if(movingPlatform !== null) {
-			return [Math.floor(movingPlatform.position.z / TS), $gameMap.espCollisionKillers[index] ?? 0];
+			return [Math.floor(movingPlatform.realZ() / TS), $gameMap.espCollisionKillers[index] ?? 0];
 		}
 		if(this.CantWalkOffLedge) {
 			if($gameMap.espMetaMap[index] === 1 || $gameMap.espCollisionKillers[index] > 0 || $gameMap.espCollisionShowMap[index] > 0) {
@@ -306,17 +312,19 @@ class ESPGameObject {
 	}
 
 	updatePosition() {
-
 		let offsetX = 0;
 		let offsetY = 0;
 
 		if(this.willEncounterMovingPlatform()) {
 			const movingPlatform = this.position.z === 0 ? this.findMovingPlatform() : null;
-			if(movingPlatform) {
+			if(this._currentMovingPlatform !== movingPlatform) {
+				this._currentMovingPlatform = movingPlatform;
+				if(movingPlatform && this === $espGamePlayer) {
+					movingPlatform.onPlayerStepOn();
+				}
+			} else if(movingPlatform !== null) {
 				offsetX = movingPlatform.deltaX;
 				offsetY = movingPlatform.deltaY;
-			} else if(movingPlatform !== null) {
-				
 			}
 		}
 

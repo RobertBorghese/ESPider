@@ -143,7 +143,7 @@ class ESPWebDeviceObject extends ESPGameObject {
 			const graphics = this._graphics[i];
 			graphics.clear();
 			graphics.lineStyle(2, 0xffffff, 0.8);
-			graphics.moveTo(0, -40);
+			graphics.moveTo(0, -20 + this._spr._core.y);
 
 			const desiredDistance = this._distances[i];
 

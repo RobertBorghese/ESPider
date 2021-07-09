@@ -18,9 +18,83 @@ Tilemap.prototype._sortChildren = function() {
 		}
 	}
 
+	if(this._espPlayer._currentMovingPlatform) {
+		const playerIndex = this.children.indexOf(this._espPlayer);
+		const siblings = this._espPlayer._currentMovingPlatform.getAllSiblings();
+		const len = siblings.length;
+		for(let i = 0; i < len; i++) {
+			const newIndex = this.children.indexOf(siblings[i]);
+			if(newIndex > playerIndex && (isHigher === null || newIndex > isHigher)) {
+				isHigher = newIndex;
+			}
+		}
+	}
+
 	if(isHigher !== null) {
 		this.removeChild(this._espPlayer);
 		this.addChildAt(this._espPlayer, isHigher);
+	}
+
+	if($gameMapTemp._mapMovingPlatforms && $gameMapTemp._mapMovingPlatforms.length > 0) {
+		const playerIndex = this.children.indexOf(this._espPlayer);
+		const platforms = [];
+		for(let i = 0; i < playerIndex; i++) {
+			if(this.children[i]._espMovingPlatform) {
+				platforms.push(this.children[i]);
+			}
+		}
+		platforms.forEach(p => {
+			this.removeChild(p);
+			this.addChildAt(p, playerIndex - 1);
+		});
+	}
+
+	{ // TODO: if web device exists
+		const results = [];
+		const len = this.children.length;
+		for(let i = 0; i < len; i++) {
+			if(this.children[i]._isWebDeviceSprite) {
+				let highest = i;
+				for(let j = i; j < len; j++) {
+					if(this.children[j]._colZ <= this.children[i]._colZ) {
+						highest = j;
+					}
+				}
+				results.push([i, highest]);
+			}
+		}
+		let highest = null;
+		const childs = [];
+		results.forEach(r => {
+			if(r[0] < this.children.length) {
+				childs.push(this.removeChildAt(r[0]));
+			}
+		});
+		for(let i = 0; i < childs.length; i++) {
+			const index = results[i][1] - childs.length;
+			if(this._compareChildOrder(this._espPlayer, childs[i]) > 0) {
+				highest = index;
+			}
+			this.addChildAt(childs[i], index);
+		}
+		if(highest !== null && this.children.indexOf(this._espPlayer) < highest) {
+			this.removeChild(this._espPlayer);
+			this.addChildAt(this._espPlayer, highest);
+		}
+	}
+
+	const len = this.children.length;
+	for(let i = 0; i < len; i++) {
+		if(this.children[i]._ensureAbove) {
+			const child = this.children[i];
+			const other = child._ensureAbove;
+			const newIndex = this.children.indexOf(other);
+			if(newIndex > i) {
+				this.removeChild(child);
+				this.addChildAt(child, newIndex);
+				i--;
+			}
+		}
 	}
 
 	if(this._uiHolder && this.children.contains(this._uiHolder)) {
@@ -34,6 +108,12 @@ Tilemap.prototype._compareChildOrder = function(a, b) {
 	if(a.visible && !b.visible) return 1;
 	else if(!a.visible && b.visible) return -1;
 	else if(!a.visible && !b.visible) return 0;
+
+	if(a._ensureAbove === b) {
+		return 1;
+	} else if(b._ensureAbove === a) {
+		return -1;
+	}
 
 	// If both sprites are "tilemap walls", do comparison with objects.
 	if(a._espWorldObject && b._espWorldObject) {
@@ -103,6 +183,18 @@ Tilemap.prototype._compareChildOrder = function(a, b) {
 			ay2 = (b._espMovingPlatform ? (a._objY + (ay2 - a._objY) * 0.5) : a._objY);
 		}
 	}
+
+	/*
+	if(a._isWebDeviceSprite && b._espWorldObject) {
+		if((az2 + 1) !== bz2) {
+			return (az2 + 1) - bz2;
+		}
+	}
+	if(b._isWebDeviceSprite && a._espWorldObject) {
+		if((bz2 + 1) !== az2) {
+			return az2 - (bz2 + 1);
+		}
+	}*/
 
 	// Apply checks.
 	if(ay2 !== by2) {

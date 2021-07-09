@@ -1,17 +1,17 @@
 // oh god, how am i gonna do this in one day????? oh god here we goooooo
 
 class ESPMovingPlatformSprite extends ESPGameSprite {
-	constructor(object, imageType, shadowWidth, shadowHeight, isChild) {
+	constructor(object, imageType, shadowWidth, shadowHeight, parent) {
 		super();
 
 		this.espObject = object;
 
 		this.ObjectHolderOffsetY = 24;
 
-		this._isChild = isChild;
+		this._espParent = parent;
 		this._shadowWidth = shadowWidth;
 		this._shadowHeight = shadowHeight;
-		this._hasShadow = !this._isChild;
+		this._hasShadow = !this._espParent;
 		this.setupShadowMovingPlatform();
 		this.ShadowSprite.visible = this._hasShadow;
 		
@@ -45,9 +45,12 @@ class ESPMovingPlatformSprite extends ESPGameSprite {
 		super.update();
 
 		this._colY -= 24;
+		this.updateOffset();
+	}
 
+	updateOffset() {
 		this.Time += 0.1;
-		this._platform.y = Math.sin(this.Time) * 1;
+		this._platform.y = this._espParent ? this._espParent._spr._platform.y : Math.sin(this.Time) * 1;
 	}
 
 	setupShadow() {

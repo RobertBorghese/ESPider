@@ -51,6 +51,8 @@ class ESPWebDeviceSprite extends ESPGameSprite {
 
 		this.Time = 0;
 
+		this._isWebDeviceSprite = true;
+
 		this.updateWebFrame();
 	}
 

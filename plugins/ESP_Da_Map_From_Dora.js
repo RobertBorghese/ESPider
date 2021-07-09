@@ -231,6 +231,8 @@ modify_Game_Map = class {
 			const regionId = this.getColHeight(x, y);
 			const obj = new cls(objectData);
 			obj.__eventName = eventName;
+			obj.__eventX = x;
+			obj.__eventY = y;
 			this.addGameObject(obj, (x * TS) + (TS / 2), (y * TS) + (regionId * TS) + (TS / 2));
 			return obj;
 		}

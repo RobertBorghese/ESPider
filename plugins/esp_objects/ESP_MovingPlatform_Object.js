@@ -38,7 +38,8 @@ class ESPMovingPlatformObject extends ESPGameObject {
 		this.position.set(0, 0, 0);
 		this.speed.set(0, 0, 0);
 
-		this._isChild = !!data?.["Is Child"];
+		this._espParent = data?.["Parent"] ?? null;
+		this._espChildren = !!this._espParent ? null : [];
 		this._collisionHeight = parseInt(data?.["Collision Height"]) ?? 1;
 		this._width = parseInt(data?.["Platform Width"]) ?? 1;
 		this._height = parseInt(data?.["Platform Height"]) ?? 1;
@@ -71,7 +72,7 @@ class ESPMovingPlatformObject extends ESPGameObject {
 
 	constructSprite() {
 		if(!this._spr) {
-			this._spr = new ESPMovingPlatformSprite(this, this._imageType, this._width, this._height, this._isChild);
+			this._spr = new ESPMovingPlatformSprite(this, this._imageType, this._width, this._height, this._espParent);
 		}
 		return this._spr;
 	}
@@ -80,43 +81,72 @@ class ESPMovingPlatformObject extends ESPGameObject {
 		return true;
 	}
 
-	update() {
-		if(!this.__hasCreatedChildren) {
-			this.__hasCreatedChildren = true;
+	getAllSiblings() {
+		if(this._espParent) {
+			return this._espParent.getAllSiblings();
+		}
+		return this._espChildren;
+	}
 
-			if(this._width > 1 || this._height > 1) {
-				for(let x = 0; x < this._width; x++) {
-					for(let y = 0; y < this._height; y++) {
-						if(x === 0 && y === 0) continue;
-						const newPoints = JSON.parse(JSON.stringify(this._points));
+	onPlayerStepOn() {
+	}
+
+	canTouch() {
+		return true;
+	}
+
+	childrenClass() {
+		return ESPMovingPlatformObject;
+	}
+
+	setupChildren() {
+		if(this._width > 1 || this._height > 1) {
+			for(let x = 0; x < this._width; x++) {
+				for(let y = 0; y < this._height; y++) {
+					if(x === 0 && y === 0) continue;
+					let newPoints = null;
+					if(this._points) {
+						newPoints = JSON.parse(JSON.stringify(this._points));
 						for(let i = 0; i < newPoints.length; i++) {
 							newPoints[i][1] += x;
 							newPoints[i][2] += y;
 						}
-						let imageType = 0;
-						if(x === 0) imageType = (y === 0 ? 0 : (y === this._height - 1 ? 6 : 3));
-						else if(x === this._width - 1) imageType = (y === 0 ? 2 : (y === this._height - 1 ? 8 : 5));
-						else imageType = (y === 0 ? 1 : (y === this._height - 1 ? 7 : 4));
-						const obj = new ESPMovingPlatformObject({
-							"Collision Height": this._collisionHeight,
-							"Platform Width": 1,
-							"Platform Height": 1,
-							"Points": newPoints,
-							"Duration": this._maxTime,
-							"Image Type": imageType,
-							"Shadowless": true,
-							"Is Child": true
-						});
-						$gameMap.addGameObject(obj, this.position.x + (x * TS), this.position.y + (y * TS));
-						obj.update();
-						obj._spr.update();
 					}
+					let imageType = 0;
+					if(x === 0) imageType = (y === 0 ? 0 : (y === this._height - 1 ? 6 : 3));
+					else if(x === this._width - 1) imageType = (y === 0 ? 2 : (y === this._height - 1 ? 8 : 5));
+					else imageType = (y === 0 ? 1 : (y === this._height - 1 ? 7 : 4));
+					const cls = this.childrenClass();
+					const obj = new cls({
+						"Collision Height": this._collisionHeight,
+						"Platform Width": 1,
+						"Platform Height": 1,
+						"Points": newPoints,
+						"Duration": this._maxTime,
+						"Image Type": imageType,
+						"Shadowless": true,
+						"Parent": this
+					});
+					$gameMap.addGameObject(obj, this.position.x + (x * TS), this.position.y + (y * TS));
+					obj.update();
+					obj._spr.update();
+					this._espChildren.push(obj);
 				}
 			}
 		}
+	}
 
+	update() {
+		if(!this.__hasCreatedChildren) {
+			this.__hasCreatedChildren = true;
+			this.setupChildren();
+		}
 		super.update();
+		this.updateMovement();
+	}
 
+	updateMovement() {
+		if(!this._points) return;
 		this.oldX = this.position.x;
 		this.oldY = this.position.y;
 

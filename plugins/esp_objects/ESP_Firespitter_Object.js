@@ -119,6 +119,7 @@ class ESPFirespitterObject extends ESPGameObject {
 
 		this._latestFireball = new ESPFireballObject(true, this._zLevel);
 		this._latestFireball.speed.x = this._latestFireball.speed.y = 0;
+		this._latestFireball.CollisionHeight = this.CollisionHeight;
 		switch(this._shootDir) {
 			case "left": { this._latestFireball.speed.x = -this._fireballSpeed; break; }
 			case "right": { this._latestFireball.speed.x = this._fireballSpeed; break; }

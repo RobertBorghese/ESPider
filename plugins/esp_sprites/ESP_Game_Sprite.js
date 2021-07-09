@@ -618,6 +618,12 @@ modify_Spriteset_Map = class {
 				}
 			}
 		}
+
+		this._tilemap._espSprites.forEach(spr => {
+			if(spr.espObject._forceAboveGround) {
+				spr._ensureAbove = this._espWorldSpriteIndexes[spr.espObject.__eventX + (spr.espObject.__eventY * $gameMap.width())];
+			}
+		});
 	}
 
 	setFrozen(frozen) {

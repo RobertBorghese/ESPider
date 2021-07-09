@@ -22,4 +22,13 @@
  * @desc The bit compare (a&b === 0 )if true, (a>=b) if false
  * @type boolean
  * @default false
+ * 
+ * @command Layering
+ * @text Options for layering.
+ * @desc
+ *
+ * @arg Force Above Ground
+ * @desc If true, will always be above the ground it stands on.
+ * @type boolean
+ * @default false
  */
