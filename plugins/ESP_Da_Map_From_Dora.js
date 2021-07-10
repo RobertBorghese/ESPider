@@ -226,7 +226,6 @@ modify_Game_Map = class {
 	// create objects based on id
 	createPresetObject(id, x, y, eventName, objectData) {
 		if(Game_Map.presetObjects[id]) {
-			//Game_Map
 			const cls = Game_Map.presetObjects[id];
 			const regionId = this.getColHeight(x, y);
 			const obj = new cls(objectData);
@@ -243,14 +242,6 @@ modify_Game_Map = class {
 			return obj;
 		}
 		return null;
-		/*
-		switch(id) {
-			case 0: {
-				this.addGameObject(new ESPInfoBeetleObject(objectData), x * TS, y * TS);
-				break;
-			}
-		}
-		*/
 	}
 
 	// handling map "notetags" very lazily

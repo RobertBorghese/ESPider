@@ -15,6 +15,11 @@
  * @type number
  * @default 300
  *
+ * @arg Respawn Time
+ * @desc
+ * @type number
+ * @default 0
+ *
  * @arg Platform Width
  * @desc
  * @type number
@@ -29,6 +34,8 @@
 class ESPFallingPlatformObject extends ESPMovingPlatformObject {
 	constructor(data) {
 		super(data);
+
+		this._respawnTime = parseInt(data["Respawn Time"]) || 0;
 
 		this._fallingPhase = 0;
 	}
