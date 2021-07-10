@@ -50,6 +50,7 @@ modify_Game_Map = class {
 	// initialize fields for each map
 	initESPFields() {
 		$gameMapTemp._mapObjects = [];
+		$gameMapTemp._mapMovingPlatforms = null;
 		$gameMapTemp._mapReferences = {};
 		$gameMapTemp._mapGroupReferences = {};
 		$gameMapTemp._gravityManipulators = [];

@@ -16,6 +16,9 @@ class ESPFallingPlatformSprite extends ESPMovingPlatformSprite {
 		this._isDying = false;
 		this._isDead = false;
 		this._respawnTime = 0;
+
+		this.MAX_DEATH_TIME = 12;
+		this.MAX_RESPAWN_TIME = 12;
 	}
 
 	updateOffset() {
@@ -32,27 +35,28 @@ class ESPFallingPlatformSprite extends ESPMovingPlatformSprite {
 			if(this._respawnTime > 0) {
 				this._respawnTime--;
 				if(this._respawnTime <= 0) {
-					this._restoreTime = 12;
+					this._restoreTime = this.MAX_RESPAWN_TIME;
 					this.alpha = 0;
-					this.espObject.position.z += 12;
+					this.espObject.position.z += this.MAX_DEATH_TIME;
+					this.espObject.updateChildrenPositionZ();
 					this._platform.setColorTone([0, 0, 0, 0]);
 					this._isDying = false;
 					this._isDead = false;
 				}
 			} else if(this._restoreTime > 0) {
 				this._restoreTime--;
-				this.alpha = 1 - (this._restoreTime / 12);
+				this.alpha = 1 - (this._restoreTime / this.MAX_RESPAWN_TIME);
 				this.espObject._fallingPhase = 0;
 			} else if(this.espObject.isBreaking()) {
 				this._platform.x += (Math.random() * 4) - 2;
 				this._platform.y += (Math.random() * 4) - 2;
 			} else if(!this._isDying && this.espObject.isDying()) {
-				this._deathTime = 12;
+				this._deathTime = this.MAX_DEATH_TIME;
 				this._isDying = true;
 			} else if(this._isDying && !this._isDead) {
 				if(this._deathTime > 0) {
 					this._deathTime--;
-					const r = 1 - (this._deathTime / 12);
+					const r = 1 - (this._deathTime / this.MAX_DEATH_TIME);
 					this.alpha = (1 - r);
 					this.espObject.position.z -= 1;
 					this.updatePosition();

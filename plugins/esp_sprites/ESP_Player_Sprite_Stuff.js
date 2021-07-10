@@ -437,7 +437,6 @@ class ESPPlayerSprite extends ESPGameSprite {
 			this._showFlyCount--;
 
 			const full = 100;
-			const half = 50;
 			const third = 33;
 			const third2 = 66;
 
@@ -447,7 +446,7 @@ class ESPPlayerSprite extends ESPGameSprite {
 				this._flyHolder.scale.set(Easing.easeOutCubic(((full - this._showFlyCount) / third)));
 			}
 			this._flyHolder.x = this.x - 2;
-			this._flyHolder.y = this.y - (10 + (40 * ((full - this._showFlyCount) / full)));
+			this._flyHolder.y = this.y + this.ObjectHolder.y - (10 + (40 * ((full - this._showFlyCount) / full)));
 
 			if(this._showFlyCount <= 0) {
 				SceneManager._scene.removeUiChild(this._flyHolder);

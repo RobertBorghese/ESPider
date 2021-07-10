@@ -42,8 +42,6 @@ class ESPInfoBeetleSprite extends ESPGameSprite {
 		this.TextHolder.scale.set(0);
 		this.TextHolder.addChild(this.Text);
 
-		this.ObjectHolder.addChild(this.TextHolder);
-
 		this._showingText = false;
 		this._time = 0;
 	}
@@ -69,18 +67,27 @@ class ESPInfoBeetleSprite extends ESPGameSprite {
 
 		if(this._showingText !== showing) {
 			this._showingText = showing;
+			if(!this.TextHolder.parent && showing) {
+				SceneManager._scene.addUiChild(this.TextHolder);
+			}
 		}
 	}
 
 	updateTextHolder() {
 		const ratio = (this._showingText ? Easing.easeOutBack : Easing.easeOutCubic)(this._time);
 		this.TextHolder.scale.set(ratio);
-		this.TextHolder.y = Math.round((this.TextHolder._baseY * ratio) - (this.Text.height));
+		this.TextHolder.x = this.x + this.ObjectHolder.x;
+		this.TextHolder.y = this.y + this.ObjectHolder.y + Math.round((this.TextHolder._baseY * ratio) - (this.Text.height));
 	}
 
 	updateShadowSprite() {
 		this.ShadowSprite.move(this.Graphics.Index === 2 ? -2 : (this.Graphics.Index === 4 ? 2 : 0), 0);
 		this.ShadowSprite.scale.set(0.9 + (this.Graphics.Index % 2 === 0 ? 0 : 0.1));
 		this.ShadowSprite.alpha = this.ShadowSprite.scale.x;
+	}
+
+	destroy(options) {
+		if(this.TextHolder.parent) SceneManager._scene.removeUiChild(this.TextHolder);
+		super.destroy(options);
 	}
 }
