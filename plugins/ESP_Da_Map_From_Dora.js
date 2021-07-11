@@ -145,16 +145,18 @@ modify_Game_Map = class {
 			}
 		}
 
-		let newCollisionMap = this.espCollisionMap;
 		for(let x = 0; x < mapWidth; x++) {
-			for(let y = 0; y < mapHeight; y++) {
+			for(let y = 0; y <= this.MapBottom; y++) {
 				const index = x + (y * mapWidth);
-				const height = this.espCollisionMap[index];
+				let height = this.espCollisionMap[index];
+				if(height === undefined) {
+					this.espCollisionMap[index] = height = 0;
+				}
 				if(height > 0) {
 					const newY = y - height - 1;
 					const aboveHeight = this.espCollisionMap[x + (newY * mapWidth)] ?? 0;
+					if(x === 26 && y === 19) console.log(aboveHeight, height, y - 1, (y - height));
 					if(aboveHeight > 0 && aboveHeight < height) {
-						let doThis = true;
 						for(let i = y - 1; i >= (y - height); i--) {
 							const replaceHeight = this.espCollisionMap[x + (i * mapWidth)];
 							if(replaceHeight === 0) {
@@ -165,6 +167,36 @@ modify_Game_Map = class {
 				}
 			}
 		}
+
+		/*
+		const len = this.espCollisionMap.length;
+		for(let i = 0; i < len; i++) {
+			if(this.espCollisionMap[i] === undefined) console.log("UNDEF");
+		}
+console.log($gameMap.espCollisionMap[26 + (17 * $gameMap.width())]);
+		
+		for(let i = 0; i < len; i++) {
+			if(this.espCollisionMap[i] === undefined) {
+				const x = i % mapWidth;
+				let y = Math.floor(i / mapWidth);
+				let newIndex = null;
+				whileloop: while(y > 0) {
+					const id = this.espCollisionMap[x + (y * mapWidth)];
+					if(id !== undefined) {
+						newIndex = id;
+						break whileloop;
+					}
+					y--;
+				}
+				if(newIndex !== null) {
+					this.espCollisionMap[i] = newIndex;
+				}
+			}
+		}
+		console.log($gameMap.espCollisionMap[26 + (17 * $gameMap.width())]);
+		for(let i = 0; i < len; i++) {
+			if(this.espCollisionMap[i] === undefined) console.log("UNDEF");
+		}*/
 	}
 
 	// any starting game objects get initiated here
@@ -229,7 +261,7 @@ modify_Game_Map = class {
 				objX = parseInt(objectData["Specific X"]) || objX;
 				objY = parseInt(objectData["Specific Y"]) || objY;
 			}
-			this.addGameObject(obj, objX, objY, regionId * TS);
+			this.addGameObject(obj, objX, objY);//, regionId * TS);
 			return obj;
 		}
 		return null;
@@ -655,13 +687,15 @@ modify_Game_Map = class {
 			$gameVariables.setValue(10, 1);
 		}
 		SceneManager._scene._spriteset.unfreezeWorldSpriteVisibility();
+		AudioManager.fadeOutBgm(this._boss1Complete ? 2 : 1);
 	}
 
 	startBoss1() {
-		this._boss1Timer = 0;
+		this._boss1Timer = 2900;
 		this._boss1Lefties = [];
 		this._boss1Righties = [];
 		this._boss1Topies = [];
+		this.startBoss1Phase2();
 		for(let y = 7; y <= 12; y++) {
 			let x = 7;
 			const regionId = this.getColHeight(x, y);
@@ -706,6 +740,7 @@ modify_Game_Map = class {
 	}
 
 	finishBoss1() {
+		ESPAudio.boss1Disappear();
 		this._boss1Lefties.forEach(b => this.removeGameObject(b));
 		this._boss1Righties.forEach(b => this.removeGameObject(b));
 		this._boss1Topies.forEach(b => this.removeGameObject(b));
@@ -718,18 +753,48 @@ modify_Game_Map = class {
 
 		this._boss1Timer++;
 
-		switch(this._boss1Timer) {
-			case 60: { this._boss1Lefties.filterIndex(0).forEach(b => b.shoot()); break; }
-			case 260: { this._boss1Righties.filterIndex(5).forEach(b => b.shoot()); break; }
-			case 460: { this._boss1Lefties.filterIndex(2).forEach(b => b.shoot()); break; }
-			case 600: { this._boss1Righties.filterIndex(4).forEach(b => b.shoot()); break; }
-			case 700: { this._boss1Lefties.filterIndex(1).forEach(b => b.shoot()); break; }
-			case 780: { this._boss1Righties.filterIndex(5).forEach(b => b.shoot()); break; }
-			case 840: { this._boss1Lefties.filterIndex(3).forEach(b => b.shoot()); break; }
 
-			case 900: { this._boss1Righties.filterIndex(4).forEach(b => b.shoot()); break; }
-			case 960: { this._boss1Lefties.filterIndex(0).forEach(b => b.shoot()); break; }
-			case 1000: { this._boss1Righties.filterIndex(1).forEach(b => b.shoot()); break; }
+		const left = (i) => {
+			if(i === undefined) {
+				this._boss1Lefties.forEach(b => b.shoot());
+			} else {
+				this._boss1Lefties.filterIndex(i).forEach(b => b.shoot());
+			}
+			ESPAudio.superFireballShot();
+		};
+
+		const right = (i) => {
+			if(i === undefined) {
+				this._boss1Righties.forEach(b => b.shoot());
+			} else {
+				this._boss1Righties.filterIndex(i).forEach(b => b.shoot());
+			}
+			ESPAudio.superFireballShot();
+		};
+
+		const top = (i) => {
+			if(this._boss1Timer < 1600) return;
+			if(i === undefined) {
+				this._boss1Topies.forEach(b => b.shoot());
+			} else {
+				this._boss1Topies.filterIndex(i).forEach(b => b.shoot());
+			}
+			ESPAudio.superFireballShot();
+		};
+
+		switch(this._boss1Timer) {
+			case 50: { AudioManager.playBgm({ name: "TimeToFight_NoMelody", volume: 100, pitch: 100, pan: 0 }); break; }
+			case 60: { left(0); break; }
+			case 260: { right(5); break; }
+			case 460: { left(2); break; }
+			case 600: { right(4); break; }
+			case 700: { left(1); break; }
+			case 780: { right(5); break; }
+			case 840: { left(3); break; }
+
+			case 900: { right(4); break; }
+			case 960: { left(0); break; }
+			case 1000: { right(1); break; }
 
 			case 1300: {
 				const interpreter = new ESPInterpreter();
@@ -743,36 +808,39 @@ modify_Game_Map = class {
 				$espGamePlayer.setInterpreter(interpreter);
 			}
 
-			case 1600: { this._boss1Topies.filterIndex(3).forEach(b => b.shoot()); break; }
-			case 1700: { this._boss1Righties.filterIndex(2).forEach(b => b.shoot()); break; }
-			case 1800: { this._boss1Lefties.filterIndex(5).forEach(b => b.shoot()); break; }
-			case 1900: { this._boss1Topies.filterIndex(6).forEach(b => b.shoot()); break; }
-			case 2000: { this._boss1Lefties.filterIndex(3).forEach(b => b.shoot()); break; }
-			case 2100: { this._boss1Righties.filterIndex(5).forEach(b => b.shoot()); break; }
-			case 2200: { this._boss1Topies.filterIndex(1).forEach(b => b.shoot()); break; }
+			case 1600: { top(3); break; }
+			case 1700: { right(2); break; }
+			case 1800: { left(5); break; }
+			case 1900: { top(6); break; }
+			case 2000: { left(3); break; }
+			case 2100: { right(5); break; }
+			case 2200: { top(1); break; }
 
 			case 2400: {
-				this._boss1Lefties.filterIndex(2).forEach(b => b.shoot());
-				this._boss1Righties.filterIndex(3).forEach(b => b.shoot()); break;
+				left(2);
+				right(3); break;
 			}
 			case 2550: {
-				this._boss1Lefties.filterIndex(0).forEach(b => b.shoot());
-				this._boss1Righties.filterIndex(1).forEach(b => b.shoot()); break;
+				left(0);
+				right(1); break;
 			}
 			case 2700: {
-				this._boss1Lefties.filterIndex(2).forEach(b => b.shoot());
-				this._boss1Righties.filterIndex(2).forEach(b => b.shoot());
-				this._boss1Topies.filterIndex(3).forEach(b => b.shoot()); break;
+				left(2);
+				right(2);
+				top(3); break;
 			}
 
 			case 3000: {
-				this._boss1Lefties.forEach(b => b.shoot());
-				this._boss1Righties.forEach(b => b.shoot());
-				this._boss1Topies.forEach(b => b.shoot()); break;
+				left();
+				right();
+				top(); break;
 			}
 		}
 
 		if(this._boss1Timer <= 3500) {
+			if(this._boss1Timer === 3075) {
+				AudioManager.fadeOutBgm(3);
+			}
 			if(this._boss1Timer > 3075) {
 				const r = (150 - (this._boss1Timer - 3075).clamp(0, 150)) / 150;
 				ESP.WS = r;
@@ -788,6 +856,7 @@ modify_Game_Map = class {
 				SceneManager._scene.updateCameraPos(true);
 			}
 			if(this._boss1Timer === 3500) {
+				AudioManager.playBgm({ name: "Flashback", volume: 100, pitch: 100, pan: 0 });
 				SceneManager._scene.startSlideshow([
 					["img/pictures/Scene1/Page1.png"],
 					["img/pictures/Scene1/Page2.png"],
@@ -825,6 +894,7 @@ modify_Game_Map = class {
 
 			if(!this._boss1DidJump && this._boss1Timer > 3701) {
 				if($espGamePlayer.isJumpButtonTriggered()) {
+					ESPAudio.jump();
 					this._boss1DidJump = this._boss1Timer;
 					$espGamePlayer.speed.z = 8;
 				}
@@ -849,27 +919,28 @@ modify_Game_Map = class {
 		} else {
 
 			switch(this._boss1Timer) {
-				case 4100: { this._boss1Lefties.forEach(b => b.shoot()); break; }
-				case 4300: { this._boss1Righties.forEach(b => b.shoot()); break; }
-				case 4500: { this._boss1Topies.forEach(b => b.shoot()); break; }
+				case 4090: { AudioManager.playBgm({ name: "TimeToFight", volume: 100, pitch: 100, pan: 0 }); break; }
+				case 4100: { left(); break; }
+				case 4300: { right(); break; }
+				case 4500: { top(); break; }
 				case 4700: {
-					this._boss1Righties.forEach(b => b.shoot());
-					this._boss1Lefties.forEach(b => b.shoot()); break;
+					right();
+					left(); break;
 				}
 				case 5000: {
-					this._boss1Lefties.forEach(b => b.shoot());
-					this._boss1Righties.forEach(b => b.shoot());
-					this._boss1Topies.forEach(b => b.shoot()); break;
+					left();
+					right();
+					top(); break;
 				}
 				case 5300: {
-					this._boss1Lefties.forEach(b => b.shoot());
-					this._boss1Righties.forEach(b => b.shoot());
-					this._boss1Topies.forEach(b => b.shoot()); break;
+					left();
+					right();
+					top(); break;
 				}
 				case 5600: {
-					this._boss1Lefties.forEach(b => b.shoot());
-					this._boss1Righties.forEach(b => b.shoot());
-					this._boss1Topies.forEach(b => b.shoot()); break;
+					left();
+					right();
+					top(); break;
 				}
 				case 6000: {
 					this._boss1InfoBeetle._triggerDist = 100;

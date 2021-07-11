@@ -124,8 +124,21 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	updateMovement() {
+		if(!this._footstepInterval) this._footstepInterval = 14;
+
 		this.speed.x = Input.InputVector.x * 3;
 		this.speed.y = Input.InputVector.y * 3;
+
+		if(this.canControl() && this.position.z === 0 && Input.InputVector.length() > 0.1 && (Graphics.frameCount % (Input.InputVector.length() > 0.5 ? 14 : 20)) === 0) {
+			AudioManager.playSe({
+				name: this._currentMovingPlatform ? "Footstep2" : "Footstep",
+				volume: 20 + (Math.random() * 40),
+				pitch: 75 + (Math.random() * 50),
+				pan: 0
+			});
+			//this._footstepInterval = Math.round(13 + (Math.random() * 2));
+			//ESPAudio.footstep(50);
+		}
 	}
 
 	canJump() {
@@ -362,6 +375,8 @@ class ESPGamePlayer extends ESPGameObject {
 		this._customColor = null;
 		this._deathAnimationData = null;
 		this._deathParticles = null;
+		this.speed.z = 0;
+		this.position.z = 0;
 		$gameMap.resetESPGame();
 	}
 

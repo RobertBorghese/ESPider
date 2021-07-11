@@ -50,9 +50,12 @@ class ESPAudio {
 	}
 
 	static audios = [
+		"Footstep2",
 		["Jump", 0.6],
 		["HitGround2", 0.9],
+		"Talk",
 		["FireballShot2", 0.75],
+		["SuperFireballShot", 0.5],
 		["KeyGet", 0.2],
 		"SpearsEnter2",
 		"SpearsLeave",
@@ -69,7 +72,13 @@ class ESPAudio {
 		["DeathExplode", 0.5],
 		"TransferIn",
 		"TransferOut",
-		"WebDeviceAttach"
+		["WebDeviceAttach", 0.8],
+		"Checkpoint",
+		"Boss1Disappear",
+
+		"MenuButtonClick",
+		"MenuButtonClickCancel",
+		"MenuButtonClickSpecial"
 	];
 
 	static setup() {
@@ -83,6 +92,28 @@ class ESPAudio {
 				return null;
 			};
 		}
+	}
+
+	static pause() {
+		this.playSe("MenuButtonClick");
+	}
+
+	static unpause() {
+		this.playSe("MenuButtonClickCancel");
+	}
+
+	static switchAudios = ["C", "D", "F", "G", "A", "C2"];
+	static switchSong = [1, 2, 4, 3, 2, 1, 2, 4, 3, 5, 6, 5, 4, 3, 2];
+	static menuButtonSwitch() {
+		this.playSe("MenuButtonSwitchC", 50);
+		return;
+
+		if(this._switchSound === undefined) this._switchSound = -1;
+		this._switchSound++;
+		if(this._switchSound < 0 || this._switchSound >= this.switchSong.length) {
+			this._switchSound = 0;
+		}
+		this.playSe("MenuButtonSwitch" + this.switchAudios[this.switchSong[this._switchSound] - 1], 100);
 	}
 }
 

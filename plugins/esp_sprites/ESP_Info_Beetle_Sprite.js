@@ -70,6 +70,9 @@ class ESPInfoBeetleSprite extends ESPGameSprite {
 			if(!this.TextHolder.parent && showing) {
 				SceneManager._scene.addUiChild(this.TextHolder);
 			}
+			if(showing) {
+				ESPAudio.talk();
+			}
 		}
 	}
 

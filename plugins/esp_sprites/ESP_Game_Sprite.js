@@ -349,7 +349,7 @@ modify_Spriteset_Map = class {
 		this._myFilter.alpha = 0;
 		this._putWorldGeometryInFilterHolder();
 		$gameMap._isTranferring = true;
-		ESPAudio.transferOut();
+		if(!$gameMap._isNewGame) ESPAudio.transferOut();
 	}
 
 	_putWorldGeometryInFilterHolder() {
@@ -529,7 +529,9 @@ modify_Spriteset_Map = class {
 
 	OnPlayerVisibleFromIn() {
 		$gameMap.onTransferInVisible();
-		ESPAudio.transferIn();
+		if($gameMap._isNewGame === false) {
+			ESPAudio.transferIn();
+		}
 	}
 
 	OnBitmapsLoaded() {

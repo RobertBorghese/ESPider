@@ -6,8 +6,8 @@ ESP.makeButtons = function(pixiObject, width, height, shiftX, shiftY, offsetX, o
 
 	const result = [];
 
-	const makeButton = function(i, text, callback) {
-		const button = new ESPButton(width, height, text, color1, color2, color3, color4, callback);
+	const makeButton = function(i, text, callback, soundType) {
+		const button = new ESPButton(width, height, text, color1, color2, color3, color4, callback, soundType);
 		button.move(x + (offsetX * i), y + (offsetY * i));
 		button.onMouseEnter = onMouseEnter.bind(pixiObject, i, button);
 		button.setEnabled(enabledFunc(i));
@@ -16,7 +16,7 @@ ESP.makeButtons = function(pixiObject, width, height, shiftX, shiftY, offsetX, o
 	};
 
 	for(let i = 0; i < data.length; i++) {
-		makeButton(i, data[i][0], data[i][1]);
+		makeButton(i, data[i][0], data[i][1], data[i][2] ?? 0);
 	}
 
 	return result;
@@ -30,7 +30,7 @@ Array.prototype.disableAllButtons = function() {
 };
 
 class ESPButton extends Sprite_Clickable {
-	constructor(width, height, text, colorNormal, colorHover, colorClickFlash, colorUnderline, callback) {
+	constructor(width, height, text, colorNormal, colorHover, colorClickFlash, colorUnderline, callback, soundType) {
 		super();
 
 		this.bitmap = new Bitmap(width, height);
@@ -42,6 +42,8 @@ class ESPButton extends Sprite_Clickable {
 		this._isFrozen = false;
 
 		this._maxLetterSpacing = 8;
+
+		this._soundType = soundType;
 
 		this._colorNormal = colorNormal ?? 0xd4336b;
 		this._colorHover = colorHover ?? 0xa12751;
@@ -107,6 +109,9 @@ class ESPButton extends Sprite_Clickable {
 
 	hover() {
 		if(!this._espClicked) {
+			if(!this._espHovered) {
+				ESPAudio.menuButtonSwitch();
+			}
 			this._espHovered = true;
 			this.updateLineBackground();
 			this._graphicsFront.x = this._graphicsFront.y = 2;
@@ -176,6 +181,13 @@ class ESPButton extends Sprite_Clickable {
 
 	onClick() {
 		if(this._enabled) {
+			if(!this._espClicked) {
+				switch(this._soundType) {
+					case 0: { ESPAudio.menuButtonClick(); break; }
+					case 1: { ESPAudio.menuButtonClickSpecial(); break; }
+					case 2: { break; }
+				}
+			}
 			this._espClicked = false;
 			this.hover();
 			this._espClicked = true;

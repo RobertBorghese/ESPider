@@ -6,7 +6,7 @@ class Window_PauseCommand extends Window_Command {
 	}
 
 	makeCommandList() {
-		for(let i = 0; i < 4; i++) {
+		for(let i = 0; i < 5; i++) {
 			this.addCommand("", "_" + i);
 		}
 	}
@@ -205,7 +205,8 @@ modify_Scene_Map = class {
 		this._background.alpha = 0;
 
 		this._titleButtons = ESP.makeButtons(this, 240, 40, 0, -80, 0, 50, [
-			["Resume", this.onUnpause.bind(this)],
+			["Resume", this.onUnpause.bind(this), 2],
+			["Restart from Checkpoint", this.restartFromLastCheckpoint.bind(this), 2],
 			["Volume [" + Math.floor(WebAudio._masterVolume * 100) + "%]", this.commandVolume.bind(this)],
 			["Return to Title", this.commandReturnToTitle.bind(this)],
 			["Exit Game", this.commandExitGame.bind(this)]
@@ -221,6 +222,8 @@ modify_Scene_Map = class {
 		}.bind(this));
 
 		this.createFlyCounterDisplay();
+
+		ESPAudio.pause();
 	}
 
 	createFlyCounterDisplay() {
@@ -256,6 +259,11 @@ modify_Scene_Map = class {
 		this._flyHolder.addChild(this._flyCountText);
 	}
 
+	restartFromLastCheckpoint() {
+		this.onUnpause();
+		$espGamePlayer.kill(0, 0, 0);
+	}
+
 	onUnpause() {
 		this._isPaused = false;
 
@@ -277,6 +285,8 @@ modify_Scene_Map = class {
 		this._titleButtons = null;
 		this._myPauseMenuIndex = null;
 		this._oldButton = null;
+
+		ESPAudio.unpause();
 	}
 
 	destroyFlyCounterDisplay() {
@@ -301,9 +311,9 @@ modify_Scene_Map = class {
 
 	commandVolume() {
 		const masterVolume = ConfigManager.incrementVolume();
-		this._titleButtons[1]._text.text = "Volume [" + masterVolume + "%]";
-		this._titleButtons[1].unclick();
-		this._titleButtons[1].updateGraphics();
+		this._titleButtons[2]._text.text = "Volume [" + masterVolume + "%]";
+		this._titleButtons[2].unclick();
+		this._titleButtons[2].updateGraphics();
 	}
 
 	disableAllButtons() {
@@ -392,6 +402,14 @@ modify_Scene_Map = class {
 					{
 						this._slideshowFadingOut = true;
 						this._slideshowEnding = ((this._slideshowIndex + 1) >= this._slideshowList.length);
+						if(this._slideshowEnding) {
+							if(this._slideshowBackground) {
+								AudioManager.fadeOutBgm(2);
+								this._slideshowHolder.removeChild(this._slideshowBackground);
+								this._slideshowBackground.destroy();
+								this._slideshowBackground = null;
+							}
+						}
 					}
 				}
 			}
@@ -421,9 +439,11 @@ modify_Scene_Map = class {
 		this._slideshowFadingOut = false;
 		this._slideshowEnding = true;
 
-		this._slideshowHolder.removeChild(this._slideshowBackground);
-		this._slideshowBackground.destroy();
-		this._slideshowBackground = null;
+		if(this._slideshowBackground) {
+			this._slideshowHolder.removeChild(this._slideshowBackground);
+			this._slideshowBackground.destroy();
+			this._slideshowBackground = null;
+		}
 	}
 
 	incrementSlideshow() {

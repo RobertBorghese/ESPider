@@ -269,4 +269,16 @@ class ESPInterpreter {
 		]);
 		return this;
 	}
+
+	setBGM(bgm) {
+		this._list.push([
+			function() {
+				AudioManager.playBgm({ name: bgm, volume: 100, pitch: 100, pan: 0 });
+			},
+			function() {
+				return true;
+			}
+		]);
+		return this;
+	}
 }

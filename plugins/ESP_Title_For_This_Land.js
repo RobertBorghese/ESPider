@@ -27,7 +27,7 @@ modify_Scene_Title = class {
 		this._commandWindow.setHandler("fourth", function() {});
 
 		this._titleButtons = ESP.makeButtons(this, 240, 40, -390, 240, 260, 0, [
-			["New Game", this.commandESPNewGame.bind(this)],
+			["New Game", this.commandESPNewGame.bind(this), 1],
 			["Continue", this.commandLoadGame.bind(this)],
 			["Volume [" + Math.floor(WebAudio._masterVolume * 100) + "%]", this.commandVolume.bind(this)],
 			["Leave", this.commandEndGame.bind(this)]

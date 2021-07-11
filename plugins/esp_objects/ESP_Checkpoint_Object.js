@@ -61,6 +61,7 @@ Game_Map.presetObjects[4] = class ESPCheckpointObject extends ESPGameObject {
 
 				const newId = this.genId();
 				if($espGamePlayer.respawnCheckId !== newId) {
+					ESPAudio.checkpoint();
 					$gameMap.saveRespawnPosAndSave(newId);
 				}
 			}
