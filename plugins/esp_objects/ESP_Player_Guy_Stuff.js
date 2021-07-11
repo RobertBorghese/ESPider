@@ -46,6 +46,10 @@ class ESPGamePlayer extends ESPGameObject {
 		return this.position.y + (this.__cameraCollisionHeight * -TS);
 	}
 
+	getObjectVolume() {
+		return 100;
+	}
+
 	reset(x, y, xSpd, ySpd, collisionHeight) {
 		super.reset(x, y);
 		this._canControl = true;
@@ -155,9 +159,16 @@ class ESPGamePlayer extends ESPGameObject {
 				this._triggerHelp--;
 			}
 			if(this._triggerHelp > 0 && this._jumpHelp > 0) {
-				this.speed.z = this.JUMP_POWER;
+				this.doJump();
+				this._triggerHelp = 0;
+				this._jumpHelp = 0;
 			}
 		}
+	}
+
+	doJump() {
+		this.speed.z = this.JUMP_POWER;
+		ESPAudio.jump();
 	}
 
 	updateAbilities() {
@@ -314,6 +325,7 @@ class ESPGamePlayer extends ESPGameObject {
 		}
 		this._deathAnimationData = null;
 		this._isDying = true;
+		ESPAudio.deathExplode();
 	}
 
 	onDeathAnimationComplete() {
@@ -340,6 +352,7 @@ class ESPGamePlayer extends ESPGameObject {
 			time: 0
 		};
 		this._customColor = [0, 0, 0, 0];
+		ESPAudio.deathContact();
 	}
 
 	unkill() {

@@ -74,15 +74,6 @@ class ESPWebDeviceObject extends ESPGameObject {
 	connect(obj) {
 		if(this._connections.length >= this.maxConnections()) {
 			return;
-			/*
-			if(obj.__forcefullyDisconnected) {
-				return;
-			} else {
-				const oldObj = this._connections[0];
-				oldObj.__forcefullyDisconnected = true;
-				this.disconnect(oldObj);
-			}
-			*/
 		}
 
 		this._connections.push(obj);
@@ -96,6 +87,8 @@ class ESPWebDeviceObject extends ESPGameObject {
 		const graphics = new PIXI.Graphics();
 		this._spr._webHolder.addChild(graphics);
 		this._graphics.push(graphics);
+
+		ESPAudio.webDeviceAttach(this.getObjectVolume());
 	}
 
 	disconnect(obj) {

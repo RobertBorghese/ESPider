@@ -35,6 +35,10 @@ class ESPSpearWallObject extends ESPGameObject {
 		this._showTime = showAni ? 0 : 1;
 		this._scaleState = showAni ? 0 : 1;
 
+		if(showAni) {
+			ESPAudio.spearsEnter(this.getObjectVolume());
+		}
+
 		this._deleteNextFrame = false;
 	}
 
@@ -65,7 +69,7 @@ class ESPSpearWallObject extends ESPGameObject {
 		} else if(this.isChanging()) {
 			this._showTime += 0.04 * (this._showAnimation === 1 ? 1 : -1);
 
-			this._scaleState = Easing.easeOutBack(this._showTime);
+			this._scaleState = (this._showAnimation === 1 ? Easing.easeOutBack : Easing.easeInCubic)(this._showTime);
 
 			if((this._showAnimation === 1 && this._showTime >= 1) ||
 				(this._showAnimation === 2 && this._showTime <= 0)) {
@@ -105,11 +109,13 @@ class ESPSpearWallObject extends ESPGameObject {
 	showSpears(refresh = true) {
 		this._showAnimation = 1;
 		if(refresh) this._showTime = 0;
+		ESPAudio.spearsEnter(this.getObjectVolume());
 	}
 
 	hideSpears(refresh = true) {
 		this._showAnimation = 2;
 		if(refresh) this._showTime = 1;
+		ESPAudio.spearsLeave(this.getObjectVolume());
 	}
 
 	isChanging() {

@@ -23,6 +23,9 @@ class ESPGameObject {
 		}
 	}
 
+	onCreate() {
+	}
+
 	reset(x, y) {
 		this.movexy(x, y);
 		this.CollisionHeight = 0;
@@ -52,6 +55,18 @@ class ESPGameObject {
 			}
 		}
 		return true;
+	}
+
+	getObjectVolume() {
+		if(SceneManager._scene._spriteset._tilemap.scale.x > 1) return 0;
+		let dist = this.getDistance2d($espGamePlayer);
+		if(!$gameMap.objectInCamera(this)) {
+			dist *= 2;
+		}
+		if(dist < 2000) {
+			return (1 - (dist / 2000)) * 100;
+		}
+		return 0;
 	}
 
 	saveIndividual() {
@@ -373,8 +388,12 @@ class ESPGameObject {
 	}
 
 	updateZPosition() {
+		const prevZ = this.position.z;
 		this.position.z += (this.speed.z * ESP.WS);
 		if(this.position.z <= 0 && ESP.WS > 0.2) {
+			if(prevZ > 0) {
+				ESPAudio.hitGround(this.getObjectVolume());
+			}
 			this.position.z = 0;
 			this.speed.z = 0;
 		}

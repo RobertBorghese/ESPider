@@ -88,11 +88,6 @@ class ESPCheckpointSprite extends ESPGameSprite {
 		if(this._rate < 1) {
 			this._flag.Index = 0;
 		}
-		const r3 = this._rate >= 1 ? 0 : (r > 0.5 ? (1 - r) * 255 : 0);
-		/*if(this._flag._blendColor[0] !== r3) {
-			this._flag.setBlendColor([r3, r3, r3, r3]);
-		}*/
-		//this._flag.setHue((1 - r2) * 240);
 	}
 
 	updateShadowSprite() {

@@ -9,7 +9,6 @@ class ESPFireballObject extends ESPGameObject {
 		this.position.set(300, 350, 6);
 		this.speed.set(0, 0, 0);
 
-		//this._particles = [];
 		this._time = 0;
 
 		this._initAnimation = !!initAnimation;
@@ -18,6 +17,10 @@ class ESPFireballObject extends ESPGameObject {
 		this._onGroundShift = false;
 
 		this._isDead = false;
+
+		if(!this._initAnimation) {
+			ESPAudio.fireballShot(this.getObjectVolume());
+		}
 	}
 
 	constructSprite() {
@@ -36,7 +39,6 @@ class ESPFireballObject extends ESPGameObject {
 				}
 			} else if(this._groundedStyle === 1) {
 				if(!this._onGroundShift) {
-					///this.position.z += 0.01;
 					if(this.speed.z < 0.2) this.speed.z = 0.2;
 					this.speed.z += 0.2;
 				} else if(this.position.z > ESP.StandardFireballHeight) {
@@ -67,11 +69,9 @@ class ESPFireballObject extends ESPGameObject {
 			s.hitWithFire();
 		});
 
-		if(!this._isInitializing) {
-			$gameMap.findObjectGroup("webdevice").filter((s) => s.isOpen() && !s.isConnectedTo(this) && this.getDistance(s) <= 200).forEach(s => s.connect(this));
+		if(!this._isInitializing && !this._isDead) {
+			$gameMap.findObjectGroup("webdevice").filter((s) => (s.isOpen() && !s.isConnectedTo(this) && this.getDistance(s) <= 200)).forEach(s => s.connect(this));
 		}
-
-		//webdevice
 	}
 
 	onCollisionHeightChange(oldHeight) {
@@ -84,6 +84,7 @@ class ESPFireballObject extends ESPGameObject {
 	}
 
 	finishInitializing() {
+		ESPAudio.fireballShot(this.getObjectVolume());
 		this._isInitializing = false;
 	}
 
@@ -92,12 +93,6 @@ class ESPFireballObject extends ESPGameObject {
 			this._isDead = true;
 			this.speed.set(0, 0, 0);
 		}
-		/*
-		if(direction === 4 || direction === 6) {
-			this.speed.x *= -1;
-		} else {
-			this.speed.y *= -1;
-		}*/
 	}
 
 	kill() {

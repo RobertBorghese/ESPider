@@ -8,53 +8,15 @@ class ESPFireballSprite extends ESPGameSprite {
 
 		this.ObjectHolderOffsetY = -16;
 
-		/*
-		this.Graphics = new PIXI.Graphics();
-		this.Graphics.beginFill(0xffffff);
-		this.Graphics.lineStyle(0);
-		this.Graphics.drawCircle(0, -10, 10);
-		this.Graphics.endFill();
-		this.ObjectHolder.addChild(this.Graphics);
-		*/
-
-		/*
-		if(this._time < 200 && this._time % 10 === 0) {
-			const particle = new ESPParticleObject(this.speed.x / -2, this.speed.y / -2, 4, false);
-			$gameMap.addGameObject(particle, this.position.x + (Math.random() * 10) - 5, this.position.y + (Math.random() * 10) - 5);
-			this._particles.push(particle);
-		}
-		this._time++;
-
-		for(let i = 0; i < this._particles.length; i++) {
-			if(this._particles[i].isComplete()) {
-				this._particles[i].position.x = this.position.x + (Math.random() * 10) - 5;
-				this._particles[i].position.y = this.position.y + (Math.random() * 10) - 5;
-				this._particles[i].position.z = 0;
-				this._particles[i]._spr.Animation.reset();
-			}
-		}*/
-
 		this._particleHolder = new Sprite();
 		this.ObjectHolder.addChild(this._particleHolder);
 		this._particles = [];
-/*
-		this.Animation = new ESPAnimatedSprite("img/particles/Particle.png", spd);
-		this.Animation.await();
-		this.Animation.scale.set(2);
-		this.Animation.anchor.set(0.5);
-		this.ObjectHolder.addChild(this.Animation);*/
-
-		//this.ShadowSprite.visible = false;
 
 		this._initAnimation = initAnimation;
 		this._isInitializing = this._initAnimation;
 
 		this._time = 0;
 		this.Time = 0;
-
-		/*for(let i = 0; i < 20; i++) {
-			this.makeParticle(i);
-		}*/
 
 		this._mainParticle = new ESPAnimatedSprite("img/particles/Particle.png", 4, this._isInitializing);
 		this._mainParticle.scale.set(2);

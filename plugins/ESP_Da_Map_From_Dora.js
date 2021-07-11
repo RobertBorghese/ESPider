@@ -101,15 +101,6 @@ modify_Game_Map = class {
 			}
 		}
 
-		/*
-		for(let i = 0; i < largestRegion; i++) {
-			for(let x = 0; x < mapWidth; x++) {
-				this.espCollisionMap.push(0);
-				this.espCollisionKillers.push(0);
-			}
-		}
-		*/
-
 		this.MapBottom = mapHeight;
 
 		for(let x = 0; x < mapWidth; x++) {
@@ -179,7 +170,6 @@ modify_Game_Map = class {
 	// any starting game objects get initiated here
 	initStartingGameObjects() {
 		this.setupObjects();
-		//this.addGameObject(new ESPFireballObject());
 	}
 
 	// setup ESP objects
@@ -239,7 +229,7 @@ modify_Game_Map = class {
 				objX = parseInt(objectData["Specific X"]) || objX;
 				objY = parseInt(objectData["Specific Y"]) || objY;
 			}
-			this.addGameObject(obj, objX, objY);
+			this.addGameObject(obj, objX, objY, regionId * TS);
 			return obj;
 		}
 		return null;
@@ -402,6 +392,7 @@ modify_Game_Map = class {
 				const spriteset = SceneManager._scene._spriteset;
 				if(spriteset) {
 					spriteset.addGameSprite(object);
+					object.onCreate();
 				}
 			}
 		}
@@ -606,6 +597,11 @@ modify_Game_Map = class {
 			bottom < this.ESPCameraY || top > (this.ESPCameraY + Graphics.height));
 	}
 
+	objectInCamera(obj) {
+		return this.inCamera(obj.position.x - obj.rectWidth(), obj.position.x - obj.rectWidth(),
+			obj.position.y + obj.rectWidth(), obj.position.y + obj.rectWidth());
+	}
+
 	canMoveCameraX() {
 		if($gameMap._isTranferring) return true;
 		if(this._cameraXMinY === 0 && this._cameraXMaxY === 0) return true;
@@ -690,7 +686,8 @@ modify_Game_Map = class {
 		}
 
 		SceneManager._scene._spriteset.freezeWorldSpriteVisibility([
-			[10, 16], [11, 16], [12, 16], [14, 16], [15, 16], [16, 16]
+			[10, 16], [11, 16], [12, 16], [14, 16], [15, 16], [16, 16],
+			[10, 17], [11, 17], [12, 17], [14, 17], [15, 17], [16, 17]
 		])
 	}
 
@@ -781,6 +778,9 @@ modify_Game_Map = class {
 				ESP.WS = r;
 			}
 			if(this._boss1Timer >= 3275) {
+				if(this._boss1Timer === 3275) {
+					ESPAudio.flashback();
+				}
 				const r = (200 - (this._boss1Timer - 3275).clamp(0, 200)) / 200;
 				const r2 = Easing.easeInCubic(1 - r);
 				SceneManager._scene._spriteset._tilemap.scale.set(1 + (6 * r2));

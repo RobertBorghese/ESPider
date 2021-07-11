@@ -28,7 +28,6 @@ class ESPAnimatedSprite extends PIXI.Sprite {
 		this.FrameHeight = 0;
 		this.IsAwaiting = false;
 		this.IsFrozen = false;
-		//this.setFrame(0, 0, 0, 0);
 
 		this._espUrl = sourceUrl;
 
@@ -58,8 +57,6 @@ class ESPAnimatedSprite extends PIXI.Sprite {
 			this._espIsLoaded = true;
 			this.setup();
 		}
-		
-		//this.bitmap.addLoadListener(this.setup.bind(this));
 	}
 
 	move(x, y) {
@@ -81,7 +78,6 @@ class ESPAnimatedSprite extends PIXI.Sprite {
 		this.Frame = 0;
 		this.Index = 0;
 		if(this.TextureFrames) this.texture = (this.TextureFrames[this.Index]);
-		//this.setFrame(0, 0, this.FrameWidth, this.FrameHeight);
 	}
 
 	setup() {
@@ -128,7 +124,6 @@ class ESPAnimatedSprite extends PIXI.Sprite {
 			this.Index = this.Index % this.MaxIndex;
 		}
 		this.texture = (this.TextureFrames[this.Index]);
-		//this.setFrame(this.Index * this.FrameWidth, 0, this.FrameWidth, this.FrameHeight);
 	}
 
 	update() {
@@ -167,7 +162,6 @@ class ESPAnimatedSprite extends PIXI.Sprite {
 		}
 
 		this.texture = (this.TextureFrames[FinalIndex]);
-		//this.setFrame(FinalIndex * this.FrameWidth, 0, this.FrameWidth, this.FrameHeight);
 	}
 
 	isDone() {

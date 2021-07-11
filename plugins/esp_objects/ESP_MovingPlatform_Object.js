@@ -54,6 +54,8 @@ class ESPMovingPlatformObject extends ESPGameObject {
 				console.error(e);
 				this._points = [];
 			}
+		} else {
+			this._points = null;
 		}
 
 		this._imageType = data?.["Image Type"] ?? ((this._width > 1 || this._height > 1) ? 0 : -1);
@@ -66,8 +68,12 @@ class ESPMovingPlatformObject extends ESPGameObject {
 
 		this._time = 0;
 		this._maxTime = parseInt(data?.["Duration"]) ?? 300;
+	}
 
+	onCreate() {
+		super.onCreate();
 		this.position.z = this._collisionHeight * TS;
+		this.setupChildren();
 	}
 
 	constructSprite() {
@@ -128,8 +134,8 @@ class ESPMovingPlatformObject extends ESPGameObject {
 						"Parent": this
 					});
 					$gameMap.addGameObject(obj, this.position.x + (x * TS), this.position.y + (y * TS));
-					obj.update();
-					obj._spr.update();
+					//obj.update();
+					//obj._spr.update();
 					this._espChildren.push(obj);
 				}
 			}
@@ -137,10 +143,6 @@ class ESPMovingPlatformObject extends ESPGameObject {
 	}
 
 	update() {
-		if(!this.__hasCreatedChildren) {
-			this.__hasCreatedChildren = true;
-			this.setupChildren();
-		}
 		super.update();
 		this.updateMovement();
 	}

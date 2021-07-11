@@ -7,8 +7,6 @@ ESP.makeButtons = function(pixiObject, width, height, shiftX, shiftY, offsetX, o
 	const result = [];
 
 	const makeButton = function(i, text, callback) {
-		//216869
-		//0xd4336b, 0xa12751, 0xbd2d5f, 0xfccadc
 		const button = new ESPButton(width, height, text, color1, color2, color3, color4, callback);
 		button.move(x + (offsetX * i), y + (offsetY * i));
 		button.onMouseEnter = onMouseEnter.bind(pixiObject, i, button);
@@ -37,7 +35,6 @@ class ESPButton extends Sprite_Clickable {
 
 		this.bitmap = new Bitmap(width, height);
 
-		//this.filters = [new PIXI.filters.PixelateFilter(2)];
 		this.filters = [ new PIXI.filters.AlphaFilter() ];
 
 		this.anchor.set(0.5);
@@ -78,8 +75,7 @@ class ESPButton extends Sprite_Clickable {
 			fill: 0xffffff,
 			align: "center",
 			stroke: "rgba(0, 0, 0, 0.5)",
-			strokeThickness: 4,
-			//letterSpacing: 1
+			strokeThickness: 4
 		};
 		this._text = new PIXI.Text(text ?? "New Game", this._style);
 		this._text.resolution = 2;
@@ -94,16 +90,6 @@ class ESPButton extends Sprite_Clickable {
 
 		this._espClicked = false;
 		this._espClickTime = 0;
-
-		/*
-		const textBitmap = new Bitmap(width, height);
-		//textBitmap.outlineWidth = 0;
-		textBitmap.fontSize = 24;
-		textBitmap.fontFace = $gameSystem.mainFontFace();
-		textBitmap.drawText("New Game", 0, 0, width, height - this.__espOffset, "center");
-		this._text = new Sprite(textBitmap);
-		this._graphicsFront.addChild(this._text);
-		*/
 	}
 
 	onMouseEnter() {
@@ -142,15 +128,8 @@ class ESPButton extends Sprite_Clickable {
 		this._graphicsBack.drawRect(offset, height - offset, 2, offset - 2);
 		this._graphicsBack.drawRect(offset + 2, height - 2, width - offset - 4, 2);
 		this._graphicsBack.drawRect(width - 2, offset + 2, 2, height - offset - 4);
-		//this._graphicsBack.drawRect(width - 2, offset, 2, height - offset);
 		this._graphicsBack.drawRect(width - offset, offset, offset - 2, 2);
 		this._graphicsBack.endFill();
-
-		/*if(this._espHovered) {
-			this._graphicsBack.beginFill(0xffffff, 0.25);
-			this._graphicsBack.drawRect(offset + 2, offset + 2, width - offset - 4, height - offset - 4);
-			this._graphicsBack.endFill();
-		}*/
 	}
 
 	updateGraphics() {
@@ -170,19 +149,20 @@ class ESPButton extends Sprite_Clickable {
 			this._graphicsFront.endFill();
 		}
 
-		/*
-		if(ratio > 0) {
-			this._graphicsFront.beginFill(this._colorUnderline);
-			const ww2 = (this.__espWidth - offset) * ratio;
-			this._graphicsFront.drawRect(((this.__espWidth - ww2) / 2) - (offset / 2), this.__espHeight - offset - 2, ww2, 2);
-			this._graphicsFront.drawRect(((this.__espWidth - ww2) / 2) - (offset / 2), 0, ww2, 2);
-			this._graphicsFront.drawRect(x, 0, 2, this.__espHeight - offset);
-			this._graphicsFront.drawRect(x2 - 2, 0, 2, this.__espHeight - offset);
-			this._graphicsFront.endFill();
-		}*/
+		// underline
+		//if(ratio > 0) {
+		//	this._graphicsFront.beginFill(this._colorUnderline);
+		//	const ww2 = (this.__espWidth - offset) * ratio;
+		//	this._graphicsFront.drawRect(((this.__espWidth - ww2) / 2) - (offset / 2), this.__espHeight - offset - 2, ww2, 2);
+		//	this._graphicsFront.drawRect(((this.__espWidth - ww2) / 2) - (offset / 2), 0, ww2, 2);
+		//	this._graphicsFront.drawRect(x, 0, 2, this.__espHeight - offset);
+		//	this._graphicsFront.drawRect(x2 - 2, 0, 2, this.__espHeight - offset);
+		//	this._graphicsFront.endFill();
+		//}
 
 		if(this._style) {
 			this._text.x = (this.__espWidth - this._text.width) / 2;
+			// letter spacing
 			//this._style.letterSpacing = ratio < 0.001 ? 1 : (this._maxLetterSpacing * ratio) + 1;
 			this._text.style = this._style;
 		}

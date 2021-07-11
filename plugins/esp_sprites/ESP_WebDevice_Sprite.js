@@ -57,14 +57,11 @@ class ESPWebDeviceSprite extends ESPGameSprite {
 	}
 
 	updateWebFrame() {
-		//this._web.setFrame(this._webFrameIndex * 24, this._webFrameCutoff, 24, 48 - this._webFrameCutoff);
 		this._web.setFrame(this._webFrameIndex * 24, 0, 24, 48);
 
 		const ratio = (this._webFrameCutoff / this._webFrameCutoffMax);
 		this._trueWebHolder.scale.x = 1 + (0.2 * ratio);
 		this._trueWebHolder.scale.y = (1 - ratio);
-
-		//this._core.scale.x = Easing.easeOutBack(1 - ratio);
 	}
 
 	update() {
@@ -93,7 +90,6 @@ class ESPWebDeviceSprite extends ESPGameSprite {
 			this._top.y = (25 + (6 * ratio)) * ratio;
 		}
 
-		//this._core
 		this.Time += (0.1 * ESP.WS);
 		this._core.y = 6 + (this._core.height / -2) + (Math.sin(this.Time) * 1.5);
 	}

@@ -17,8 +17,7 @@ class ESPSpearWallSprite extends ESPGameSprite {
 				spear.scale.set(2, this.espObject._showAnimation ? 0 : 2);
 				spear.anchor.set(0.5, 1);
 				spear.x = ((TS / -2) + (TS * (j / 4)) + (i * TS)) + 4;
-				spear.y = j % 2 === 0 ? 8 : 0;//(Math.random() * (TS / 2)) - (TS / 4);
-				//spear.rotation = (Math.random() * 0.25) - 0.125;
+				spear.y = j % 2 === 0 ? 8 : 0;
 				this.ObjectHolder.addChild(spear);
 				this._spears.push(spear);
 			}

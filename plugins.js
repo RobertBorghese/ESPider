@@ -12,6 +12,7 @@ var $plugins =
 {"name":"ESP_Data_And_Saves_And_Such","status":true,"description":"","parameters":{}},
 {"name":"ESP_Animated_Sprite","status":true,"description":"","parameters":{}},
 {"name":"ESP_Button_On_A_Jacket","status":true,"description":"","parameters":{}},
+{"name":"ESP_Audio","status":true,"description":"","parameters":{}},
 {"name":"---","status":true,"description":"","parameters":{}},
 {"name":"ESP_Interpreter","status":true,"description":"","parameters":{}},
 {"name":"---","status":true,"description":"","parameters":{}},

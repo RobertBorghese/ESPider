@@ -36,6 +36,24 @@ modify_Scene_Map = class {
 		this.addChild(this._overlay);
 	}
 
+	start() {
+		ESP.Scene_Map.start.apply(this, arguments);
+
+		if($gameMapTemp._mapMovingPlatforms && $gameMapTemp._mapMovingPlatforms.length > 0) {
+			const movingPlatforms = $gameMapTemp._mapMovingPlatforms;
+			const len = movingPlatforms.length;
+			for(let i = 0; i < len; i++) {
+				movingPlatforms[i].onCreate();
+			}
+		}
+
+		const objects = $gameMap.getGameObjects();
+		const len = objects.length;
+		for(let i = 0; i < len; i++) {
+			objects[i].onCreate();
+		}
+	}
+
 	updateMain() {
 		if(this._slideshowList !== null) {
 			this.updateSlideshow();
@@ -328,12 +346,6 @@ modify_Scene_Map = class {
 			this._myPauseMenuIndex = this._pauseWindow._index;
 			this.onMouseEnter(this._myPauseMenuIndex);
 		}
-		/*
-		if(this._titleButtons) {
-			for(let i = 0; i < this._titleButtons.length; i++) {
-				this._titleButtons[i].update();
-			}
-		}*/
 	}
 
 	onMouseEnter(index) {
@@ -392,6 +404,13 @@ modify_Scene_Map = class {
 		this._slideshowTimer = 60;
 		this._slideshowFadingOut = false;
 		this._slideshowEnding = false;
+
+		this._slideshowBackground = new PIXI.Graphics();
+		this._slideshowBackground.beginFill(0x000000);
+		this._slideshowBackground.drawRect(0, 0, Graphics.width, Graphics.height);
+		this._slideshowBackground.endFill();
+		this._slideshowHolder.addChild(this._slideshowBackground);
+
 		this.incrementSlideshow();
 	}
 
@@ -401,15 +420,20 @@ modify_Scene_Map = class {
 		this._slideshowTimer = 60;
 		this._slideshowFadingOut = false;
 		this._slideshowEnding = true;
+
+		this._slideshowHolder.removeChild(this._slideshowBackground);
+		this._slideshowBackground.destroy();
+		this._slideshowBackground = null;
 	}
 
 	incrementSlideshow() {
 		this._slideshowIndex++;
+		const hasBackground = this._slideshowHolder.children.contains(this._slideshowBackground);
 		while(this._slideshowHolder.children.length > 0) {
-			const child = this._slideshowHolder.children[0];
+			let child = this._slideshowHolder.children[0];
 			this._slideshowHolder.removeChild(child);
-			//child.destroy();
 		}
+		if(hasBackground) this._slideshowHolder.addChild(this._slideshowBackground);
 		if(this._slideshowList && this._slideshowIndex < this._slideshowList.length) {
 			const data = this._slideshowList[this._slideshowIndex];
 			if(Array.isArray(data)) {

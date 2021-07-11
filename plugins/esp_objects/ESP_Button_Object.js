@@ -47,8 +47,10 @@ class ESPButtonObject extends ESPGameObject {
 			this._isTouched = touched;
 			if(this._isTouched) {
 				if(this._press) this._press();
+				ESPAudio.buttonPress();
 			} else {
 				if(this._release) this._release();
+				ESPAudio.buttonUnpress();
 			}
 		}
 	}

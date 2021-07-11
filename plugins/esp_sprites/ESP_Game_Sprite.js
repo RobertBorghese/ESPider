@@ -17,6 +17,7 @@ modify_Spriteset_Map = class {
 
 	createCharacters() {
 		//ESP.Spriteset_Map.createCharacters.apply(this, arguments);
+
 		this._espPlayer = new ESPPlayerSprite();
 		this._espPlayer.z = 4;
 		this._tilemap._espPlayer = this._espPlayer;
@@ -301,7 +302,6 @@ modify_Spriteset_Map = class {
 					if($gameTemp._isNewGame) {
 						spr.visible = false;
 					}
-					//if(!spr.__espDuration) spr.__espDuration = 0;
 					spr.__espDuration += this._ESP_OBJECT_TRANSITION_OFFSET * (this._espTransitionMode === 1 ? 1 : -1);
 					spr.__espDuration = spr.__espDuration.clamp(0, 1);
 					const Ratio = (this._ESP_OBJECT_EASING(spr.__espDuration) * (data[1] >= 2 ? this._ESP_OBJECT_DISTANCEY : this._ESP_OBJECT_DISTANCEX));
@@ -349,6 +349,7 @@ modify_Spriteset_Map = class {
 		this._myFilter.alpha = 0;
 		this._putWorldGeometryInFilterHolder();
 		$gameMap._isTranferring = true;
+		ESPAudio.transferOut();
 	}
 
 	_putWorldGeometryInFilterHolder() {
@@ -442,15 +443,6 @@ modify_Spriteset_Map = class {
 		for(let i = 0; i < len; i++) {
 			const spr = this._espWorldSprites[i];
 			spr.visible = !((spr.x + spr._espLeft) > right || (spr.x + spr._espRight) < left || (spr.y + spr._espTop) > bottom || (spr.y + spr._espBottom) < top);
-			/*
-			if(spr.visible) {
-				if(Math.abs(spr.x - $espGamePlayer.position.x) < (TS / 2)) {
-					spr.alpha = 0.75;
-				} else {
-					spr.alpha = 1.0;
-				}
-			}
-			*/
 		}
 	}
 
@@ -529,7 +521,6 @@ modify_Spriteset_Map = class {
 	OnTransitionComplete(wasIn) {
 		$gameTemp._isNewGame = false;
 		this._removeWorldGeometryFromFilterHolder();
-		//this._espWorldSprites.forEach(s => s.filters = null);
 		this._myFilter = null;
 		if(!wasIn) $gameMap.goToNewMap();
 		else $gameMap.onTransferInReady();
@@ -538,6 +529,7 @@ modify_Spriteset_Map = class {
 
 	OnPlayerVisibleFromIn() {
 		$gameMap.onTransferInVisible();
+		ESPAudio.transferIn();
 	}
 
 	OnBitmapsLoaded() {
@@ -610,10 +602,8 @@ modify_Spriteset_Map = class {
 					spr._espBottom = 10;
 					spr.z = height == 1 ? 999 : 4;
 					spr._espWorldObject = true;
-					//if((y + height) >= mapHeight) spr.alpha = 0.5;
 					this._espWorldSpriteIndexes[x + (y * mapWidth)] = spr;
 					this._espWorldSprites.push(spr);
-					//this._tilemap._espWorldSprites = this._espWorldSprites;
 					this._tilemap.addChild(spr);
 				}
 			}
@@ -636,10 +626,6 @@ modify_Spriteset_Map = class {
 	}
 
 	setCameraPos(x, y, force) {
-		//x *= this._tilemap.scale.x;
-		//y *= this._tilemap.scale.y;
-		//this._tilemap.width
-		//this._tilemap.height
 		let newX = -(x.clamp(0, (($gameMap.maxCameraX() * TS * this._tilemap.scale.x) - Graphics.width)));
 		const newY = -(y.clamp(0, (($gameMap.maxCameraY() * TS * this._tilemap.scale.y) - Graphics.height)));
 		if(!force && !$gameMap.canMoveCameraX()) {

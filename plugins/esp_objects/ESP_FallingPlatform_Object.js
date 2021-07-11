@@ -74,6 +74,9 @@ class ESPFallingPlatformObject extends ESPMovingPlatformObject {
 			this._time--;
 			if(this._time <= 0) {
 				this._fallingPhase = 2;
+				if(!this._espParent) {
+					ESPAudio.fallingPlatformFall(this.getObjectVolume());
+				}
 			}
 		}
 	}
@@ -95,6 +98,7 @@ class ESPFallingPlatformObject extends ESPMovingPlatformObject {
 			} else {
 				this._time = this._maxTime;
 				this._fallingPhase = 1;
+				ESPAudio.fallingPlatformTouch();
 			}
 		}
 	}

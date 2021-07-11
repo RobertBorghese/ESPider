@@ -41,7 +41,7 @@ class ESPKeyObject extends ESPGameObject {
 	updatePlayerTouch() {
 		const size = 20;
 		if(!this._isTouched && this.getDistance($espGamePlayer) < size) {
-			//this.consumeFly();
+			ESPAudio.keyGet();
 			if(this._immediate) this.execute();
 			SceneManager._scene._spriteset.shake();
 			this._isTouched = true;

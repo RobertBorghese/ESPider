@@ -59,6 +59,7 @@ class ESPFlyObject extends ESPGameObject {
 			$espGamePlayer.incrementFlies(this.makeId());
 			this.CanCollide = false;
 			SceneManager._scene._spriteset.shake();
+			ESPAudio.flyGet();
 		}
 	}
 }

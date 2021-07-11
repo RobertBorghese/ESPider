@@ -32,6 +32,7 @@ class ESPSlugObject extends ESPGameObject {
 					this.speed.x = this.speed.y = 0;
 					this._mode = 1;
 					this._actionTime = 40;
+					ESPAudio.snailDashStart();
 				}
 			} else {
 				this._cooldown--;
@@ -44,6 +45,7 @@ class ESPSlugObject extends ESPGameObject {
 				this.speed.y = Math.cos(radians) * -8;
 				this._mode = 2;
 				this._actionTime = 40;
+				ESPAudio.snailDashCharge();
 			}
 		} else if(this._mode === 2) {
 			this._actionTime--;
@@ -90,13 +92,6 @@ class ESPSlugObject extends ESPGameObject {
 	}
 
 	onCollided(direction) {
-		/*
-		if(direction === 4 || direction === 6) {
-			this.speed.x *= -1;
-		} else {
-			this.speed.y *= -1;
-		}
-		*/
 		if(this._mode === 0) {
 			this.redoIdleMotion();
 		} else if(this._mode === 2) {

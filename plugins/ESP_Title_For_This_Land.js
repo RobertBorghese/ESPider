@@ -25,34 +25,6 @@ modify_Scene_Title = class {
 		ESP.Scene_Title.create.apply(this, arguments);
 
 		this._commandWindow.setHandler("fourth", function() {});
-/*
-		const width = 180;
-		const height = 40;
-		const shiftX = -300;
-		const shiftY = 240;
-		const offsetX = 200;
-		const offsetY = 0;
-
-		const x = (Graphics.width / 2) + shiftX;
-		const y = (Graphics.height / 2) + shiftY;
-
-		this._titleButtons = [];
-
-		const makeButton = function(i, text, callback) {
-			//216869
-			//0xd4336b, 0xa12751, 0xbd2d5f, 0xfccadc
-			const button = new ESPButton(width, height, text, 0x123a3b, 0x2e9294, 0x1b5657, 0x216869, callback);
-			button.move(x + (offsetX * i), y + (offsetY * i));
-			button.onMouseEnter = this.onMouseEnter.bind(this, i, button);
-			button.setEnabled(this._commandWindow.isCommandEnabled(i));
-			this._titleButtons.push(button);
-			this.addChild(button);
-		}.bind(this);
-
-		makeButton(0, "New Game", this.commandNewGame.bind(this));
-		makeButton(1, "Continue", this.commandLoadGame.bind(this));
-		makeButton(2, "Volume [" + Math.floor(WebAudio._masterVolume * 100) + "%]", this.commandVolume.bind(this));
-		makeButton(3, "Leave", this.commandEndGame.bind(this));*/
 
 		this._titleButtons = ESP.makeButtons(this, 240, 40, -390, 240, 260, 0, [
 			["New Game", this.commandESPNewGame.bind(this)],
@@ -76,7 +48,7 @@ modify_Scene_Title = class {
 		this.disableTheButtons();
 		const savefileId = 1;
 		DataManager.loadGame(savefileId).then(function() {
-			//SoundManager.playLoad();
+			// TODO: load game se
 			this.fadeOutAll();
 			SceneManager.goto(Scene_Map);
 			$gameSystem.onAfterLoad();
