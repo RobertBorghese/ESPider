@@ -442,7 +442,8 @@ modify_Spriteset_Map = class {
 		const bottom = (Graphics.height + camY + (TS * 2));
 		for(let i = 0; i < len; i++) {
 			const spr = this._espWorldSprites[i];
-			spr.visible = !((spr.x + spr._espLeft) > right || (spr.x + spr._espRight) < left || (spr.y + spr._espTop) > bottom || (spr.y + spr._espBottom) < top);
+			if(spr._espSurronded) spr.visible = false;
+			else spr.visible = !((spr.x + spr._espLeft) > right || (spr.x + spr._espRight) < left || (spr.y + spr._espTop) > bottom || (spr.y + spr._espBottom) < top);
 		}
 	}
 
@@ -565,7 +566,7 @@ modify_Spriteset_Map = class {
 		this._tilemap.updateTransform();
 		const tilemapBitmap = Bitmap.snapWhole(this._tilemap._lowerLayer, this._tilemap.width, this._tilemap.height);
 		for(let x = 0; x < mapWidth; x++) {
-			for(let y = 0; y < mapHeight; y++) {
+			for(let y = 0; y < $gameMap.MapBottom; y++) {
 				const regionId = $gameMap.getColHeight(x, y);
 				if(regionId > 0) {
 					let height = 0;
@@ -602,6 +603,25 @@ modify_Spriteset_Map = class {
 					spr._espRight = (bitmap.width / 2) + 10;
 					spr._espTop = (-bitmap.height) - 10;
 					spr._espBottom = 10;
+
+					spr._espSurronded = false;
+
+					if($gameMap.getColHeight(x - 1, y) === regionId && $gameMap.getColHeight(x - 1, y) === regionId &&
+						$gameMap.getColHeight(x, y - 1) === regionId && $gameMap.getColHeight(x, y + 1) === regionId &&
+						$gameMap.getColHeight(x - 1, y - 1) === regionId && $gameMap.getColHeight(x + 1, y - 1) === regionId &&
+						$gameMap.getColHeight(x - 1, y + 1) === regionId && $gameMap.getColHeight(x + 1, y + 1) === regionId) {
+						spr._espSurronded = true;
+					}
+
+					if(spr._espSurronded) {
+						currLoop: for(let i = regionId; i >= 2; i--) {
+							if($gameMap.getColHeight(x - 1, y - i) !== regionId || $gameMap.getColHeight(x + 1, y - i) !== regionId) {
+								spr._espSurronded = false;
+								break currLoop;
+							}
+						}
+					}
+
 					spr.z = height == 1 ? 999 : 4;
 					spr._espWorldObject = true;
 					this._espWorldSpriteIndexes[x + (y * mapWidth)] = spr;

@@ -79,6 +79,11 @@ modify_Game_Map = class {
 		return 0;
 	}
 
+	getColMapHeight(x, y) {
+		const height = this.getColHeight(x, y);
+		return this.espCollisionMap[x + ((y + height) * $gameMap.width())] ?? 0;
+	}
+
 	// setup collision map for 3d world
 	setupCollisionMap() {
 		const mapWidth = $dataMap.width;
@@ -155,7 +160,6 @@ modify_Game_Map = class {
 				if(height > 0) {
 					const newY = y - height - 1;
 					const aboveHeight = this.espCollisionMap[x + (newY * mapWidth)] ?? 0;
-					if(x === 26 && y === 19) console.log(aboveHeight, height, y - 1, (y - height));
 					if(aboveHeight > 0 && aboveHeight < height) {
 						for(let i = y - 1; i >= (y - height); i--) {
 							const replaceHeight = this.espCollisionMap[x + (i * mapWidth)];
@@ -167,36 +171,6 @@ modify_Game_Map = class {
 				}
 			}
 		}
-
-		/*
-		const len = this.espCollisionMap.length;
-		for(let i = 0; i < len; i++) {
-			if(this.espCollisionMap[i] === undefined) console.log("UNDEF");
-		}
-console.log($gameMap.espCollisionMap[26 + (17 * $gameMap.width())]);
-		
-		for(let i = 0; i < len; i++) {
-			if(this.espCollisionMap[i] === undefined) {
-				const x = i % mapWidth;
-				let y = Math.floor(i / mapWidth);
-				let newIndex = null;
-				whileloop: while(y > 0) {
-					const id = this.espCollisionMap[x + (y * mapWidth)];
-					if(id !== undefined) {
-						newIndex = id;
-						break whileloop;
-					}
-					y--;
-				}
-				if(newIndex !== null) {
-					this.espCollisionMap[i] = newIndex;
-				}
-			}
-		}
-		console.log($gameMap.espCollisionMap[26 + (17 * $gameMap.width())]);
-		for(let i = 0; i < len; i++) {
-			if(this.espCollisionMap[i] === undefined) console.log("UNDEF");
-		}*/
 	}
 
 	// any starting game objects get initiated here
