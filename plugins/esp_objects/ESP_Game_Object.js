@@ -392,13 +392,17 @@ class ESPGameObject {
 		this.position.z += (this.speed.z * ESP.WS);
 		if(this.position.z <= 0 && ESP.WS > 0.2) {
 			if(prevZ > 0) {
-				ESPAudio.hitGround(this.getObjectVolume());
+				this.onGroundHit();
 			}
 			this.position.z = 0;
 			this.speed.z = 0;
 		}
 
 		this.__PlayerHeightIndex = Math.floor((this.position.z + 1) / TS) + this.CollisionHeight;
+	}
+
+	onGroundHit() {
+		ESPAudio.hitGround(this.getObjectVolume());
 	}
 
 	onCollided(direction) {

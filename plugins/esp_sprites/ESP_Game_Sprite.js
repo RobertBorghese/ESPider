@@ -366,6 +366,7 @@ modify_Spriteset_Map = class {
 	}
 
 	_removeWorldGeometryFromFilterHolder() {
+		if(!this._filterHolder) return;
 		const len = this._espWorldSprites.length;
 		for(let i = 0; i < len; i++) {
 			const s = this._espWorldSprites[i];
@@ -540,7 +541,11 @@ modify_Spriteset_Map = class {
 			this._loadedESPider = true;
 			this._tilemap.visible = true;
 			this.ConstructWorldBitmaps();
-			this.transitionIn();
+			if($gameMap.skipTransitionIn) {
+				this.OnTransitionComplete(true);
+			} else {
+				this.transitionIn();
+			}
 			this.visible = true;
 		}
 	}

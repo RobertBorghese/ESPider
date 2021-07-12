@@ -78,7 +78,12 @@ class ESPAudio {
 
 		"MenuButtonClick",
 		"MenuButtonClickCancel",
-		"MenuButtonClickSpecial"
+		"MenuButtonClickSpecial",
+
+		"Boss2Hit",
+		"Boss2Defeat",
+		"Boss2Footstomp",
+		"Boss2Roar"
 	];
 
 	static setup() {

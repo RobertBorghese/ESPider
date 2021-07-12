@@ -103,6 +103,18 @@ Tilemap.prototype._sortChildren = function() {
 		this.removeChild(this._uiHolder);
 		this.addChild(this._uiHolder);
 	}
+
+	if(this._playerBasedSprites && this._playerBasedSprites.length > 0) {
+		const len = this._playerBasedSprites.length;
+		for(let i = 0; i < len; i++) {
+			if(this._playerBasedSprites[i].visible && this._playerBasedSprites[i]._alwaysOnTop < $espGamePlayer.realZ()) {
+				const spr = this._playerBasedSprites[i];
+				const sprIndex = this.children.indexOf(spr);
+				this.removeChild(this._espPlayer);
+				this.addChildAt(this._espPlayer, sprIndex + 1);
+			}
+		}
+	}
 };
 
 Tilemap.prototype._compareChildOrder = function(a, b) {
@@ -116,6 +128,9 @@ Tilemap.prototype._compareChildOrder = function(a, b) {
 	} else if(b._ensureAbove === a) {
 		return -1;
 	}
+
+	if(a._alwaysOnTop) return 1;
+	else if(b._alwaysOnTop) return -1;
 
 	// If both sprites are "tilemap walls", do comparison with objects.
 	if(a._espWorldObject && b._espWorldObject) {
@@ -220,6 +235,21 @@ Tilemap.prototype._compareChildOrder = function(a, b) {
     } else {
         return a.spriteId - b.spriteId;
     }
+};
+
+Tilemap.prototype.addPlayerBasedSprite = function(spr) {
+	if(!this._playerBasedSprites) {
+		this._playerBasedSprites = [];
+	}
+	this._playerBasedSprites.push(spr);
+	this.addChild(spr);
+};
+
+Tilemap.prototype.removePlayerBasedSprite = function(spr) {
+	if(this._playerBasedSprites) {
+		this._playerBasedSprites.remove(spr);
+	}
+	this.removeChild(spr);
 };
 
 Object.defineProperty(Tilemap.prototype, "width", {

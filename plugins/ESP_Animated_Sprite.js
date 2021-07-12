@@ -129,7 +129,7 @@ class ESPAnimatedSprite extends PIXI.Sprite {
 	update() {
 		//super.update();
 
-		if(!this.IsFrozen && this.FrameWidth > 0) {
+		if(!this.IsFrozen && this.FrameWidth > 0 && this.FrameDelay > 0) {
 			this.Frame += ESP.WS;
 			if(this.Frame >= this.FrameDelay) {
 				this.Frame = 0;
@@ -161,7 +161,13 @@ class ESPAnimatedSprite extends PIXI.Sprite {
 			}
 		}
 
-		this.texture = (this.TextureFrames[FinalIndex]);
+		this.refreshTexture(FinalIndex);
+	}
+
+	refreshTexture(FinalIndex = this.Index) {
+		if(this.TextureFrames) {
+			this.texture = (this.TextureFrames[FinalIndex]);
+		}
 	}
 
 	isDone() {

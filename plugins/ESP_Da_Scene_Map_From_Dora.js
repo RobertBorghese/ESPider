@@ -102,11 +102,11 @@ modify_Scene_Map = class {
 	}
 
 	genCameraPosX() {
-		return ((this._targetCameraX ?? $espGamePlayer.position.x) * this._spriteset._tilemap.scale.x) - (Graphics.width / 2);
+		return ((this._targetCameraX ?? $espGamePlayer.position.x) * this._spriteset._tilemap.scale.x) - (Graphics.width / 2) + $gameMap.ESPCameraOffsetX;
 	}
 
 	genCameraPosY() {
-		return ((this._targetCameraY ?? $espGamePlayer.cameraY()) * this._spriteset._tilemap.scale.y) - (Graphics.height / 2);
+		return ((this._targetCameraY ?? $espGamePlayer.cameraY()) * this._spriteset._tilemap.scale.y) - (Graphics.height / 2) + $gameMap.ESPCameraOffsetY;
 	}
 
 	// update game objects

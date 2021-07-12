@@ -118,6 +118,23 @@ class ESPInterpreter {
 		return this;
 	}
 
+	setCameraOffset(x, y) {
+		this._list.push([
+			function() {
+				$gameMap.ESPCameraOffsetX = x;
+				$gameMap.ESPCameraOffsetY = y;
+			},
+			function() {
+				return true;
+			}
+		]);
+		return this;
+	}
+
+	resetCameraOffset() {
+		return this.setCameraOffset(0, 0);
+	}
+
 	fadeOut() {
 		this._list.push([
 			function() {
@@ -164,7 +181,7 @@ class ESPInterpreter {
 		return this;
 	}
 
-	createSpearWall(xGrid, yGrid, size, name) {
+	createSpearWall(xGrid, yGrid, size, name, waitForIt = true) {
 		this._list.push([
 			function() {
 				const regionId = $gameMap.getColHeight(xGrid, yGrid);
@@ -174,7 +191,7 @@ class ESPInterpreter {
 				return obj;
 			},
 			function(obj) {
-				return !obj.isChanging();
+				return !waitForIt || !obj.isChanging();
 			}
 		]);
 		return this;
@@ -246,10 +263,15 @@ class ESPInterpreter {
 		return this;
 	}
 
-	startBoss1() {
+	startBoss(num) {
 		this._list.push([
 			function() {
-				$gameMap.startBoss1();
+				switch(num) {
+					case 1: { $gameMap.startBoss1(); break; }
+					case 2: { $gameMap.startBoss2(); break; }
+					case 3: { $gameMap.startBoss3(); break; }
+					case 4: { $gameMap.startBoss4(); break; }
+				}
 			},
 			function() {
 				return true;
@@ -258,10 +280,15 @@ class ESPInterpreter {
 		return this;
 	}
 
-	finishBoss1() {
+	finishBoss(num) {
 		this._list.push([
 			function() {
-				$gameMap.finishBoss1();
+				switch(num) {
+					case 1: { $gameMap.finishBoss1(); break; }
+					case 2: { $gameMap.finishBoss2(); break; }
+					case 3: { $gameMap.finishBoss3(); break; }
+					case 4: { $gameMap.finishBoss4(); break; }
+				}
 			},
 			function() {
 				return true;
