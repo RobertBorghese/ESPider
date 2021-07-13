@@ -43,6 +43,8 @@ var $plugins =
 {"name":"esp_objects/ESP_MovingPlatform_Object","status":true,"description":"","parameters":{}},
 {"name":"esp_objects/ESP_FallingPlatform_Object","status":true,"description":"","parameters":{}},
 {"name":"esp_objects/ESP_Boss2Leg_Object","status":true,"description":"","parameters":{}},
+{"name":"esp_objects/ESP_Poisonball_Object","status":true,"description":"","parameters":{}},
+{"name":"esp_objects/ESP_AbilityGain_Object","status":true,"description":"","parameters":{}},
 {"name":"---","status":true,"description":"","parameters":{}},
 {"name":"esp_sprites/ESP_Game_Sprite","status":true,"description":"","parameters":{}},
 {"name":"esp_sprites/ESP_Player_Sprite_Stuff","status":true,"description":"","parameters":{}},
@@ -63,9 +65,14 @@ var $plugins =
 {"name":"esp_sprites/ESP_MovingPlatform_Sprite","status":true,"description":"","parameters":{}},
 {"name":"esp_sprites/ESP_FallingPlatform_Sprite","status":true,"description":"","parameters":{}},
 {"name":"esp_sprites/ESP_Boss2Leg_Sprite","status":true,"description":"","parameters":{}},
+{"name":"esp_sprites/ESP_Poisonball_Sprite","status":true,"description":"","parameters":{}},
+{"name":"esp_sprites/ESP_AbilityGain_Sprite","status":true,"description":"","parameters":{}},
 {"name":"---","status":true,"description":"","parameters":{}},
 {"name":"ESP_Tilemap_Manipulation","status":true,"description":"","parameters":{}},
 {"name":"ESP_Input_Thingies","status":true,"description":"","parameters":{}},
+{"name":"---","status":true,"description":"","parameters":{}},
+{"name":"ESP_Boss2_Implementation","status":true,"description":"","parameters":{}},
+{"name":"---","status":true,"description":"","parameters":{}},
 {"name":"ESP_Destroy_Some_Default_Stuff","status":true,"description":"","parameters":{}},
 {"name":"ESP_Put_This_Last_On_Plugin_List","status":true,"description":"","parameters":{}}
 ];

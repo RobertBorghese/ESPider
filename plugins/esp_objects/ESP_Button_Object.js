@@ -40,9 +40,19 @@ class ESPButtonObject extends ESPGameObject {
 	}
 
 	update() {
+		if(this.position.z > 0) {
+			this.speed.z -= 0.1;
+			if(this.speed.z < -10) this.speed.z = -10;
+		}
+
 		super.update();
 
-		const touched = ($espGamePlayer.position.z <= 0 && this.playerTouching($espGamePlayer));
+		if(this.position.z < 0) {
+			this.speed.z = 0;
+			this.position.z = 0;
+		}
+
+		const touched = (this.position.z <= 0 && $espGamePlayer.position.z <= 0 && this.playerTouching($espGamePlayer));
 		if(this._isTouched !== touched) {
 			this._isTouched = touched;
 			if(this._isTouched) {

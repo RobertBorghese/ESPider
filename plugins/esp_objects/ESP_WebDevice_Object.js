@@ -2,26 +2,6 @@
 // This will probably be hte coolest thing in this game. What sells it honestly. The main gimmick. 
 // Only took until July 7th, half way through to begin XD
 
-/*:
- * @command SpearWall
- * @text Options for spear wall.
- * @desc
- *
- * @arg Width
- * @desc 
- * @type number
- * @default 2
- *
- * @arg Starting State
- * @type select
- * @option Up
- * @value up
- * @option Down
- * @value down
- * @desc
- * @default up
- */
-
 class ESPWebDeviceObject extends ESPGameObject {
 	constructor(data, startOpen) {
 		super(data);
@@ -111,7 +91,17 @@ class ESPWebDeviceObject extends ESPGameObject {
 	}
 
 	update() {
+		if(this.position.z > 0) {
+			this.speed.z -= 0.1;
+			if(this.speed.z < -10) this.speed.z = -10;
+		}
+
 		super.update();
+
+		if(this.position.z < 0) {
+			this.speed.z = 0;
+			this.position.z = 0;
+		}
 
 		for(let i = 0; i < this._connections.length; i++) {
 			const obj = this._connections[i];

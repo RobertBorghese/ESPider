@@ -36,8 +36,8 @@ class ESPBoss2LegSprite extends ESPGameSprite {
 
 	updateShadowSprite() {
 		this.ShadowSprite.move(0, 0);
-		this.ShadowSprite.scale.set(((500 - this.espObject.position.z).clamp(0, 500) / 500));
-		this.ShadowSprite.alpha = this.ShadowSprite.scale.x;
+		this.ShadowSprite.scale.set(1.6 * ((400 - this.espObject.position.z).clamp(0, 400) / 400));
+		this.ShadowSprite.alpha = this.ShadowSprite.scale.x / 1.6;
 	}
 }
 
@@ -73,9 +73,14 @@ class ESPBoss2FaceSprite extends Sprite {
 	}
 
 	setOpenness(value) {
-		this._left.rotation = value;
-		this._right.rotation = -value;
+		if(this._openness !== value) {
+			this._openness = value;
+			this._left.rotation = value;
+			this._right.rotation = -value;
+		}
+	}
+
+	getOpenness() {
+		return this._openness ?? 0;
 	}
 }
-
-//360, 500

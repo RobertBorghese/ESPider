@@ -83,7 +83,12 @@ class ESPAudio {
 		"Boss2Hit",
 		"Boss2Defeat",
 		"Boss2Footstomp",
-		"Boss2Roar"
+		"Boss2Roar",
+		"Boss2Clap",
+		"Boss2Shot",
+		"Boss2ShotBig",
+		"Boss2Charge",
+		["Boss2Damage2", 0.8]
 	];
 
 	static setup() {

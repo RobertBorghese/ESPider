@@ -8,6 +8,10 @@ class ESPFireballSprite extends ESPGameSprite {
 
 		this.ObjectHolderOffsetY = -16;
 
+		this._particleColors = this.getParticleColors();
+		this._ballSize = this.getSize();
+		this._particleSpeed = this.getParticleSpeed();
+		
 		this._particleHolder = new Sprite();
 		this.ObjectHolder.addChild(this._particleHolder);
 		this._particles = [];
@@ -18,10 +22,10 @@ class ESPFireballSprite extends ESPGameSprite {
 		this._time = 0;
 		this.Time = 0;
 
-		this._mainParticle = new ESPAnimatedSprite("img/particles/Particle.png", 4, this._isInitializing);
-		this._mainParticle.scale.set(2);
+		this._mainParticle = new ESPAnimatedSprite("img/particles/Particle.png", this.getInitAnimationDelay(), this._isInitializing);
+		this._mainParticle.scale.set(2 * this._ballSize);
 		this._mainParticle.anchor.set(0.5);
-		this._mainParticle.tint = 0xffecb3;
+		this._mainParticle.tint = this.getMainParticleColor();
 		this.ObjectHolder.addChild(this._mainParticle);
 
 		if(this._isInitializing) {
@@ -29,10 +33,32 @@ class ESPFireballSprite extends ESPGameSprite {
 		}
 	}
 
+	getInitAnimationDelay() {
+		return 4;
+	}
+
+	getSize() {
+		return 1;
+	}
+
+	getMainParticleColor() {
+		//0x805db0
+		return 0xffecb3;
+	}
+
+	getParticleColors() {
+		//[0xd016fa, 0xb216fa, 0x9716fa, 0x720dbf, 0x52068c, 0x3c0466, 0x1d0230, 0x11011c]
+		return [0xfac116, 0xfaa616, 0xfa9316, 0xfa8016, 0xfa5e16, 0xfa5e16, 0xfa2516, 0x420c08];
+	}
+
+	getParticleSpeed() {
+		return 1;
+	}
+
 	makeParticle(i) {
 		const particle = new ESPAnimatedSprite("img/particles/Particle.png", 4, false, 0, i);
 		particle.await();
-		particle.scale.set(2);
+		particle.scale.set(2 * this._ballSize);
 		particle.anchor.set(0.5);
 		particle.x = this.makeParticlePos();
 		particle.y = this.makeParticlePos();
@@ -44,10 +70,17 @@ class ESPFireballSprite extends ESPGameSprite {
 		return (Math.random() * 10) - 5;
 	}
 
+	onInitializing() {
+	}
+
+	updateVisibility() {
+		this.visible = $gameMap.inCamera(this.x - 100, this.x + 100, this.y - 100, this.y + 100);
+	}
+
 	update() {
 		super.update();
 
-		this.visible = $gameMap.inCamera(this.x - 100, this.x + 100, this.y - 100, this.y + 100);
+		this.updateVisibility();
 
 		if(this._isInitializing) {
 			if(this._mainParticle.isDone()) {
@@ -56,6 +89,7 @@ class ESPFireballSprite extends ESPGameSprite {
 				this.ShadowSprite.visible = true;
 				this.espObject.finishInitializing();
 			} else {
+				this.onInitializing();
 			}
 			return;
 		}
@@ -66,7 +100,7 @@ class ESPFireballSprite extends ESPGameSprite {
 		}
 
 		this._mainParticle.Index = 0;
-		this._mainParticle.rotation += (0.1 * Math.sign(this.espObject.speed.x)) * ESP.WS;
+		this._mainParticle.rotation += (this.espObject.speed.x === 0 ? (Math.sign(this.espObject.speed.y) * 0.1) : (0.1 * Math.sign(this.espObject.speed.x))) * ESP.WS;
 
 		const len = this._particles.length;
 		for(let i = 0; i < len; i++) {
@@ -74,8 +108,8 @@ class ESPFireballSprite extends ESPGameSprite {
 				return b.Index - a.Index;
 			});*/
 			const particle = this._particles[i];
-			particle.x -= (this.espObject.speed.x) * ESP.WS;
-			particle.y -= (this.espObject.speed.y - this.espObject.speed.z) * ESP.WS;
+			particle.x -= (this.espObject.speed.x) * ESP.WS * this._particleSpeed;
+			particle.y -= (this.espObject.speed.y - this.espObject.speed.z) * ESP.WS * this._particleSpeed;
 			if(particle.isDone()) {
 				if(this.espObject._isDead) {
 					particle.visible = false;
@@ -85,16 +119,7 @@ class ESPFireballSprite extends ESPGameSprite {
 					particle.reset();
 				}
 			}
-			switch(particle.Index) {
-				case 0: { particle.tint = 0xfac116; break; }
-				case 1: { particle.tint = 0xfaa616; break; }
-				case 2: { particle.tint = 0xfa9316; break; }
-				case 3: { particle.tint = 0xfa8016; break; }
-				case 4: { particle.tint = 0xfa5e16; break; }
-				case 5: { particle.tint = 0xfa5e16; break; }
-				case 6: { particle.tint = 0xfa2516; break; }
-				case 7: { particle.tint = 0x420c08; break; }
-			}
+			particle.tint = this._particleColors[particle.Index];
 		}
 
 		if(this.espObject._isDead) {
@@ -121,6 +146,7 @@ class ESPFireballSprite extends ESPGameSprite {
 	updateShadowSprite() {
 		this.ShadowSprite.move(0, 0);
 		this.ShadowSprite.scale.set(!this.espObject._isDead ? (0.6 + (((this._mainParticle.y) + 5) * 0.02)) : (this.ShadowSprite.scale.x - 0.05).clamp(0, 1));
+		this.ShadowSprite.scale.set(this._ballSize * this.ShadowSprite.scale.x);
 		this.ShadowSprite.alpha = this.ShadowSprite.scale.x;
 	}
 }

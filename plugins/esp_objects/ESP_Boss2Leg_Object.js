@@ -12,24 +12,37 @@ class ESPBoss2LegObject extends ESPGameObject {
 		this._reversed = !!data?.Reversed;
 		this._time = 0;
 		this._goUp = 0;
+
+		window._aaa = this;
 	}
 
 	constructSprite() {
-		return new ESPBoss2LegSprite(this, this._reversed);
+		if(!this._spr) {
+			this._spr = new ESPBoss2LegSprite(this, this._reversed);
+		}
+		return this._spr;
 	}
 
 	update() {
-		if(this._goUp !== 1) {
-			if(this.position.z > 0) {
-				this.speed.z -= 0.2;
-				if(this.speed.z < -20) this.speed.z = -20;
-			}
-		} else {
-			if(this.position.z < 500) {
-				this.speed.z = 7;
+		if(!this._isLeaving) {
+			if(this._goUp !== 1) {
+				if(this.position.z > 0) {
+					this.speed.z -= this._superStomping ? 2 : (this._stomping ? 0.9 : 0.2);
+					if(this.speed.z < -20) this.speed.z = -20;
+				} else if(this._stomping) {
+					this._stomping = false;
+				} else if(this._superStomping) {
+					this._superStomping = false;
+				}
+			} else {
+				if(this.position.z < (this._superStomping ? 30 : (this._stomping ? 80 : 500))) {
+					this.speed.z = (this._superStomping ? 30 : (this._stomping ? 14 : 7));
+				} else if(this._stomping || this._superStomping) {
+					this.goDown();
+				}
 			}
 		}
-		
+
 		super.update();
 
 		this._time += 0.01;
@@ -38,14 +51,34 @@ class ESPBoss2LegObject extends ESPGameObject {
 	onGroundHit() {
 		ESPAudio.boss2Footstomp(100);
 		SceneManager._scene._spriteset.shake();
+		if(this._doCallback) {
+			this._doCallback = false;
+			$gameMap.onLegStomp();
+		}
 	}
 
 	goUp() {
 		this._goUp = 1;
 	}
 
-	goDown(pos) {
+	goDown(pos, doCallback) {
 		this._goUp = 0;
-		this.position.z = pos;
+		if(pos) this.position.z = pos;
+		this._doCallback = doCallback;
+	}
+
+	stomp() {
+		this._stomping = true;
+		this.goUp();
+	}
+
+	superStomp() {
+		this._superStomping = true;
+		this.goUp();
+	}
+
+	leave() {
+		this._isLeaving = true;
+		this.speed.set(0, 0, 10);
 	}
 }

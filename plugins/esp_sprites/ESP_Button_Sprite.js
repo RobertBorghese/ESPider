@@ -28,5 +28,13 @@ class ESPButtonSprite extends ESPGameSprite {
 	}
 
 	updateShadowSprite() {
+		if(this.espObject.position.z > 0) {
+			this.ShadowSprite.visible = true;
+			this.ShadowSprite.move(0, 8);
+			this.ShadowSprite.scale.set(this.espObject.position.z <= 400 ? 1.7 * (1 - (this.espObject.position.z / 400)) : 0);
+			this.ShadowSprite.alpha = this.ShadowSprite.scale.x;
+		} else {
+			this.ShadowSprite.visible = false;
+		}
 	}
 }

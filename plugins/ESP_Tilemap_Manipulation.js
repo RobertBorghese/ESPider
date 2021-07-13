@@ -1,5 +1,10 @@
 // I lost years off my life coming up with this algorithm. Looks so simple in retrospect >.<
 
+Tilemap.prototype.refreshPlayer = function() {
+	this.removeChild(this._espPlayer);
+	this.addChildAt(this._espPlayer, 0);
+};
+
 Tilemap.prototype._sortChildren = function() {
 	//this._espSprites.forEach(s => this.removeChild(s));
 	//this._espSprites.forEach(s => this.addChild(s));
@@ -237,12 +242,16 @@ Tilemap.prototype._compareChildOrder = function(a, b) {
     }
 };
 
-Tilemap.prototype.addPlayerBasedSprite = function(spr) {
+Tilemap.prototype.addPlayerBasedSprite = function(spr, at) {
 	if(!this._playerBasedSprites) {
 		this._playerBasedSprites = [];
 	}
 	this._playerBasedSprites.push(spr);
-	this.addChild(spr);
+	if(at) {
+		this.addChildAt(spr, at - 1);
+	} else {
+		this.addChild(spr);
+	}
 };
 
 Tilemap.prototype.removePlayerBasedSprite = function(spr) {

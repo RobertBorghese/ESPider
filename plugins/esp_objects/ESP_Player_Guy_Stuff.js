@@ -145,6 +145,10 @@ class ESPGamePlayer extends ESPGameObject {
 		return $gameVariables.value(1) >= 1;
 	}
 
+	canWebGrab() {
+		return $gameVariables.value(1) >= 2;
+	}
+
 	enableJump() {
 		if(!this.canJump()) {
 			$gameVariables.setValue(1, 1);
@@ -333,6 +337,7 @@ class ESPGamePlayer extends ESPGameObject {
 				const obj = new ESPParticleObject(x / mag, (y / mag) - (0.3 * j), animationSpeed);
 				this._deathParticles.push(obj);
 				obj.position.set(this.position);
+				obj.CollisionHeight = this.CollisionHeight;
 				$gameMap.addGameObject(obj);
 			}
 		}

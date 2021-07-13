@@ -11,6 +11,8 @@ class ESPFireballObject extends ESPGameObject {
 
 		this._time = 0;
 
+		this._collisionSize = this.getCollisionSize();
+
 		this._initAnimation = !!initAnimation;
 		this._isInitializing = this._initAnimation;
 		this._groundedStyle = grounedStyle;
@@ -19,12 +21,16 @@ class ESPFireballObject extends ESPGameObject {
 		this._isDead = false;
 
 		if(!this._initAnimation) {
-			ESPAudio.fireballShot(this.getObjectVolume());
+			this.playShotAudio();
 		}
 	}
 
 	constructSprite() {
 		return new ESPFireballSprite(this, this._initAnimation);
+	}
+
+	getCollisionSize() {
+		return 26;
 	}
 
 	update() {
@@ -53,11 +59,10 @@ class ESPFireballObject extends ESPGameObject {
 			}
 		}
 
-		const size = 26;
-		if(this.getDistance($espGamePlayer) <= size) {
+		if(this.getDistance($espGamePlayer) <= this._collisionSize) {
 			const spd = 60;
-			const distX = Math.abs(this.position.x - $espGamePlayer.position.x) / size;
-			const distY = Math.abs(this.position.y - $espGamePlayer.position.y) / size;
+			const distX = Math.abs(this.position.x - $espGamePlayer.position.x) / this._collisionSize;
+			const distY = Math.abs(this.position.y - $espGamePlayer.position.y) / this._collisionSize;
 			$espGamePlayer.kill(spd * (this.position.x > $espGamePlayer.position.x ? -distX : distX), spd * (this.position.y > $espGamePlayer.position.y ? -distY : distY), 40);
 		}
 
@@ -65,7 +70,7 @@ class ESPFireballObject extends ESPGameObject {
 			this.onCollided();
 		}
 
-		$gameMap.findObjectGroup("triggerbug").filter((s) => !s._isTouched && this.getDistance(s) <= size).forEach(function(s) {
+		$gameMap.findObjectGroup("triggerbug").filter((s) => !s._isTouched && this.getDistance(s) <= this._collisionSize).forEach(function(s) {
 			s.hitWithFire();
 		});
 
@@ -83,8 +88,12 @@ class ESPFireballObject extends ESPGameObject {
 		}
 	}
 
-	finishInitializing() {
+	playShotAudio() {
 		ESPAudio.fireballShot(this.getObjectVolume());
+	}
+
+	finishInitializing() {
+		this.playShotAudio();
 		this._isInitializing = false;
 	}
 
