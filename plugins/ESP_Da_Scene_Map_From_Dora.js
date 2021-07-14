@@ -204,7 +204,7 @@ modify_Scene_Map = class {
 		}
 		this._background.alpha = 0;
 
-		this._titleButtons = ESP.makeButtons(this, 240, 40, 0, -80, 0, 50, [
+		this._titleButtons = ESP.makeButtons(this, 300, 40, 0, -120, 0, 58, [
 			["Resume", this.onUnpause.bind(this), 2],
 			["Restart from Checkpoint", this.restartFromLastCheckpoint.bind(this), 2],
 			["Volume [" + Math.floor(WebAudio._masterVolume * 100) + "%]", this.commandVolume.bind(this)],

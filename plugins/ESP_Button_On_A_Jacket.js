@@ -72,8 +72,8 @@ class ESPButton extends Sprite_Clickable {
 		this._graphicsHolder.addChild(this._graphicsBack);
 
 		this._style = {
-			fontFamily: $gameSystem.mainFontFace(),
-			fontSize: 20,
+			fontFamily: "title-font",//$gameSystem.mainFontFace(),
+			fontSize: 36,
 			fill: 0xffffff,
 			align: "center",
 			stroke: "rgba(0, 0, 0, 0.5)",
@@ -81,7 +81,7 @@ class ESPButton extends Sprite_Clickable {
 		};
 		this._text = new PIXI.Text(text ?? "New Game", this._style);
 		this._text.resolution = 2;
-		this._text.y = 4;
+		this._text.y = -4//4;
 		this._text.scale.set(1);
 
 		this._graphicsFront = new PIXI.Graphics();
@@ -107,9 +107,12 @@ class ESPButton extends Sprite_Clickable {
 		}
 	}
 
-	hover() {
+	hover(noSound) {
 		if(!this._espClicked) {
-			if(!this._espHovered) {
+			if(noSound) {
+				console.trace();
+			}
+			if(!noSound && !this._espHovered) {
 				ESPAudio.menuButtonSwitch();
 			}
 			this._espHovered = true;

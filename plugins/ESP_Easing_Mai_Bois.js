@@ -28,17 +28,23 @@ const Easing = {
 		else return -0.5 * pow(2, (-20 * p) + 10) + 1;
 	},
 
-	easeInElastic: p => Math.sin(13 * Easing.PI2 * p) * pow(2, 10 * (p - 1)),
-	easeOutElastic: p => Math.sin(-13 * Easing.PI2 * (p + 1)) * pow(2, -10 * p) + 1,
+	easeInElastic: p => Math.sin(13 * Easing.PI2 * p) * Math.pow(2, 10 * (p - 1)),
+	easeOutElastic: p => Math.sin(-13 * Easing.PI2 * (p + 1)) * Math.pow(2, -10 * p) + 1,
 	easeInOutElastic: p => {
-		if(p < 0.5) return 0.5 * Math.sin(13 * Easing.PI2 * (2 * p)) * pow(2, 10 * ((2 * p) - 1));
-		else return 0.5 * (Math.sin(-13 * Easing.PI2 * ((2 * p - 1) + 1)) * pow(2, -10 * (2 * p - 1)) + 2);
+		if(p < 0.5) return 0.5 * Math.sin(13 * Easing.PI2 * (2 * p)) * Math.pow(2, 10 * ((2 * p) - 1));
+		else return 0.5 * (Math.sin(-13 * Easing.PI2 * ((2 * p - 1) + 1)) * Math.pow(2, -10 * (2 * p - 1)) + 2);
 	},
 
 	easeInBack: p => p * p * p - p * Math.sin(p * Math.PI),
 	easeOutBack: p => {
 		const f = (1 - p);
 		return 1 - (f * f * f - f * Math.sin(f * Math.PI));
+	},
+
+	easeInBackHalf: p => p * p * p - p * (Math.sin(p * Math.PI) * 0.5),
+	easeOutBackHalf: p => {
+		const f = (1 - p);
+		return 1 - (f * f * f - f * (Math.sin(f * Math.PI) * 0.5));
 	},
 
 	easeInBounce: t => 1-Easing.easeOutBounce(1-t),
