@@ -59,7 +59,8 @@ class ESPFireballObject extends ESPGameObject {
 			}
 		}
 
-		if(this.getDistance($espGamePlayer) <= this._collisionSize) {
+		const playerDistance = this.getDistance($espGamePlayer);
+		if(playerDistance <= this._collisionSize) {
 			const spd = 60;
 			const distX = Math.abs(this.position.x - $espGamePlayer.position.x) / this._collisionSize;
 			const distY = Math.abs(this.position.y - $espGamePlayer.position.y) / this._collisionSize;
@@ -74,9 +75,19 @@ class ESPFireballObject extends ESPGameObject {
 			s.hitWithFire();
 		});
 
-		if(!this._isInitializing && !this._isDead) {
+		if(this.canConnect()) {
 			$gameMap.findObjectGroup("webdevice").filter((s) => (s.isOpen() && !s.isConnectedTo(this) && this.getDistance(s) <= 200)).forEach(s => s.connect(this));
+
+			if($espGamePlayer.IsGrappling) {
+				if(!$espGamePlayer.isConnectedTo(this) && playerDistance <= 200) {
+					$espGamePlayer.connect(this);
+				}
+			}
 		}
+	}
+
+	canConnect() {
+		return !this._isInitializing && !this._isDead;
 	}
 
 	onCollisionHeightChange(oldHeight) {

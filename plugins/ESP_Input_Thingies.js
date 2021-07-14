@@ -39,6 +39,7 @@ modify_Input = class {
 		this.InputPressed = false;
 		this.TrueTriggerTimer = 0;
 		this.TrueTriggeredTimes = [];
+		this.TrueReleasedTimes = [];
 		this.GamepadAxis = [];
 		this.OldGamepadAxis = [];
 		this.IsControlStickDirTriggered = [];
@@ -46,7 +47,6 @@ modify_Input = class {
 	
 	static update() {
 		this.TrueTriggerTimer++;
-		
 		
 		this._pollGamepads();
 		if(this._currentState[this._latestButton]) {
@@ -60,6 +60,8 @@ modify_Input = class {
 				this._latestButton = name;
 				this._pressedTime = 0;
 				this._date = Date.now();
+			} else if(!this._currentState[name] && this._previousState[name]) {
+				this.TrueReleasedTimes[name] = this.TrueTriggerTimer + 1;
 			}
 			this._previousState[name] = this._currentState[name];
 		}
@@ -79,8 +81,19 @@ modify_Input = class {
 		
 		if(!event.repeat) {
 			const buttonName = this.keyMapper[event.keyCode];
-			if (buttonName) {
+			if(buttonName) {
 				this.TrueTriggeredTimes[buttonName] = this.TrueTriggerTimer + 1;
+			}
+		}
+	}
+
+	static _onKeyUp(event) {
+		ESP.Input._onKeyUp.apply(this, arguments);
+
+		if(!event.repeat) {
+			const buttonName = this.keyMapper[event.keyCode];
+			if(buttonName) {
+				this.TrueReleasedTimes[buttonName] = this.TrueTriggerTimer + 1;
 			}
 		}
 	}
@@ -98,6 +111,11 @@ modify_Input = class {
 	static isTriggeredEx(keyName) {
 		if(Input._ESP_isDisabled) return false;
 		return (this.TrueTriggeredTimes[keyName] ?? 0) === this.TrueTriggerTimer;
+	}
+
+	static isReleasedEx(keyName) {
+		if(Input._ESP_isDisabled) return false;
+		return (this.TrueReleasedTimes[keyName] ?? 0) === this.TrueTriggerTimer;
 	}
 
 	static isDirectionTriggered(dir) {

@@ -73,6 +73,9 @@ class ESPAudio {
 		"TransferIn",
 		"TransferOut",
 		["WebDeviceAttach", 0.8],
+		["GrappleOpen2", 0.8],
+		"GrappleRelease",
+		["GrappleReady2", 0.6],
 		"Checkpoint",
 		"Boss1Disappear",
 

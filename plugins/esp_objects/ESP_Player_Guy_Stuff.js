@@ -15,6 +15,14 @@ class ESPGamePlayer extends ESPGameObject {
 		this.FlyCount = 0;
 		this.FlyData = {};
 
+		this.IsGrappling = false;
+		this._connectionCandidates = null;
+		this._connections = [];
+		this._distances = [];
+		this._connectTime = [];
+		this._speed = [];
+		this._graphics = [];
+
 		this._jumpHelp = 0;
 		this._triggerHelp = 0;
 		this._canControl = true;
@@ -117,6 +125,7 @@ class ESPGamePlayer extends ESPGameObject {
 
 	updateInput() {
 		if(this.canControl()) {
+			this.checkInitialConnections();
 			this.updateMovement();
 			this.updateJump();
 			this.updateAbilities();
@@ -142,11 +151,11 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	canJump() {
-		return $gameVariables.value(1) >= 1;
+		return !this.IsGrappling && $gameVariables.value(1) >= 1;
 	}
 
-	canWebGrab() {
-		return $gameVariables.value(1) >= 2;
+	canGrapple() {
+		return !this._isDying && $gameVariables.value(1) >= 2;
 	}
 
 	enableJump() {
@@ -161,6 +170,21 @@ class ESPGamePlayer extends ESPGameObject {
 
 	isJumpButtonTriggered() {
 		return Input.isTriggeredEx("space") || Input.isTriggeredEx("button_a");
+	}
+
+	isGrappleTriggered() {
+		if(TouchInput.isTriggered()) return 1;
+		if(Input.isTriggeredEx("button_x")) return 2;
+		return 0;
+	}
+
+	isGrappleReleased(button) {
+		if(button === 1) {
+			return TouchInput.isReleased();
+		} else if(button === 2) {
+			return Input.isReleasedEx("button_x");
+		}
+		return true;
 	}
 
 	updateJump() {
@@ -188,14 +212,60 @@ class ESPGamePlayer extends ESPGameObject {
 		ESPAudio.jump();
 	}
 
+	checkInitialConnections() {
+		if(this._connectionCandidates) {
+			if(this.IsGrappling) {
+				this._connectionCandidates.sort((a, b) => {
+					if(!a.___playerDist) a.___playerDist = this.getDistance(a);
+					if(!b.___playerDist) b.___playerDist = this.getDistance(b);
+					return a.___playerDist - b.___playerDist;
+				});
+				const len = Math.min(this._connectionCandidates.length, 3);
+				for(let i = 0; i < len; i++) {
+					this._connectionCandidates[i].___playerDist = null;
+					this.actuallyConnect(this._connectionCandidates[i]);
+				}
+				if(this._connectionCandidates.length > 3) {
+					for(let i = 3; i < this._connectionCandidates.length; i++) {
+						this._connectionCandidates[i].___playerDist = null;
+					}
+				}
+				ESPAudio.grappleOpen();
+			}
+			this._connectionCandidates = null;
+		}
+	}
+
 	updateAbilities() {
 		if($gameTemp.isPlaytest()) {
-			if(Input.isTriggeredEx("button_x")) {
+			if(Input.isTriggeredEx("button_y")) {
 				this.position.x += this.speed.x * 20;
 				this.position.y += this.speed.y * 20;
 			}
 		}
-		
+
+		if(this.canGrapple()) {
+			if(!this.IsGrappling && !SceneManager._scene._spriteset._tilemap._espPlayer.isWebAmmoOut()) {
+				this._grappleButton = this.position.z <= 0 ? this.isGrappleTriggered() : 0;
+				if(this._grappleButton !== 0) {
+					this._connectionCandidates = [];
+					this.IsGrappling = true;
+				}
+			} else {
+				const grappleReleased = this.isGrappleReleased(this._grappleButton);
+				if(this.position.z > 0 || grappleReleased) {
+					if(grappleReleased && this._connections.length > 0) {
+						ESPAudio.grappleRelease();
+					}
+					this._grappleButton = 0;
+					this.IsGrappling = false;
+					this.disconnectAll();
+				} else {
+					this.updateConnections();
+				}
+			}
+		}
+
 		/*
 		if(TouchInput.isTriggered()) {
 			if(this._playerIsGravity) {
@@ -219,6 +289,13 @@ class ESPGamePlayer extends ESPGameObject {
 			}
 			gravityObjects = [];
 		}*/
+	}
+
+	clearGrappling() {
+		this.disconnectAll();
+		this._connectionCandidates = null;
+		this.IsGrappling = false;
+		this._grappleButton = 0;
 	}
 
 	updateFalling() {
@@ -270,6 +347,7 @@ class ESPGamePlayer extends ESPGameObject {
 			if(dir !== null && $gameMap.onPlayerLeaveMap(dir, this.CollisionHeight + (this.position.z > TS * 2 ? Math.floor(this.position.z / TS) : 0))) {
 				this._canControl = false;
 				this.CanCollide = false;
+				this.clearGrappling();
 			}
 		}
 	}
@@ -370,6 +448,7 @@ class ESPGamePlayer extends ESPGameObject {
 			time: 0
 		};
 		this._customColor = [0, 0, 0, 0];
+		this.clearGrappling();
 		ESPAudio.deathContact();
 	}
 
@@ -479,5 +558,130 @@ class ESPGamePlayer extends ESPGameObject {
 	clearInterpreter() {
 		this._interpreter = null;
 		Input._ESP_isDisabled = false;
+	}
+
+	updateConnections() {
+		for(let i = 0; i < this._connections.length; i++) {
+			const obj = this._connections[i];
+			if(obj._isDead) {
+				this.disconnect(obj);
+				i--;
+				continue;
+			}
+
+			let ratio = 1;
+			if(this._connectTime[i] > 0) {
+				this._connectTime[i]--;
+			} else {
+				this._connectTime[i]++;
+				ratio = Easing.easeOutCubic(1 - ((-this._connectTime[i]) / 12));
+				if(this._connectTime[i] >= 0) {
+					ratio = 1;
+					this._connectTime[i] = 40000;
+				}
+			}
+
+			const graphics = this._graphics[i];
+			graphics.clear();
+			graphics.lineStyle(2, 0xffffff, 0.8);
+			graphics.moveTo(0, -20 + SceneManager._scene._spriteset._tilemap._espPlayer.BodySprite.y);
+
+			const desiredDistance = this._distances[i];
+
+			if(ratio < 1) {
+				const radians = Math.atan2(this.position.x - obj.position.x, this.position.y - obj.position.y);
+				const x = (-Math.sin(radians) * (desiredDistance * ratio));
+				const y = (-Math.cos(radians) * (desiredDistance * ratio));
+				graphics.lineTo(x, y - 30);
+			} else {
+				graphics.lineTo(obj.position.x - this.position.x, (obj.position.y - 30) - this.position.y);
+			}
+
+			if(this._connectTime[i] === 0) {
+				this.disconnect(obj);
+				obj.onCollided();
+			} else {
+				const newX = obj.position.x + obj.speed.x;
+				const newY = obj.position.y + obj.speed.y;
+				const newDist = Math.sqrt(
+					Math.pow(newX - this.position.x, 2) +
+					Math.pow(newY - this.position.y, 2)
+				);
+				if(newDist > desiredDistance) {
+					const radians = Math.atan2(this.position.x - newX, this.position.y - newY);
+					const spdX = (this.position.x + -Math.sin(radians) * desiredDistance) - obj.position.x;
+					const spdY = (this.position.y + -Math.cos(radians) * desiredDistance) - obj.position.y;
+					const result = Vector2.normalized(spdX, spdY, this._speed[i]);
+					obj.speed.x = result.x;
+					obj.speed.y = result.y;
+				} else {
+					this._distances[i] = newDist;
+				}
+			}
+		}
+	}
+
+	isConnectedTo(obj) {
+		return this._connections.contains(obj);
+	}
+
+	connectionCount() {
+		return this._connections ? this._connections.length : 0;
+	}
+
+	maxConnections() {
+		return 3;
+	}
+
+	connect(obj) {
+		if(this._connections.length >= this.maxConnections()) {
+			return;
+		}
+
+		if(this._connectionCandidates) {
+			this._connectionCandidates.push(obj);
+		} else {
+			this.actuallyConnect(obj);
+		}
+	}
+
+	actuallyConnect(obj) {
+		this._connections.push(obj);
+
+		this._distances.push(this.getDistance2d(obj));
+
+		this._connectTime.push(-12);
+
+		this._speed.push(Vector2._length(obj.speed.x, obj.speed.y));
+
+		const graphics = new PIXI.Graphics();
+		SceneManager._scene._spriteset._tilemap._espPlayer._webHolder.addChild(graphics);
+		this._graphics.push(graphics);
+
+		ESPAudio.webDeviceAttach(75);
+	}
+
+	disconnect(obj, noSound) {
+		const index = this._connections.indexOf(obj);
+		this._connections.remove(obj);
+
+		this._distances.splice(index, 1);
+		this._connectTime.splice(index, 1);
+		this._speed.splice(index, 1);
+
+		const graphics = this._graphics[index];
+		SceneManager._scene._spriteset._tilemap._espPlayer._webHolder.removeChild(graphics);
+		this._graphics.remove(graphics);
+		graphics.destroy();
+
+		if(!noSound) {
+			ESPAudio.grappleRelease()
+		}
+	}
+
+	disconnectAll() {
+		while(this._connections.length > 0) {
+			this.disconnect(this._connections[0], true);
+		}
 	}
 }

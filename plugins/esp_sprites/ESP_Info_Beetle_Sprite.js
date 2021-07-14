@@ -15,7 +15,7 @@ class ESPInfoBeetleSprite extends ESPGameSprite {
 
 		this.TextHolder = new Sprite();
 
-		this.Text = new PIXI.Text(text.replace("[STH]", "          "), {
+		this.Text = new PIXI.Text(text.replace(/(?:\[STH\]|\[WTH\])/, "          "), {
 			fontFamily: $gameSystem.mainFontFace(),
 			fontSize: 20,
 			fill: 0xffffff,
@@ -27,11 +27,12 @@ class ESPInfoBeetleSprite extends ESPGameSprite {
 		this.Text.anchor.set(0.5, 1);
 		this.Text.resolution = 2;
 
-		if(text.includes("[STH]")) {
-			const bit = ImageManager.loadBitmapFromUrl("img/other/SouthButton.png");
+		if(text.includes("[STH]") || text.includes("[WTH]")) {
+			const isWest = text.includes("[WTH]");
+			const bit = ImageManager.loadBitmapFromUrl(isWest ? "img/other/WestButton.png" : "img/other/SouthButton.png");
 			bit.smooth = true;
 			this._button = new Sprite(bit);
-			this._button.x = 28;
+			this._button.x = isWest ? 34 : 28;
 			this._button.y = -10;
 			this._button.scale.set(0.5);
 			this._button.anchor.set(0.5);

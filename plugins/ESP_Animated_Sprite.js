@@ -164,6 +164,11 @@ class ESPAnimatedSprite extends PIXI.Sprite {
 		this.refreshTexture(FinalIndex);
 	}
 
+	setIndex(index) {
+		this.Index = index;
+		this.refreshTexture();
+	}
+
 	refreshTexture(FinalIndex = this.Index) {
 		if(this.TextureFrames) {
 			this.texture = (this.TextureFrames[FinalIndex]);

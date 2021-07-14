@@ -10,6 +10,7 @@ class ESPBoss2Data {
 		this.stuffExists = false;
 
 		this._doneSuperBalls = 3;
+		this._bigBallCombos = 0;
 
 		this.attackFreqId = 0;
 		this.attackFreq = 0;
@@ -346,9 +347,24 @@ modify_Game_Map_2 = class {
 				this._boss2Data.superBalls = false;
 			} else if(this._boss2Data.phase >= 2) {
 				this._boss2Data.bigBall = Math.random() < 0.5;
+
+				// ensure big ball only happens twice in a row
+				if(this._boss2Data.bigBall) {
+					this._boss2Data._bigBallCombos++;
+				}
+				if(this._boss2Data._bigBallCombos >= 3) {
+					this._boss2Data._bigBallCombos = 0;
+					this._boss2Data.bigBall = false;
+				}
+
+				// ensure "super balls" only happens twice ever
 				if(!this._boss2Data.bigBall) {
 					this._boss2Data._doneSuperBalls--;
+					if(this._boss2Data._doneSuperBalls <= -3) {
+						this._boss2Data._doneSuperBalls = 1;
+					}
 				}
+				this._boss2Data.superBalls = this._boss2Data._doneSuperBalls > 0;
 			}
 		}
 	}
@@ -396,8 +412,8 @@ modify_Game_Map_2 = class {
 
 		const time = this._boss2Data.attackTimer;
 
-		const FIRERATE = this._boss2Data._doneSuperBalls > 0 ? 20 : 40;//20;
-		const FIRETIME = this._boss2Data.bigBall ? 220 : (this._boss2Data._doneSuperBalls > 0 ? 220 : 120);//220;
+		const FIRERATE = this._boss2Data.superBalls ? 20 : 40;//20;
+		const FIRETIME = this._boss2Data.bigBall ? 220 : (this._boss2Data.superBalls ? 220 : 120);//220;
 
 		if(time <= 30) {
 			const r = Easing.easeInCubic(time / 30);
@@ -416,7 +432,7 @@ modify_Game_Map_2 = class {
 			if((this._boss2Data.bigBall && time === 81) || (!this._boss2Data.bigBall && (time % FIRERATE === 0))) {
 				const obj = new ESPPoisonballObject(this._boss2Data.bigBall, 2, this._boss2Data.bigBall);
 				$gameMap.addGameObject(obj, this._boss2Face.x, (10 * TS) + (this._boss2Data.bigBall ? TS : 0), 110 + (this._boss2Data.bigBall ? 20 : 0));
-				const radians = Math.atan2(obj.position.x - $espGamePlayer.position.x, obj.position.y - $espGamePlayer.position.y) + ((ESPBoss2Data.getRandomNumber() * 2) - 1);
+				const radians = Math.atan2(obj.position.x - $espGamePlayer.position.x, (obj.position.y - $espGamePlayer.position.y) + this._boss2Face._baseY) + ((ESPBoss2Data.getRandomNumber() * 2) - 1);
 				obj.speed.x = (Math.sin(radians) * -2);
 				obj.speed.y = (Math.cos(radians) * -2);
 				if(obj.speed.y < 0.2) {

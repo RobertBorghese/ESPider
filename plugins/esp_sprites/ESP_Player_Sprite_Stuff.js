@@ -22,8 +22,17 @@ class ESPPlayerSprite extends ESPGameSprite {
 		this.PlayerHolder.move(0, -8);
 		this.ObjectHolder.addChild(this.PlayerHolder);
 
+		this._webAmmoBack = new Sprite();
+		this._webAmmoBack.move(-1, 1);
+		this.PlayerHolder.addChild(this._webAmmoBack);
+
 		this.LegContainerBack = new PIXI.Container();
 		this.PlayerHolder.addChild(this.LegContainerBack);
+
+		this._webHolder = new Sprite();
+		this._webHolder.move(-2, 12);
+		this._webHolder.scale.set(0.5);
+		this.PlayerHolder.addChild(this._webHolder);
 
 		this.BodySprite = new ESPAnimatedSprite("img/characters/Player/SpiderBody.png", 10);
 		this.BodySprite.anchor.set(0.5);
@@ -33,6 +42,34 @@ class ESPPlayerSprite extends ESPGameSprite {
 
 		this.LegContainerFront = new PIXI.Container();
 		this.PlayerHolder.addChild(this.LegContainerFront);
+
+		this._webAmmoFront = new Sprite();
+		this._webAmmoFront.move(-1, 1);
+		this.PlayerHolder.addChild(this._webAmmoFront);
+
+		this._webAmmoAnimationTime = 0;
+		this._webAmmoList = [];
+		this._webAmmoTime = 0;
+		for(let i = 0; i < 3; i++) {
+			const par = new Sprite();
+			par.visible = false;
+			this._webAmmoFront.addChild(par);
+
+			const web = new ESPAnimatedSprite("img/particles/Particle.png", 0);
+			web.WebParent = par;
+			web.Index = 4;
+			web.alpha = 1;
+			web.anchor.set(0.5);
+			web._isFront = true;
+			par.addChild(web);
+			this._webAmmoList.push(web);
+
+			web.ShadowSprite = new Sprite(ImageManager.loadSystem("Shadow4"));
+			web.ShadowSprite.anchor.set(0.5);
+			web.ShadowSprite.z = 3;
+			web.ShadowSprite.move(0, 8);
+			par.addChild(web.ShadowSprite);
+		}
 
 		this.LegCount = 8;
 
@@ -324,6 +361,7 @@ class ESPPlayerSprite extends ESPGameSprite {
 		this.updateDirection();
 		this.updateLegSpeed();
 		this.updateFlyCounter();
+		this.updateWebAmmo();
 		this.updateVisibility();
 		this.updateColor();
 		this.updateRotation();
@@ -471,6 +509,60 @@ class ESPPlayerSprite extends ESPGameSprite {
 		}
 	}
 
+	updateWebAmmo() {
+		if(this.espObject.IsGrappling || this._webAmmoAnimationTime > 0) {
+
+			if(this.espObject.IsGrappling && this._webAmmoAnimationTime < 1) {
+				if(!this.isWebAmmoOut()) {
+					this._webAmmoList.forEach(w => w.WebParent.visible = true);
+				}
+				this._webAmmoAnimationTime += 0.05;
+				if(this._webAmmoAnimationTime >= 1) {
+					this._webAmmoOpenedAllTheWay = true;
+					this._webAmmoAnimationTime = 1;
+				}
+			} else if(!this.espObject.IsGrappling && this._webAmmoAnimationTime > 0) {
+				this._webAmmoAnimationTime -= 0.05;
+				if(this._webAmmoAnimationTime <= 0) {
+					this._webAmmoAnimationTime = 0;
+					this._webAmmoList.forEach(w => w.WebParent.visible = false);
+					if(this._webAmmoOpenedAllTheWay) {
+						ESPAudio.grappleReady();
+						this._webAmmoOpenedAllTheWay = false;
+					}
+				}
+			}
+
+			const r = Easing.easeOutBack(this._webAmmoAnimationTime);
+
+			const durr = 25;
+			this._webAmmoTime += 1 + ((1 - this._webAmmoAnimationTime) * 2);
+			const len = this._webAmmoList.length;
+			for(let i = 0; i < len; i++) {
+				const spr = this._webAmmoList[i];
+				spr.setIndex(((this._webAmmoTime % 60) > 30) ? 3 : 4);
+				const yOffset = Math.cos((this._webAmmoTime + i) * 0.1);
+				spr.ShadowSprite.scale.set(0.3 + (yOffset * 0.05));
+				spr.ShadowSprite.alpha = spr.ShadowSprite.scale.x + 0.3;
+				spr.WebParent.alpha = r;
+				spr.rotation += 0.1;
+				spr.WebParent.x = Math.cos((this._webAmmoTime + (i * durr * 2)) / durr) * 16 * r;
+				spr.WebParent.y = (Math.sin((this._webAmmoTime + (i * durr * 2)) / durr) * 6 * r) + yOffset;
+				spr.WebParent.visible = $espGamePlayer.connectionCount() <= i;
+				const isFront = spr.WebParent.y > 0;
+				if(spr._isFront !== isFront) {
+					spr._isFront = isFront;
+					spr.WebParent.parent.removeChild(spr.WebParent);
+					(isFront ? this._webAmmoFront : this._webAmmoBack).addChild(spr.WebParent);
+				}
+			}
+		}
+	}
+
+	isWebAmmoOut() {
+		return this._webAmmoAnimationTime !== 0;
+	}
+	
 	updateVisibility() {
 		this.visible = this.espObject.visible();
 	}
