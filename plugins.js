@@ -74,5 +74,6 @@ var $plugins =
 {"name":"ESP_Boss2_Implementation","status":true,"description":"","parameters":{}},
 {"name":"---","status":true,"description":"","parameters":{}},
 {"name":"ESP_Destroy_Some_Default_Stuff","status":true,"description":"","parameters":{}},
+{"name":"ESP_Testing_Code","status":true,"description":"","parameters":{}},
 {"name":"ESP_Put_This_Last_On_Plugin_List","status":true,"description":"","parameters":{}}
 ];
