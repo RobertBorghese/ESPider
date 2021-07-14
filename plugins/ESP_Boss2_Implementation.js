@@ -231,7 +231,7 @@ modify_Game_Map_2 = class {
 		if(this._boss2Data.attackTimer === 280) {
 			$gameMap.removeGameObject($gameMapTemp._boss2LeftLeg);
 			$gameMap.removeGameObject($gameMapTemp._boss2RightLeg);
-			this.finishBoss1();
+			this.finishBoss2();
 			//this._boss2Data.currentAttack = -3;
 		}
 	}
@@ -396,7 +396,7 @@ modify_Game_Map_2 = class {
 		}
 	}
 
-	finishBoss1() {
+	finishBoss2() {
 		this._boss2Complete = true;
 		this.cleanUpBoss2();
 		this.cleanUpBoss2AfterFade();

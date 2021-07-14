@@ -71,6 +71,7 @@ var $plugins =
 {"name":"ESP_Tilemap_Manipulation","status":true,"description":"","parameters":{}},
 {"name":"ESP_Input_Thingies","status":true,"description":"","parameters":{}},
 {"name":"---","status":true,"description":"","parameters":{}},
+{"name":"ESP_Boss1_Implementation","status":true,"description":"","parameters":{}},
 {"name":"ESP_Boss2_Implementation","status":true,"description":"","parameters":{}},
 {"name":"---","status":true,"description":"","parameters":{}},
 {"name":"ESP_Destroy_Some_Default_Stuff","status":true,"description":"","parameters":{}},

@@ -175,6 +175,7 @@ class ESPInterpreter {
 				return obj;
 			},
 			function(obj) {
+				if(!obj) return true;
 				return !obj.isChanging();
 			}
 		]);
@@ -191,6 +192,7 @@ class ESPInterpreter {
 				return obj;
 			},
 			function(obj) {
+				if(!obj) return true;
 				return !waitForIt || !obj.isChanging();
 			}
 		]);
@@ -283,6 +285,10 @@ class ESPInterpreter {
 	finishBoss(num) {
 		this._list.push([
 			function() {
+				console.log(num);
+				if(num !== 1) {
+					console.trace();
+				}
 				switch(num) {
 					case 1: { $gameMap.finishBoss1(); break; }
 					case 2: { $gameMap.finishBoss2(); break; }
