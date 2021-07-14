@@ -91,7 +91,7 @@ class ESPInfoBeetleSprite extends ESPGameSprite {
 	}
 
 	destroy(options) {
-		if(this.TextHolder.parent) SceneManager._scene.removeUiChild(this.TextHolder);
+		if(this.TextHolder.parent) this.TextHolder.parent.removeChild(this.TextHolder);
 		super.destroy(options);
 	}
 }

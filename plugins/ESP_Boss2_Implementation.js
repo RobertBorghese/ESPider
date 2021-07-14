@@ -50,7 +50,7 @@ modify_Game_Map_2 = class {
 			const x = 9;
 			const y = 6.5;
 			const obj = new ESPBoss2LegObject();
-			this._boss2LeftLeg = obj;
+			$gameMapTemp._boss2LeftLeg = obj;
 			this.addGameObject(obj, (x * TS) + (TS / 2), (y * TS) + (TS / 2), 300);
 		}
 
@@ -60,25 +60,25 @@ modify_Game_Map_2 = class {
 			const obj = new ESPBoss2LegObject({
 				"Reversed": true
 			});
-			this._boss2RightLeg = obj;
+			$gameMapTemp._boss2RightLeg = obj;
 			this.addGameObject(obj, (x * TS) + (TS / 2), (y * TS) + (TS / 2), 500);
 		}
 
-		this._boss2Face = new ESPBoss2FaceSprite();
-		this._boss2Face._alwaysOnTop = 60;
-		this._boss2Face.x = (($gameMap.width() * TS) / 2) + 30;
-		this._boss2Face._baseY = -300;
-		this._boss2Face._damageOffsetY = 0;
-		this._boss2Face._damageOffsetYMax = 40;
-		this._boss2Face.y = -300;
-		this._boss2Face.filters = [new PIXI.filters.DropShadowFilter({
+		$gameMapTemp._boss2Face = new ESPBoss2FaceSprite();
+		$gameMapTemp._boss2Face._alwaysOnTop = 60;
+		$gameMapTemp._boss2Face.x = (($gameMap.width() * TS) / 2) + 30;
+		$gameMapTemp._boss2Face._baseY = -300;
+		$gameMapTemp._boss2Face._damageOffsetY = 0;
+		$gameMapTemp._boss2Face._damageOffsetYMax = 40;
+		$gameMapTemp._boss2Face.y = -300;
+		$gameMapTemp._boss2Face.filters = [new PIXI.filters.DropShadowFilter({
 			blur: 0,
 			distance: 30,
 			resolution: 2,
 			rotation: 90,
 			alpha: 0.3
 		})];
-		SceneManager._scene._spriteset._tilemap.addChild(this._boss2Face);
+		SceneManager._scene._spriteset._tilemap.addChild($gameMapTemp._boss2Face);
 	}
 
 	updateBoss2() {
@@ -90,20 +90,20 @@ modify_Game_Map_2 = class {
 		if(time > 380) {
 			this.updateIdle();
 		} else if(time > 120 && time < 240) {
-			this._boss2Face._baseY = -300 + (360 * Easing.easeOutCubic(((time - 120) / 120)));
+			$gameMapTemp._boss2Face._baseY = -300 + (360 * Easing.easeOutCubic(((time - 120) / 120)));
 		} else if(time >= 260 && time <= 280) {
 			const r = Easing.easeInCubic((time - 260) / 20);
-			this._boss2Face._baseY = 60 - (r * 40);
-			this._boss2Face.setOpenness(-0.5 * r);
+			$gameMapTemp._boss2Face._baseY = 60 - (r * 40);
+			$gameMapTemp._boss2Face.setOpenness(-0.5 * r);
 		} else if(time >= 290 && time <= 300) {
 			const r = Easing.easeInCubic((time - 290) / 10);
-			this._boss2Face._baseY = 20 + (r * 90);
-			this._boss2Face.setOpenness(-0.5 + (1 * r));
+			$gameMapTemp._boss2Face._baseY = 20 + (r * 90);
+			$gameMapTemp._boss2Face.setOpenness(-0.5 + (1 * r));
 		} else if(time >= 320 && time <= 340) {
 			const r = Easing.easeOutCubic((time - 320) / 20);
-			this._boss2Face._baseY = 110 - (50 * r)
-			this._boss2Face.setOpenness(0.5 - (0.5 * r));
-			this._boss2Data.TempData = this._boss2Face._left.rotation;
+			$gameMapTemp._boss2Face._baseY = 110 - (50 * r)
+			$gameMapTemp._boss2Face.setOpenness(0.5 - (0.5 * r));
+			this._boss2Data.TempData = $gameMapTemp._boss2Face._left.rotation;
 			this._boss2Data.TempDataTime = 20;
 		} else if(time === 380) {
 			AudioManager.playBgm({ name: "Conflict", volume: 100, pitch: 100, pan: 0 });
@@ -117,7 +117,7 @@ modify_Game_Map_2 = class {
 		} else if(this._boss2Data.canAttackNextTimer > 0) {
 			this._boss2Data.canAttackNextTimer--;
 
-			if(this._boss2Data.wasDamaged && this._boss2Face._damageOffsetY === 0) {
+			if(this._boss2Data.wasDamaged && $gameMapTemp._boss2Face._damageOffsetY === 0) {
 				this._boss2Data.canAttackNextTimer = 0;
 				this.boss2Attack(-1);
 				this._boss2Data.wasDamaged = false;
@@ -191,16 +191,16 @@ modify_Game_Map_2 = class {
 			}
 		}
 
-		if(this._boss2Face && this._boss2Face._damageOffsetY < 0) {
-			const r = (this._boss2Face._damageOffsetY / -this._boss2Face._damageOffsetYMax);
+		if($gameMapTemp._boss2Face && $gameMapTemp._boss2Face._damageOffsetY < 0) {
+			const r = ($gameMapTemp._boss2Face._damageOffsetY / -$gameMapTemp._boss2Face._damageOffsetYMax);
 			const blend = [255 * r, 0, 0, 255 * r];
-			this._boss2Face.setBlendColor(blend);
-			this._boss2LeftLeg._spr.setBlendColor(blend);
-			this._boss2RightLeg._spr.setBlendColor(blend);
-			this._boss2Face._damageOffsetY++;
+			$gameMapTemp._boss2Face.setBlendColor(blend);
+			$gameMapTemp._boss2LeftLeg._spr.setBlendColor(blend);
+			$gameMapTemp._boss2RightLeg._spr.setBlendColor(blend);
+			$gameMapTemp._boss2Face._damageOffsetY++;
 		}
 
-		if(this._boss2Face) this._boss2Face.y = this._boss2Face._damageOffsetY + (this._boss2Face._baseY + (-80 * (Math.sin(this._boss2LeftLeg._time) * 0.3)));
+		if($gameMapTemp._boss2Face) $gameMapTemp._boss2Face.y = $gameMapTemp._boss2Face._damageOffsetY + ($gameMapTemp._boss2Face._baseY + (-80 * (Math.sin($gameMapTemp._boss2LeftLeg._time) * 0.3)));
 
 		const mapWidth = $gameMap.width();
 		if($espGamePlayer.CollisionHeight === 2) {
@@ -220,17 +220,17 @@ modify_Game_Map_2 = class {
 		}
 		if(this._boss2Data.attackTimer < 120) {
 			const r = this._boss2Data.attackTimer / 120;
-			this._boss2Face._baseY = 60 - (r * 400);
+			$gameMapTemp._boss2Face._baseY = 60 - (r * 400);
 		}
 		if(this._boss2Data.attackTimer === 40) {
-			this._boss2LeftLeg.leave();
+			$gameMapTemp._boss2LeftLeg.leave();
 		}
 		if(this._boss2Data.attackTimer === 80) {
-			this._boss2RightLeg.leave();
+			$gameMapTemp._boss2RightLeg.leave();
 		}
 		if(this._boss2Data.attackTimer === 280) {
-			$gameMap.removeGameObject(this._boss2LeftLeg);
-			$gameMap.removeGameObject(this._boss2RightLeg);
+			$gameMap.removeGameObject($gameMapTemp._boss2LeftLeg);
+			$gameMap.removeGameObject($gameMapTemp._boss2RightLeg);
 			this.finishBoss1();
 			//this._boss2Data.currentAttack = -3;
 		}
@@ -246,20 +246,20 @@ modify_Game_Map_2 = class {
 
 		if(time >= 260 && time <= 280) {
 			const r = Easing.easeInCubic((time - 260) / 20);
-			this._boss2Face._baseY = 60 - (r * 40);
-			this._boss2Face.setOpenness(-0.5 * r);
+			$gameMapTemp._boss2Face._baseY = 60 - (r * 40);
+			$gameMapTemp._boss2Face.setOpenness(-0.5 * r);
 		} else if(time >= 290 && time <= 300) {
 			const r = Easing.easeInCubic((time - 290) / 10);
-			this._boss2Face._baseY = 20 + (r * 90);
-			this._boss2Face.setOpenness(-0.5 + (1 * r));
+			$gameMapTemp._boss2Face._baseY = 20 + (r * 90);
+			$gameMapTemp._boss2Face.setOpenness(-0.5 + (1 * r));
 		} else if(time >= 320 && time <= 340) {
 			const r = Easing.easeOutCubic((time - 320) / 20);
-			this._boss2Face._baseY = 110 - (50 * r)
-			this._boss2Face.setOpenness(0.5 - (0.5 * r));
-			this._boss2Data.TempData = this._boss2Face._left.rotation;
+			$gameMapTemp._boss2Face._baseY = 110 - (50 * r)
+			$gameMapTemp._boss2Face.setOpenness(0.5 - (0.5 * r));
+			this._boss2Data.TempData = $gameMapTemp._boss2Face._left.rotation;
 			this._boss2Data.TempDataTime = 20;
 		} else if(time === 420) {
-			this._boss2Data.TempData = this._boss2Face._left.rotation;
+			this._boss2Data.TempData = $gameMapTemp._boss2Face._left.rotation;
 			this._boss2Data.TempDataTime = 20;
 			this._boss2Data.currentAttack = 0;
 		}
@@ -272,20 +272,20 @@ modify_Game_Map_2 = class {
 		}
 
 		if(time === 240) {
-			this._boss2LeftLeg.superStomp();
+			$gameMapTemp._boss2LeftLeg.superStomp();
 		} else if(time === 270) {
-			this._boss2RightLeg.superStomp();
+			$gameMapTemp._boss2RightLeg.superStomp();
 		}
 	}
 
 	updateIdle() {
 		if(!this.shouldUpdateIdle()) return;
-		const targetOpenness = -0.25 + (0.5 * Math.sin(this._boss2LeftLeg._time * 1.6) * 0.3);
+		const targetOpenness = -0.25 + (0.5 * Math.sin($gameMapTemp._boss2LeftLeg._time * 1.6) * 0.3);
 		if(this._boss2Data.TempDataTime > 0) {
 			this._boss2Data.TempDataTime--;
-			this._boss2Face.setOpenness(this._boss2Data.TempData + ((targetOpenness - this._boss2Data.TempData) * (1 - (this._boss2Data.TempDataTime / 20))));
+			$gameMapTemp._boss2Face.setOpenness(this._boss2Data.TempData + ((targetOpenness - this._boss2Data.TempData) * (1 - (this._boss2Data.TempDataTime / 20))));
 		} else {
-			this._boss2Face.setOpenness(targetOpenness);
+			$gameMapTemp._boss2Face.setOpenness(targetOpenness);
 		}
 	}
 
@@ -303,9 +303,9 @@ modify_Game_Map_2 = class {
 	updateStompDefense() {
 		if($espGamePlayer.position.y < 400 && $espGamePlayer.position.z <= 0) {
 			if($espGamePlayer.position.x < 600) {
-				this._boss2LeftLeg.stomp();
+				$gameMapTemp._boss2LeftLeg.stomp();
 			} else {
-				this._boss2RightLeg.stomp();
+				$gameMapTemp._boss2RightLeg.stomp();
 			}
 			this._boss2Data.killAwait = 45;
 			return true;
@@ -338,7 +338,7 @@ modify_Game_Map_2 = class {
 				this._boss2Data.legSpeed = Math.random() < 0.5 ? 40 : 80;
 			}
 		} else if(this._boss2Data.currentAttack === 2) {
-			this._boss2Data.currentOpeness = this._boss2Face.getOpenness();
+			this._boss2Data.currentOpeness = $gameMapTemp._boss2Face.getOpenness();
 			if(this._boss2Data.phase === 0) {
 				this._boss2Data.bigBall = false;
 				this._boss2Data.superBalls = false;
@@ -370,7 +370,7 @@ modify_Game_Map_2 = class {
 	}
 
 	isBoss2() {
-		return $gameMap.mapId() === 25 && !!this._boss2LeftLeg;
+		return $gameMap.mapId() === 25 && !!$gameMapTemp._boss2LeftLeg;
 	}
 
 	cleanUpBoss2() {
@@ -384,10 +384,10 @@ modify_Game_Map_2 = class {
 	}
 
 	cleanUpBoss2AfterFade() {
-		if(this._boss2Face) {
-			SceneManager._scene._spriteset._tilemap.removePlayerBasedSprite(this._boss2Face);
-			this._boss2Face.destroy();
-			this._boss2Face = null;
+		if($gameMapTemp._boss2Face) {
+			SceneManager._scene._spriteset._tilemap.removePlayerBasedSprite($gameMapTemp._boss2Face);
+			$gameMapTemp._boss2Face.destroy();
+			$gameMapTemp._boss2Face = null;
 		}
 		if(this._attackSprite) {
 			SceneManager._scene._spriteset._tilemap.removePlayerBasedSprite(this._attackSprite);
@@ -417,22 +417,22 @@ modify_Game_Map_2 = class {
 
 		if(time <= 30) {
 			const r = Easing.easeInCubic(time / 30);
-			this._boss2Face.setOpenness(this._boss2Data.currentOpeness + ((-0.8 - this._boss2Data.currentOpeness) * r));
-			this._boss2Face._baseY = (60 - (40 * r));
+			$gameMapTemp._boss2Face.setOpenness(this._boss2Data.currentOpeness + ((-0.8 - this._boss2Data.currentOpeness) * r));
+			$gameMapTemp._boss2Face._baseY = (60 - (40 * r));
 			if(time === 30) {
 				ESPAudio.boss2Clap();
-				this._boss2Data.currentOpeness = this._boss2Face.getOpenness();
+				this._boss2Data.currentOpeness = $gameMapTemp._boss2Face.getOpenness();
 			}
 		} else if(time > 50 && time <= 80) {
 			const r = Easing.easeOutBack((time - 50) / 30);
-			this._boss2Face._baseY = (20 + (120 * r));
-			this._boss2Face.setOpenness(this._boss2Data.currentOpeness + ((0.3 - this._boss2Data.currentOpeness) * r));
+			$gameMapTemp._boss2Face._baseY = (20 + (120 * r));
+			$gameMapTemp._boss2Face.setOpenness(this._boss2Data.currentOpeness + ((0.3 - this._boss2Data.currentOpeness) * r));
 		} else if(time > 80 && time <= (80 + FIRETIME)) {
-			this._boss2Face.setOpenness(0.3 + (Math.sin(time / 3) * 0.05));
+			$gameMapTemp._boss2Face.setOpenness(0.3 + (Math.sin(time / 3) * 0.05));
 			if((this._boss2Data.bigBall && time === 81) || (!this._boss2Data.bigBall && (time % FIRERATE === 0))) {
 				const obj = new ESPPoisonballObject(this._boss2Data.bigBall, 2, this._boss2Data.bigBall);
-				$gameMap.addGameObject(obj, this._boss2Face.x, (10 * TS) + (this._boss2Data.bigBall ? TS : 0), 110 + (this._boss2Data.bigBall ? 20 : 0));
-				const radians = Math.atan2(obj.position.x - $espGamePlayer.position.x, (obj.position.y - $espGamePlayer.position.y) + this._boss2Face._baseY) + ((ESPBoss2Data.getRandomNumber() * 2) - 1);
+				$gameMap.addGameObject(obj, $gameMapTemp._boss2Face.x, (10 * TS) + (this._boss2Data.bigBall ? TS : 0), 110 + (this._boss2Data.bigBall ? 20 : 0));
+				const radians = Math.atan2(obj.position.x - $espGamePlayer.position.x, (obj.position.y - $espGamePlayer.position.y) + $gameMapTemp._boss2Face._baseY) + ((ESPBoss2Data.getRandomNumber() * 2) - 1);
 				obj.speed.x = (Math.sin(radians) * -2);
 				obj.speed.y = (Math.cos(radians) * -2);
 				if(obj.speed.y < 0.2) {
@@ -444,9 +444,9 @@ modify_Game_Map_2 = class {
 			}
 		} else if(time > (80 + FIRETIME) && time <= (100 + FIRETIME)) {
 			const r = (time - (80 + FIRETIME)) / 20;
-			this._boss2Face._baseY = (140 - (80 * r));
+			$gameMapTemp._boss2Face._baseY = (140 - (80 * r));
 		} else if(time === (101 + FIRETIME)) {
-			this._boss2Data.TempData = this._boss2Face._left.rotation;
+			this._boss2Data.TempData = $gameMapTemp._boss2Face._left.rotation;
 			this._boss2Data.TempDataTime = 20;
 			this._boss2Data.currentAttack = 0;
 		}
@@ -463,18 +463,18 @@ modify_Game_Map_2 = class {
 
 		if(time === 1) {
 			if(this._boss2Data.legDir === 0) {
-				this._boss2LeftLeg.goUp();
+				$gameMapTemp._boss2LeftLeg.goUp();
 			} else {
-				this._boss2RightLeg.goUp();
+				$gameMapTemp._boss2RightLeg.goUp();
 			}
 		} else if(time === 20) {
 			$gameMap.ESPCameraOffsetY = 0;
 		} else if(time === 60) {
 			if(this._boss2Data.legSpeed === 40) {
 				if(this._boss2Data.legDir === 0) {
-					this._boss2RightLeg.stomp();
+					$gameMapTemp._boss2RightLeg.stomp();
 				} else {
-					this._boss2LeftLeg.stomp();
+					$gameMapTemp._boss2LeftLeg.stomp();
 				}
 			}
 		} else if(time === 80) {
@@ -501,7 +501,7 @@ modify_Game_Map_2 = class {
 
 				this._attackSprite._alwaysOnTop = 100;
 				this._attackSprite.scale.set(2);
-				SceneManager._scene._spriteset._tilemap.addPlayerBasedSprite(this._attackSprite, SceneManager._scene._spriteset._tilemap.children.indexOf(this._boss2Face));
+				SceneManager._scene._spriteset._tilemap.addPlayerBasedSprite(this._attackSprite, SceneManager._scene._spriteset._tilemap.children.indexOf($gameMapTemp._boss2Face));
 			}
 
 			if(this._boss2Data.legDir === 0) {
@@ -568,9 +568,9 @@ modify_Game_Map_2 = class {
 		} else if(time === (120 + ATTACK_DURATION + LEAVE_DURATION + 1)) {
 			this._attackSprite.visible = false;
 			if(this._boss2Data.legDir === 0) {
-				this._boss2LeftLeg.goDown(280, true);
+				$gameMapTemp._boss2LeftLeg.goDown(280, true);
 			} else {
-				this._boss2RightLeg.goDown(280, true);
+				$gameMapTemp._boss2RightLeg.goDown(280, true);
 			}
 		} else if(time === (120 + ATTACK_DURATION + LEAVE_DURATION + 120)) {
 			this._boss2Data.currentAttack = 0;
@@ -625,10 +625,10 @@ modify_Game_Map_2 = class {
 
 	boss2TakeDamage() {
 		const blend = [255, 0, 0, 255];
-		this._boss2Face.setBlendColor(blend);
-		this._boss2LeftLeg._spr.setBlendColor(blend);
-		this._boss2RightLeg._spr.setBlendColor(blend);
-		this._boss2Face._damageOffsetY = -this._boss2Face._damageOffsetYMax;
+		$gameMapTemp._boss2Face.setBlendColor(blend);
+		$gameMapTemp._boss2LeftLeg._spr.setBlendColor(blend);
+		$gameMapTemp._boss2RightLeg._spr.setBlendColor(blend);
+		$gameMapTemp._boss2Face._damageOffsetY = -$gameMapTemp._boss2Face._damageOffsetYMax;
 		this._boss2Data.wasDamaged = true;
 		SceneManager._scene._spriteset.shake();
 		ESPAudio.boss2Damage();

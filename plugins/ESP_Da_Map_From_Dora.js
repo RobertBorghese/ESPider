@@ -34,8 +34,8 @@ modify_Game_Map = class {
 		this.onTransferReady();
 		this.setFrozen(false);
 		this.initESPFields();
-		this.initMapEval();
 		this.setupCollisionMap();
+		this.initMapEval();
 		this.initStartingGameObjects();
 		this.initPlayerPos();
 	}
@@ -297,7 +297,9 @@ modify_Game_Map = class {
 			const right = addTransitionDir.bind(this, "right");
 			try {
 				eval(code);
-			} catch(e) {}
+			} catch(e) {
+				console.error(e);
+			}
 		}
 	}
 

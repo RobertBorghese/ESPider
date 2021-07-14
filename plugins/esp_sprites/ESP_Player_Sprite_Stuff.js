@@ -487,7 +487,7 @@ class ESPPlayerSprite extends ESPGameSprite {
 			this._flyHolder.y = this.y + this.ObjectHolder.y - (10 + (40 * ((full - this._showFlyCount) / full)));
 
 			if(this._showFlyCount <= 0) {
-				SceneManager._scene.removeUiChild(this._flyHolder);
+				if(SceneManager?._scene?.removeUiChild) SceneManager._scene.removeUiChild(this._flyHolder);
 				this._flyHolder.destroy();
 				this._flyHolder = null;
 			}

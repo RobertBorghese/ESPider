@@ -35,7 +35,7 @@ class ESPPoisonballObject extends ESPFireballObject {
 	update() {
 		super.update();
 
-		if(!this._didDamage && this.speed.y < 0 && Math.abs(this.position.x - $gameMap._boss2Face.x) < 170 && this.position.y < (9 * TS)) {
+		if(!this._didDamage && this.speed.y < 0 && Math.abs(this.position.x - $gameMapTemp._boss2Face.x) < 170 && this.position.y < (9 * TS)) {
 			this.onCollided();
 			$gameMap.boss2TakeDamage();
 			this._didDamage = true;
