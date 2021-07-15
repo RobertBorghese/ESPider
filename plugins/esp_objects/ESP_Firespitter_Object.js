@@ -193,7 +193,6 @@ class ESPFirespitterObject extends ESPGameObject {
 
 	kill() {
 		if(this._respawnTime > 0) {
-			console.log(this.__eventId, this._respawnTime);
 			$gameMap.requestRespawn(this.__eventId, this._respawnTime, 500);
 		}
 		$gameMap.removeGameObject(this);

@@ -9,6 +9,21 @@
  * @desc The code to run when touched.
  * @type multiline_string
  * @default
+ *
+ * @arg Image
+ * @desc The character image used.
+ * @type string
+ * @default
+ *
+ * @arg Image Rate
+ * @desc The character image used.
+ * @type string
+ * @default
+ *
+ * @arg Image Offset Y
+ * @desc The image offset
+ * @type number
+ * @default -16
  */
 
 class ESPTriggerBugObject extends ESPGameObject {
@@ -19,13 +34,23 @@ class ESPTriggerBugObject extends ESPGameObject {
 		this.speed.set(0, 0, 0);
 
 		this._code = data["On Touch"];
+
+		if(data.text && typeof data.text === "string") {
+			this._displayText = data.text;
+		} else {
+			this._displayText = null;
+		}
+
+		this._customImage = data["Image"];
+		this._customImageRate = parseInt(data["Image Rate"]) || -1;
+		this._customImageOffsetY = parseInt(data["Image Offset Y"]) || -16;
 		
 		this._isTouched = false;
 	}
 
 	constructSprite() {
 		if(!this._spr) {
-			this._spr = new ESPTriggerBugSprite(this);
+			this._spr = new ESPTriggerBugSprite(this, this._customImage, this._customImageRate, this._customImageOffsetY);
 		}
 		return this._spr;
 	}
@@ -60,6 +85,10 @@ class ESPTriggerBugObject extends ESPGameObject {
 		if(this._isTouched) {
 			if(this._code) eval(this._code);
 		}
+	}
+
+	onPlayerLeavesTheMap() {
+		this._spr.removeText();
 	}
 }
 

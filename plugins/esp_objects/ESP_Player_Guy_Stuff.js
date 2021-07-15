@@ -228,7 +228,9 @@ class ESPGamePlayer extends ESPGameObject {
 				const len = Math.min(this._connectionCandidates.length, 3);
 				for(let i = 0; i < len; i++) {
 					this._connectionCandidates[i].___playerDist = null;
-					this.actuallyConnect(this._connectionCandidates[i]);
+					if(this._connectionCandidates[i].isSelfMoved() || !this._hasBox) {
+						this.actuallyConnect(this._connectionCandidates[i]);
+					}
 				}
 				if(this._connectionCandidates.length > 3) {
 					for(let i = 3; i < this._connectionCandidates.length; i++) {
@@ -647,6 +649,8 @@ class ESPGamePlayer extends ESPGameObject {
 			return;
 		}
 
+		if(!obj.isSelfMoved() && this._hasBox) return;
+
 		if(Math.abs(obj.realZ() - this.realZ()) < 12) {
 			if(this._connectionCandidates) {
 				this._connectionCandidates.push(obj);
@@ -655,7 +659,7 @@ class ESPGamePlayer extends ESPGameObject {
 			}
 		}
 	}
-
+	
 	actuallyConnect(obj) {
 		this._connections.push(obj);
 

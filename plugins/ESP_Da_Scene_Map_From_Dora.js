@@ -113,11 +113,9 @@ modify_Scene_Map = class {
 
 	updateESPRespawns() {
 		this.gameTime++;
-		console.log($gameMapTemp._requestedRespawns);
 		if($gameMapTemp._requestedRespawns && $gameMapTemp._requestedRespawns.length > 0) {
 			for(let i = 0; i < $gameMapTemp._requestedRespawns.length; i++) {
 				const respawn = $gameMapTemp._requestedRespawns[i];
-				console.log(respawn[1], this.gameTime);
 				if(respawn[1] <= this.gameTime) {
 					const obj = $gameMap.createEventObjectFromId(respawn[0]);
 					obj.position.z = respawn[2];

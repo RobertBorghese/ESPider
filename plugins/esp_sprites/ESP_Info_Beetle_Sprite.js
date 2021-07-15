@@ -6,9 +6,9 @@ class ESPInfoBeetleSprite extends ESPGameSprite {
 
 		this.espObject = object;
 
-		this.ObjectHolderOffsetY = 10;//-8;
+		this.ObjectHolderOffsetY = object._customImageOffsetY;//-8;
 
-		this.Graphics = new ESPAnimatedSprite("img/other/Beetle.png", 20);
+		this.Graphics = new ESPAnimatedSprite("img/other/" + (object._customImage ?? "Beetle") + ".png", object._customImageRate);
 		this.Graphics.scale.set(mirror ? -2 : 2, 2);
 		this.Graphics.anchor.set(0.5, 1);
 		this.ObjectHolder.addChild(this.Graphics);
@@ -45,6 +45,10 @@ class ESPInfoBeetleSprite extends ESPGameSprite {
 
 		this._showingText = false;
 		this._time = 0;
+
+		if(object._dontShowShadow) {
+			this.ShadowSprite.visible = false;
+		}
 	}
 
 	update() {
@@ -81,12 +85,18 @@ class ESPInfoBeetleSprite extends ESPGameSprite {
 		const ratio = (this._showingText ? Easing.easeOutBack : Easing.easeOutCubic)(this._time);
 		this.TextHolder.scale.set(ratio);
 		this.TextHolder.x = this.x + this.ObjectHolder.x;
-		this.TextHolder.y = this.y + this.ObjectHolder.y + Math.round((this.TextHolder._baseY * ratio) - (this.Text.height));
+		this.TextHolder.y = this.y + this.ObjectHolder.y + Math.round((this.TextHolder._baseY * ratio) - (25));
 	}
 
 	updateShadowSprite() {
-		this.ShadowSprite.move(this.Graphics.Index === 2 ? -2 : (this.Graphics.Index === 4 ? 2 : 0), 0);
-		this.ShadowSprite.scale.set(0.9 + (this.Graphics.Index % 2 === 0 ? 0 : 0.1));
+		let ScaleX = this.Graphics.Index % 2 === 0 ? 0 : 0.1;
+		let OffsetX = this.Graphics.Index === 2 ? -2 : (this.Graphics.Index === 4 ? 2 : 0);
+		if(this.espObject._customImage && this.espObject._customImage !== "Beetle") {
+			OffsetX = 0;
+			ScaleX = 0;
+		}
+		this.ShadowSprite.move(OffsetX, 0);
+		this.ShadowSprite.scale.set(0.9 + ScaleX);
 		this.ShadowSprite.alpha = this.ShadowSprite.scale.x;
 	}
 

@@ -81,6 +81,9 @@ class ESPAudio {
 		"Boss1Disappear",
 
 		"BoxDrag",
+		["SwitchHit", 0.9],
+		["SwitchOn", 0.6],
+		["SwitchOff", 0.6],
 
 		"MenuButtonClick",
 		"MenuButtonClickCancel",

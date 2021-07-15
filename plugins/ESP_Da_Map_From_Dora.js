@@ -500,6 +500,7 @@ modify_Game_Map = class {
 			this.RoomKillCount = 0;
 			this._espTransferDirection = direction;
 			SceneManager._scene._spriteset.transitionOut();
+			this.getGameObjects().forEach(g => g.onPlayerLeavesTheMap());
 			return true;
 		}
 		return false;

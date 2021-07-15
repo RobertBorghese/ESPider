@@ -25,6 +25,10 @@ class ESPBoxObject extends ESPGameObject {
 		return this._spr;
 	}
 
+	saveIndividual() {
+		return true;
+	}
+
 	saveGroup() {
 		return "box";
 	}

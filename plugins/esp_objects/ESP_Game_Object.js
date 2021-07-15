@@ -454,4 +454,7 @@ class ESPGameObject {
 			this.position.z = 0;
 		}
 	}
+
+	onPlayerLeavesTheMap() {
+	}
 }
