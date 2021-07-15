@@ -56,7 +56,14 @@ class ESPButtonObject extends ESPGameObject {
 			return true;
 		}
 		this._touchingObject = this.isTouchingAny($gameMap.findObjectGroup("box"));
-		return this._touchingObject !== null;
+		if(this._touchingObject !== null) {
+			return this._touchingObject !== null;
+		}
+		this._touchingObject = this.isTouchingAny($gameMap.findObjectGroup("triggerbug"));
+		if(this._touchingObject && !this._touchingObject._isTouched) {
+			return this._touchingObject !== null;
+		}
+		return false;
 	}
 
 	update() {

@@ -34,7 +34,10 @@ class ESPKeyObject extends ESPGameObject {
 	}
 
 	update() {
+		if(!this._isTouched) this.updateGravity();
 		super.update();
+		if(!this._isTouched) this.updateGroundAssurance();
+
 		this.updatePlayerTouch();
 	}
 

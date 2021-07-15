@@ -109,7 +109,7 @@ class ESPFireballObject extends ESPGameObject {
 				const len = triggerBugs.length;
 				for(let i = 0; i < len; i++) {
 					const bug = triggerBugs[i];
-					if(bug._isTouched && this.getDistance(bug) <= this._collisionSize) {
+					if(!bug._isTouched && this.getDistance(bug) <= this._collisionSize) {
 						bug.hitWithFire();
 					}
 				}

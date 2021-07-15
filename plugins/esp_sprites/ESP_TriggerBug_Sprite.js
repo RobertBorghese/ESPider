@@ -45,7 +45,7 @@ class ESPTriggerBugSprite extends ESPGameSprite {
 
 	updateShadowSprite() {
 		this.ShadowSprite.move(this._bug.Index >= 4 && this._bug.Index <= 7 ? 2 : (this._bug.Index >= 12 && this._bug.Index <= 15 ? -2 : 0), 0);
-		this.ShadowSprite.scale.set((this._bug.scale.x / 2) * ((200 - this.espObject.position.z) / 200.0).clamp(0.3, 1));// + (((this._bug.y) + 3) * 0.02));
+		this.ShadowSprite.scale.set((this._bug.scale.x / 2) * ((400 - this.espObject.position.z) / 400.0).clamp(0.3, 1));// + (((this._bug.y) + 3) * 0.02));
 		this.ShadowSprite.alpha = this.ShadowSprite.scale.x;
 	}
 }

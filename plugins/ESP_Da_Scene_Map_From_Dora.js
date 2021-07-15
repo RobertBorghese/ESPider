@@ -20,6 +20,7 @@ modify_Scene_Map = class {
 		this._targetCameraX = null;
 		this._targetCameraY = null;
 		this._slideshowList = null;
+		this.gameTime = 0;
 	}
 
 	createDisplayObjects() {
@@ -60,6 +61,7 @@ modify_Scene_Map = class {
 		} else {
 			if(!this._isPaused) {
 				ESP.Scene_Map.updateMain.apply(this, arguments);
+				this.updateESPRespawns();
 				this.updateESPMovingPlatforms();
 				this.updateESPPlayer();
 				this.updateESPGameObjects();
@@ -107,6 +109,23 @@ modify_Scene_Map = class {
 
 	genCameraPosY() {
 		return ((this._targetCameraY ?? $espGamePlayer.cameraY()) * this._spriteset._tilemap.scale.y) - (Graphics.height / 2) + $gameMap.ESPCameraOffsetY;
+	}
+
+	updateESPRespawns() {
+		this.gameTime++;
+		console.log($gameMapTemp._requestedRespawns);
+		if($gameMapTemp._requestedRespawns && $gameMapTemp._requestedRespawns.length > 0) {
+			for(let i = 0; i < $gameMapTemp._requestedRespawns.length; i++) {
+				const respawn = $gameMapTemp._requestedRespawns[i];
+				console.log(respawn[1], this.gameTime);
+				if(respawn[1] <= this.gameTime) {
+					const obj = $gameMap.createEventObjectFromId(respawn[0]);
+					obj.position.z = respawn[2];
+					$gameMapTemp._requestedRespawns.splice(i, 1);
+					i--;
+				}
+			}
+		}
 	}
 
 	// update game objects

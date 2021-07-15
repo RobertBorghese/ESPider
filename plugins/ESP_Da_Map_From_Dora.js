@@ -198,10 +198,16 @@ modify_Game_Map = class {
 	}
 
 	createEventObjectFromId(id) {
-		return this.createEventObject($dataMap.events[id]);
+		return this.createEventObject($dataMap.events[id], id);
 	}
 
-	createEventObject(event) {
+	createAndDropEventObjectFromId(id) {
+		const obj = this.createEventObjectFromId(id);
+		obj.position.z = 500;
+		return obj;
+	}
+
+	createEventObject(event, eventId) {
 		if(event && event.pages && event.pages[0]) {
 			const data = event.pages[0];
 			if(data.image && data.image.characterName === "_Entities") {
@@ -222,18 +228,19 @@ modify_Game_Map = class {
 						}
 					}
 				});
-				return this.createPresetObject(index, event.x, event.y, event.name, objectData);
+				return this.createPresetObject(index, event.x, event.y, event.name, eventId ?? $dataMap.events.indexOf(event), objectData);
 			}
 		}
 		return null;
 	}
 
 	// create objects based on id
-	createPresetObject(id, x, y, eventName, objectData) {
+	createPresetObject(id, x, y, eventName, eventId, objectData) {
 		if(Game_Map.presetObjects[id]) {
 			const cls = Game_Map.presetObjects[id];
 			const regionId = this.getColHeight(x, y);
 			const obj = new cls(objectData);
+			obj.__eventId = eventId;
 			obj.__eventName = eventName;
 			obj.__eventX = x;
 			obj.__eventY = y;
@@ -642,6 +649,14 @@ modify_Game_Map = class {
 
 	maxCameraY() {
 		return $dataMap.height;
+	}
+
+	requestRespawn(eventId, time, z) {
+		if(!$gameMapTemp._requestedRespawns) {
+			$gameMapTemp._requestedRespawns = [];
+		}
+		const curr = SceneManager._scene.gameTime;
+		$gameMapTemp._requestedRespawns.push([eventId, curr + time, z]);
 	}
 
 	// need more precise method for getting touch x/y

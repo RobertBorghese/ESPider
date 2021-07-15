@@ -24,7 +24,10 @@ class ESPTriggerBugObject extends ESPGameObject {
 	}
 
 	constructSprite() {
-		return new ESPTriggerBugSprite(this);
+		if(!this._spr) {
+			this._spr = new ESPTriggerBugSprite(this);
+		}
+		return this._spr;
 	}
 
 	saveGroup() {
@@ -32,7 +35,15 @@ class ESPTriggerBugObject extends ESPGameObject {
 	}
 
 	update() {
+		if(!this._isTouched) {
+			this.updateGravity();
+		}
+
 		super.update();
+
+		if(!this._isTouched) {
+			this.updateGroundAssurance();
+		}
 	}
 
 	updateConsumeAnimation(speedZ) {

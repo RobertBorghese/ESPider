@@ -47,7 +47,7 @@ class ESPKeySprite extends ESPGameSprite {
 
 	updateShadowSprite() {
 		this.ShadowSprite.move(0, 0);
-		this.ShadowSprite.scale.set(0.7 + (((this._key.y) + 3) * 0.02));
+		this.ShadowSprite.scale.set((this.espObject.position.z > 0 ? ((400 - this.espObject.position.z) / 400) : 1) * (0.7 + (((this._key.y) + 3) * 0.02)));
 		this.ShadowSprite.alpha = this.ShadowSprite.scale.x;
 	}
 }

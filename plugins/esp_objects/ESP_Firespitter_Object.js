@@ -39,6 +39,8 @@
  * @value right
  * @option Shoot Player
  * @value player
+ * @option Shoot Direction
+ * @value direction
  * @desc
  * @default left
  *
@@ -57,6 +59,22 @@
  * @value random
  * @desc
  * @default default
+ * 
+ * @arg Respawn Time
+ * @type number
+ * @desc
+ * @default 0
+ *
+ * @arg Shoot Direction Min
+ * @desc 
+ * @type number
+ * @min -1000
+ * @default 0
+ *
+ * @arg Shoot Direction Max
+ * @desc 
+ * @type number
+ * @default 90
  */
 
 class ESPFirespitterObject extends ESPGameObject {
@@ -77,6 +95,11 @@ class ESPFirespitterObject extends ESPGameObject {
 		this._distance = parseInt(data["Shoot Distance"]) || 0;
 		this._zLevel = data["Z Level Shift"] === "grounded" ? 1 : (data["Z Level Shift"] === "random" ? 2 : 0);
 
+		this._respawnTime = parseInt(data["Respawn Time"]) || 0;
+
+		this._shootDirectionMin = parseInt(data["Shoot Direction Min"]) || 0;
+		this._shootDirectionMax = parseInt(data["Shoot Direction Max"]) || 30;
+
 		this._shootTime = this._shootRateOffset > 0 ? this._shootRateOffset : this._shootRate;
 
 		this._isDefeated = false;
@@ -92,23 +115,14 @@ class ESPFirespitterObject extends ESPGameObject {
 	}
 
 	update() {
-		if(this.position.z > 0) {
-			this.speed.z -= 0.1;
-			if(this.speed.z < -10) this.speed.z = -10;
-		}
-
+		if(!this._isDefeated) this.updateGravity();
 		super.update();
-
-		if(this.position.z < 0) {
-			this.speed.z = 0;
-			this.position.z = 0;
-		}
-
+		if(!this._isDefeated) this.updateGroundAssurance();
 		this.updatePlayerKill();
 
 		this._fastAnimation = this._latestFireball && this._latestFireball._isInitializing;
 
-		if(!this._isDefeated && this._shootRate > 0) {
+		if(!this._isDefeated && this.position.z <= 0 && this._shootRate > 0) {
 			this._shootTime++;
 			if(this._shootTime >= this._shootRate) {
 				this._shootTime = 0;
@@ -139,9 +153,16 @@ class ESPFirespitterObject extends ESPGameObject {
 			case "up": { this._latestFireball.speed.y = -this._fireballSpeed; break; }
 			case "down": { this._latestFireball.speed.y = this._fireballSpeed; break; }
 			case "player": {
-				const radians = Math.atan2(this.position.x - $espGamePlayer.position.x, this.position.y - $espGamePlayer.position.y);
-				this._latestFireball.speed.x = Math.sin(radians) * -this._fireballSpeed;
-				this._latestFireball.speed.y = Math.cos(radians) * -this._fireballSpeed;
+				const radians = Math.atan2(this.position.y - $espGamePlayer.position.y, this.position.x - $espGamePlayer.position.x);
+				this._latestFireball.speed.x = Math.cos(radians) * -this._fireballSpeed;
+				this._latestFireball.speed.y = Math.sin(radians) * -this._fireballSpeed;
+				break;
+			}
+			case "direction": {
+				const degrees = this._shootDirectionMin + (Math.random() * (this._shootDirectionMax - this._shootDirectionMin));
+				const radians = degrees * (Math.PI / 180);
+				this._latestFireball.speed.x = Math.cos(radians) * -this._fireballSpeed;
+				this._latestFireball.speed.y = Math.sin(radians) * -this._fireballSpeed;
 				break;
 			}
 		}
@@ -171,6 +192,10 @@ class ESPFirespitterObject extends ESPGameObject {
 	}
 
 	kill() {
+		if(this._respawnTime > 0) {
+			console.log(this.__eventId, this._respawnTime);
+			$gameMap.requestRespawn(this.__eventId, this._respawnTime, 500);
+		}
 		$gameMap.removeGameObject(this);
 	}
 }

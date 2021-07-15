@@ -595,7 +595,7 @@ modify_Game_Map_2 = class {
 					buttonX = Math.random() < 0.5 ? 10 : 20;
 				}
 				const buttonY = 13;
-				const button = $gameMap.createPresetObject(9, buttonX, buttonY, "Button", {
+				const button = $gameMap.createPresetObject(9, buttonX, buttonY, "Button", 0, {
 					"On Press": "$gameMap.findObject(\"WebDevice\").open();",
 					"On Released": "$gameMap.findObject(\"WebDevice\").close();"
 				});
@@ -613,7 +613,7 @@ modify_Game_Map_2 = class {
 					} else if(this._boss2Data.phase === 2) {
 						x = buttonX === 10 ? 20 : 10;
 					}
-					const obj = $gameMap.createPresetObject(10, x, y, "WebDevice", {
+					const obj = $gameMap.createPresetObject(10, x, y, "WebDevice", 0, {
 					});
 					obj.CollisionHeight = 2;
 					obj.position.z = 430;

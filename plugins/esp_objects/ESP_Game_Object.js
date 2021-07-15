@@ -440,4 +440,18 @@ class ESPGameObject {
 		}
 		return false;
 	}
+
+	updateGravity() {
+		if(this.position.z > 0) {
+			this.speed.z -= 0.1;
+			if(this.speed.z < -10) this.speed.z = -10;
+		}
+	}
+
+	updateGroundAssurance() {
+		if(this.position.z < 0) {
+			this.speed.z = 0;
+			this.position.z = 0;
+		}
+	}
 }
