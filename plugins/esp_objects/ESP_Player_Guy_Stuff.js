@@ -137,8 +137,10 @@ class ESPGamePlayer extends ESPGameObject {
 	updateMovement() {
 		if(!this._footstepInterval) this._footstepInterval = 14;
 
-		this.speed.x = Input.InputVector.x * 3;
-		this.speed.y = Input.InputVector.y * 3;
+		const spd = this._hasBox?.isPulling?.(this) ? 1.5 : 3;
+
+		this.speed.x = Input.InputVector.x * spd;
+		this.speed.y = Input.InputVector.y * spd;
 
 		if(this.canControl() && this.position.z === 0 && Input.InputVector.length() > 0.1 && (Graphics.frameCount % (Input.InputVector.length() > 0.5 ? 14 : 20)) === 0) {
 			AudioManager.playSe({
@@ -592,18 +594,20 @@ class ESPGamePlayer extends ESPGameObject {
 			const desiredDistance = this._distances[i];
 
 			if(ratio < 1) {
-				const radians = Math.atan2(this.position.x - obj.position.x, this.position.y - obj.position.y);
-				const x = (-Math.sin(radians) * (desiredDistance * ratio));
-				const y = (-Math.cos(radians) * (desiredDistance * ratio));
-				graphics.lineTo(x, y - 30);
+				const r = ratio.clamp(0, 1);
+				const radians = Math.atan2(obj.position.y - this.position.y, obj.position.x - this.position.x);
+				const dist = obj.isSelfMoved() ? desiredDistance : obj.getDistance2d(this);
+				const x = (Math.cos(radians) * (dist * r));
+				const y = (Math.sin(radians) * (dist * r));
+				graphics.lineTo(x, y + obj.attachOffsetY());
 			} else {
-				graphics.lineTo(obj.position.x - this.position.x, (obj.position.y - 30) - this.position.y);
+				graphics.lineTo(obj.position.x - this.position.x, (obj.position.y + obj.attachOffsetY()) - this.position.y);
 			}
 
 			if(this._connectTime[i] === 0) {
 				this.disconnect(obj);
 				obj.onCollided();
-			} else {
+			} else if(obj.isSelfMoved()) {
 				const newX = obj.position.x + obj.speed.x;
 				const newY = obj.position.y + obj.speed.y;
 				const newDist = Math.sqrt(
@@ -659,6 +663,8 @@ class ESPGamePlayer extends ESPGameObject {
 
 		this._speed.push(Vector2._length(obj.speed.x, obj.speed.y));
 
+		if(!obj.isSelfMoved()) this._hasBox = obj;
+
 		const graphics = new PIXI.Graphics();
 		SceneManager._scene._spriteset._tilemap._espPlayer._webHolder.addChild(graphics);
 		this._graphics.push(graphics);
@@ -673,6 +679,8 @@ class ESPGamePlayer extends ESPGameObject {
 		this._distances.splice(index, 1);
 		this._connectTime.splice(index, 1);
 		this._speed.splice(index, 1);
+
+		if(!obj.isSelfMoved()) this._hasBox = null;
 
 		const graphics = this._graphics[index];
 		SceneManager._scene._spriteset._tilemap._espPlayer._webHolder.removeChild(graphics);

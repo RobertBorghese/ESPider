@@ -87,6 +87,18 @@ class ESPMovingPlatformObject extends ESPGameObject {
 		return true;
 	}
 
+	standCollisionHeight() {
+		return Math.floor(this.realZ() / TS);
+	}
+
+	topCollisionZ() {
+		return this.realZ();
+	}
+
+	collideBottom() {
+		return false;
+	}
+
 	getAllSiblings() {
 		if(this._espParent) {
 			return this._espParent.getAllSiblings();

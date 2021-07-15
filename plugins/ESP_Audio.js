@@ -79,6 +79,8 @@ class ESPAudio {
 		"Checkpoint",
 		"Boss1Disappear",
 
+		"BoxDrag",
+
 		"MenuButtonClick",
 		"MenuButtonClickCancel",
 		"MenuButtonClickSpecial",

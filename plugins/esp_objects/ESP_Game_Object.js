@@ -145,11 +145,11 @@ class ESPGameObject {
 			const realX = ((xPos ?? this.position.x) + (this.rectWidth() * x));
 			const realY = ((yPos ?? this.position.y) + (this.rectHeight() * y));
 			const len = $gameMapTemp._mapMovingPlatforms.length;
-			const thresholdX = x < 0 ? 30 : 26;
-			const thresholdY = 16;
 			for(let i = 0; i < len; i++) {
 				const p = $gameMapTemp._mapMovingPlatforms[i];
-				if(this.realZ() >= p.realZ() && p.canTouch()) {
+				const thresholdX = p.thresholdX ?? (x < 0 ? 30 : 26);
+				const thresholdY = p.thresholdY ?? 16;
+				if(p.canTouch() && ((this.realZ() >= p.topCollisionZ()) || (p.collideBottom() && this.CollisionHeight === p.CollisionHeight))) {
 					if(realX > (p.position.x - thresholdX) && realX < (p.position.x + thresholdX) && realY > (p.position.y - thresholdY) && realY < (p.position.y + thresholdY)) {
 						return p;
 					}
@@ -166,7 +166,7 @@ class ESPGameObject {
 		if(xx < 0 || yy < 0 || xx >= $gameMap.width() || (xx + (yy * $dataMap.width)) >= $gameMap.espCollisionMap.length) return 99;
 		const movingPlatform = this._GetMovingPlatform(x, y, xPos, yPos);
 		if(movingPlatform !== null) {
-			return Math.floor(movingPlatform.realZ() / TS);
+			return movingPlatform.standCollisionHeight();
 		}
 		if(this.CantWalkOffLedge) {
 			const index = xx + (yy * $dataMap.width);
@@ -185,7 +185,7 @@ class ESPGameObject {
 		const index = xx + (yy * $dataMap.width);
 		const movingPlatform = this._GetMovingPlatform(x, y, xPos, yPos);
 		if(movingPlatform !== null) {
-			return [Math.floor(movingPlatform.realZ() / TS), $gameMap.espCollisionKillers[index] ?? 0];
+			return [movingPlatform.standCollisionHeight(), $gameMap.espCollisionKillers[index] ?? 0];
 		}
 		if(this.CantWalkOffLedge) {
 			if($gameMap.espMetaMap[index] === 1 || $gameMap.espCollisionKillers[index] > 0 || $gameMap.espCollisionShowMap[index] > 0) {

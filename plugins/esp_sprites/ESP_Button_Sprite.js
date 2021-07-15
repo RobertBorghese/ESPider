@@ -25,6 +25,16 @@ class ESPButtonSprite extends ESPGameSprite {
 			this._isTouching = this.espObject._isTouched;
 			this._button.setFrame(this._isTouching ? 24 : 0, 0, 24, 24);
 		}
+
+		if(this._touchingObject !== this.espObject._touchingObject) {
+			if(this._touchingObject) {
+				this._touchingObject._spr._ensureAbove = null;
+			}
+			this._touchingObject = this.espObject._touchingObject;
+			if(this._touchingObject) {
+				this._touchingObject._spr._ensureAbove = this;
+			}
+		}
 	}
 
 	updateShadowSprite() {

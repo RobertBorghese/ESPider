@@ -29,6 +29,18 @@ class ESPFireballObject extends ESPGameObject {
 		return new ESPFireballSprite(this, this._initAnimation);
 	}
 
+	isSelfMoved() {
+		return true;
+	}
+
+	attachOffsetY() {
+		return -30;
+	}
+
+	willEncounterMovingPlatform() {
+		return $gameMapTemp._mapGroupReferences && $gameMapTemp._mapGroupReferences["box"] && $gameMapTemp._mapGroupReferences["box"].length > 0;
+	}
+
 	getCollisionSize() {
 		return 26;
 	}

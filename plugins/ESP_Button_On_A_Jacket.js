@@ -109,9 +109,6 @@ class ESPButton extends Sprite_Clickable {
 
 	hover(noSound) {
 		if(!this._espClicked) {
-			if(noSound) {
-				console.trace();
-			}
 			if(!noSound && !this._espHovered) {
 				ESPAudio.menuButtonSwitch();
 			}
