@@ -22,7 +22,7 @@ class ESPFireballSprite extends ESPGameSprite {
 		this._time = 0;
 		this.Time = 0;
 
-		this._mainParticle = new ESPAnimatedSprite("img/particles/Particle.png", this.getInitAnimationDelay(), this._isInitializing);
+		this._mainParticle = new ESPAnimatedSprite(this.particlePath(), this.getInitAnimationDelay(), this._isInitializing);
 		this._mainParticle.scale.set(2 * this._ballSize);
 		this._mainParticle.anchor.set(0.5);
 		this._mainParticle.tint = this.getMainParticleColor();
@@ -31,6 +31,10 @@ class ESPFireballSprite extends ESPGameSprite {
 		if(this._isInitializing) {
 			this.ShadowSprite.visible = false;
 		}
+	}
+
+	particlePath() {
+		return "img/particles/Particle.png";
 	}
 
 	getInitAnimationDelay() {
@@ -54,7 +58,7 @@ class ESPFireballSprite extends ESPGameSprite {
 	}
 
 	makeParticle(i) {
-		const particle = new ESPAnimatedSprite("img/particles/Particle.png", 4, false, 0, i);
+		const particle = new ESPAnimatedSprite(this.particlePath(), 4, false, 0, i);
 		particle.await();
 		particle.scale.set(2 * this._ballSize);
 		particle.anchor.set(0.5);
@@ -75,6 +79,10 @@ class ESPFireballSprite extends ESPGameSprite {
 		this.visible = $gameMap.inCamera(this.x - 100, this.x + 100, this.y - 100, this.y + 100);
 	}
 
+	mainParticleIndex() {
+		return 1;
+	}
+
 	update() {
 		super.update();
 
@@ -83,6 +91,7 @@ class ESPFireballSprite extends ESPGameSprite {
 		if(this._isInitializing) {
 			if(this._mainParticle.isDone()) {
 				this._mainParticle.Invert = false;
+				this._mainParticle.FrameDelay = 0;
 				this._isInitializing = false;
 				this.ShadowSprite.visible = true;
 				this.espObject.finishInitializing();
@@ -97,7 +106,7 @@ class ESPFireballSprite extends ESPGameSprite {
 			this._time += ESP.WS;
 		}
 
-		this._mainParticle.Index = 0;
+		this._mainParticle.Index = this.mainParticleIndex();
 		this._mainParticle.rotation += (this.espObject.speed.x === 0 ? (Math.sign(this.espObject.speed.y) * 0.1) : (0.1 * Math.sign(this.espObject.speed.x))) * ESP.WS;
 
 		const len = this._particles.length;

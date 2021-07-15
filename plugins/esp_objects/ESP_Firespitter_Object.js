@@ -79,11 +79,16 @@ class ESPFirespitterObject extends ESPGameObject {
 
 		this._shootTime = this._shootRateOffset > 0 ? this._shootRateOffset : this._shootRate;
 
+		this._isDefeated = false;
 		this._fastAnimation = false;
 	}
 
 	constructSprite() {
 		return new ESPFirespitterSprite(this, this._lookDir);
+	}
+
+	saveGroup() {
+		return "firespitter";
 	}
 
 	update() {
@@ -103,7 +108,7 @@ class ESPFirespitterObject extends ESPGameObject {
 
 		this._fastAnimation = this._latestFireball && this._latestFireball._isInitializing;
 
-		if(this._shootRate > 0) {
+		if(!this._isDefeated && this._shootRate > 0) {
 			this._shootTime++;
 			if(this._shootTime >= this._shootRate) {
 				this._shootTime = 0;
@@ -112,12 +117,20 @@ class ESPFirespitterObject extends ESPGameObject {
 		}
 	}
 
+	makeProjectile() {
+		return new ESPFireballObject(true, this._zLevel);
+	}
+
+	projectileInitialZ() {
+		return 25;
+	}
+
 	shoot() {
 		if(this._distance !== 0 && this.getDistance($espGamePlayer) >= this._distance) {
 			return;
 		}
 
-		this._latestFireball = new ESPFireballObject(true, this._zLevel);
+		this._latestFireball = this.makeProjectile();
 		this._latestFireball.speed.x = this._latestFireball.speed.y = 0;
 		this._latestFireball.CollisionHeight = this.CollisionHeight;
 		switch(this._shootDir) {
@@ -132,7 +145,7 @@ class ESPFirespitterObject extends ESPGameObject {
 				break;
 			}
 		}
-		$gameMap.addGameObject(this._latestFireball, this.position.x, this.position.y, 25);
+		$gameMap.addGameObject(this._latestFireball, this.position.x, this.position.y, this.projectileInitialZ());
 	}
 
 	updatePlayerKill() {
@@ -143,6 +156,22 @@ class ESPFirespitterObject extends ESPGameObject {
 			const distY = Math.abs(this.position.y - $espGamePlayer.position.y) / size;
 			$espGamePlayer.kill(spd * (this.position.x > $espGamePlayer.position.x ? -distX : distX), spd * (this.position.y > $espGamePlayer.position.y ? -distY : distY), 40);
 		}
+	}
+
+	defeat() {
+		if(!this._isDefeated) {
+			this._isDefeated = true;
+			SceneManager._scene._spriteset.shake();
+			ESPAudio.triggerBugKill();
+		}
+	}
+
+	updateConsumeAnimation(speedZ) {
+		this.position.z += speedZ;
+	}
+
+	kill() {
+		$gameMap.removeGameObject(this);
 	}
 }
 

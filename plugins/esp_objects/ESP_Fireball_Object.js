@@ -74,6 +74,10 @@ class ESPFireballObject extends ESPGameObject {
 			}
 		}
 
+		this.updateInteractions();
+	}
+
+	updateInteractions() {
 		const playerDistance = this.getDistance($espGamePlayer);
 		if(playerDistance <= this._collisionSize) {
 			const spd = 60;
@@ -82,20 +86,69 @@ class ESPFireballObject extends ESPGameObject {
 			$espGamePlayer.kill(spd * (this.position.x > $espGamePlayer.position.x ? -distX : distX), spd * (this.position.y > $espGamePlayer.position.y ? -distY : distY), 40);
 		}
 
-		if($gameMap.findObjectGroup("spearwall").filter((s) => s.isTouching(this)).length > 0) {
-			this.onCollided();
+		{
+			const spears = $gameMap.findObjectGroup("spearwall");
+			if(spears.length > 0) {
+				const len = spears.length;
+				let touched = false;
+				for(let i = 0; i < len; i++) {
+					if(spears[i].isTouching(this)) {
+						touched = true;
+						break;
+					}
+				}
+				if(touched) {
+					this.onCollided();
+				}
+			}
 		}
 
-		$gameMap.findObjectGroup("triggerbug").filter((s) => !s._isTouched && this.getDistance(s) <= this._collisionSize).forEach(function(s) {
-			s.hitWithFire();
-		});
+		{
+			const triggerBugs = $gameMap.findObjectGroup("triggerbug");
+			if(triggerBugs.length > 0) {
+				const len = triggerBugs.length;
+				for(let i = 0; i < len; i++) {
+					const bug = triggerBugs[i];
+					if(bug._isTouched && this.getDistance(bug) <= this._collisionSize) {
+						bug.hitWithFire();
+					}
+				}
+			}
+		}
+
+		this.updateTeamInteractions();
 
 		if(this.canConnect()) {
-			$gameMap.findObjectGroup("webdevice").filter((s) => (s.isOpen() && !s.isConnectedTo(this) && this.getDistance(s) <= 200)).forEach(s => s.connect(this));
+			{
+				const webDevices = $gameMap.findObjectGroup("webdevice");
+				if(webDevices.length > 0) {
+					const len = webDevices.length;
+					for(let i = 0; i < len; i++) {
+						const s = webDevices[i];
+						if(s.isOpen() && !s.isConnectedTo(this) && this.getDistance(s) <= 200) {
+							s.connect(this);
+						}
+					}
+				}
+			}
 
 			if($espGamePlayer.IsGrappling) {
 				if(!$espGamePlayer.isConnectedTo(this) && playerDistance <= 200) {
 					$espGamePlayer.connect(this);
+				}
+			}
+		}
+	}
+
+	updateTeamInteractions() {
+		{
+			const icemakers = $gameMap.findObjectGroup("icemaker");
+			if(icemakers.length > 0) {
+				const len = icemakers.length;
+				for(let i = 0; i < len; i++) {
+					if(this.getDistance(icemakers[i]) < this._collisionSize) {
+						icemakers[i].defeat();
+					}
 				}
 			}
 		}

@@ -604,7 +604,9 @@ class ESPGamePlayer extends ESPGameObject {
 				graphics.lineTo(obj.position.x - this.position.x, (obj.position.y + obj.attachOffsetY()) - this.position.y);
 			}
 
-			if(this._connectTime[i] === 0) {
+			if(Math.abs(obj.realZ() - this.realZ()) >= 12) {
+				this.disconnect(obj);
+			} else if(this._connectTime[i] === 0) {
 				this.disconnect(obj);
 				obj.onCollided();
 			} else if(obj.isSelfMoved()) {

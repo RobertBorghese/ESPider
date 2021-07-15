@@ -55,6 +55,7 @@ class ESPAudio {
 		["HitGround2", 0.9],
 		"Talk",
 		["FireballShot2", 0.75],
+		["IceballShot", 0.8],
 		["SuperFireballShot", 0.5],
 		["KeyGet", 0.2],
 		"SpearsEnter2",
