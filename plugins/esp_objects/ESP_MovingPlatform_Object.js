@@ -58,7 +58,7 @@ class ESPMovingPlatformObject extends ESPGameObject {
 			this._points = null;
 		}
 
-		this._imageType = data?.["Image Type"] ?? ((this._width > 1 || this._height > 1) ? 0 : -1);
+		this._imageType = data?.["Image Type"] ?? ((this._width > 1 || this._height > 1) ? (this._width > 1 && this._height === 1 ? 50 : 0) : -1);
 
 		this.deltaX = 0;
 		this.deltaY = 0;
@@ -122,6 +122,12 @@ class ESPMovingPlatformObject extends ESPGameObject {
 					if(x === 0) imageType = (y === 0 ? 0 : (y === this._height - 1 ? 6 : 3));
 					else if(x === this._width - 1) imageType = (y === 0 ? 2 : (y === this._height - 1 ? 8 : 5));
 					else imageType = (y === 0 ? 1 : (y === this._height - 1 ? 7 : 4));
+
+					if(this._height === 1) {
+						if(imageType === 0) imageType = 50;
+						else if(imageType === 1) imageType = 51;
+						else if(imageType === 2) imageType = 52;
+					}
 					const cls = this.childrenClass();
 					const obj = new cls({
 						"Collision Height": this._collisionHeight,

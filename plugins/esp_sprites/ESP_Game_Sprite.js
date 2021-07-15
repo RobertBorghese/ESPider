@@ -13,6 +13,19 @@ modify_Spriteset_Map = class {
 		this._tilemap.addChild(this._tilemap._uiHolder);
 
 		this.initializeFadeMembers();
+
+		this._espHasForcedAboveSprites = false;
+	}
+
+	ensureSpritesAreForcedAbove() {
+		if(this._espWorldSpriteIndexes && this._tilemap._espSprites && this._tilemap._espSprites.length > 0 && !this._espHasForcedAboveSprites) {
+			this._espHasForcedAboveSprites = true;
+			this._tilemap._espSprites.forEach(spr => {
+				if(spr.espObject._forceAboveGround) {
+					spr._ensureAbove = this._espWorldSpriteIndexes[spr.espObject.__eventX + (spr.espObject.__eventY * $gameMap.width())];
+				}
+			});
+		}
 	}
 
 	createCharacters() {
@@ -36,6 +49,8 @@ modify_Spriteset_Map = class {
 		for(let i = 0; i < movingPlatforms.length; i++) {
 			this.addGameSprite(movingPlatforms[i]);
 		}
+
+		this.ensureSpritesAreForcedAbove();
 	}
 
 	addGameSprite(obj) {
@@ -627,6 +642,36 @@ modify_Spriteset_Map = class {
 						}
 					}
 
+					// try and make far-out walls dark?
+					/*
+					if(spr._espSurronded && $gameMap.highestRegionId === regionId) {
+						let radius = 1;
+						let result = 0;
+						whileloop: while(true) {
+							for(let xx = (x - radius); xx <= (x + radius); xx++) {
+								const yy = y - radius;
+								const yy2 = y + radius;
+								if($gameMap.getColHeight(xx, yy) !== regionId || $gameMap.getColHeight(xx, yy2) !== regionId) {
+									result = radius;
+									break whileloop;
+								}
+							}
+							for(let yy = (x - radius + 1); yy <= (x + radius - 1); yy++) {
+								const xx = x - radius;
+								const xx2 = x + radius;
+								if($gameMap.getColHeight(xx, yy) !== regionId || $gameMap.getColHeight(xx2, yy) !== regionId) {
+									result = radius;
+									break whileloop;
+								}
+							}
+							radius++;
+						}
+						spr._espDesiredAlpha = result <= 1 ? 1 : (result === 2 ? 0.7 : (result === 3 ? 0.4 : (result === 4 ? 0.1 : 0)));
+					} else {
+						spr._espDesiredAlpha = 1;
+					}
+					*/
+
 					spr.z = height == 1 ? 999 : 4;
 					spr._espWorldObject = true;
 					this._espWorldSpriteIndexes[x + (y * mapWidth)] = spr;
@@ -636,11 +681,7 @@ modify_Spriteset_Map = class {
 			}
 		}
 
-		this._tilemap._espSprites.forEach(spr => {
-			if(spr.espObject._forceAboveGround) {
-				spr._ensureAbove = this._espWorldSpriteIndexes[spr.espObject.__eventX + (spr.espObject.__eventY * $gameMap.width())];
-			}
-		});
+		this.ensureSpritesAreForcedAbove();
 	}
 
 	setFrozen(frozen) {

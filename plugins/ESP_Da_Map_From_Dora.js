@@ -96,6 +96,7 @@ modify_Game_Map = class {
 		this.espCollisionKillers = [];
 		this.espCollisionShowMap = [];
 		this.espMetaMap = [];
+		this.highestRegionId = 0;
 		for(let x = 0; x < mapWidth; x++) {
 			for(let y = 0; y < mapHeight; y++) {
 				this.espCollisionMap.push(0);
@@ -119,6 +120,10 @@ modify_Game_Map = class {
 				if(regionId > 0) {
 					const newX = x;
 					const newY = y + regionId;
+
+					if(regionId > this.highestRegionId) {
+						this.highestRegionId = regionId;
+					}
 
 					const killIdUp = this.getColKill(x, y - 1);
 					let offset = 0;

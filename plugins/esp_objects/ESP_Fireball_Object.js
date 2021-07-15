@@ -1,6 +1,6 @@
 // All right, time for the first non-player object!!
 
-ESP.StandardFireballHeight = 20;
+ESP.StandardFireballHeight = 10;
 
 class ESPFireballObject extends ESPGameObject {
 	constructor(initAnimation, grounedStyle) {
@@ -38,22 +38,25 @@ class ESPFireballObject extends ESPGameObject {
 			super.update();
 
 			if(this._groundedStyle === 0) {
-				if(this.position.z > 10) {
+				if(this.position.z > ESP.StandardFireballHeight) {
 					this.speed.z = -1;
 				} else {
 					this.speed.z = 0;
 				}
 			} else if(this._groundedStyle === 1) {
 				if(!this._onGroundShift) {
-					if(this.speed.z < 0.2) this.speed.z = 0.2;
-					this.speed.z += 0.2;
+					if(this.speed.z < 0.02) this.speed.z = 0.02;
+					this.speed.z += (0.1) * Math.sqrt(Math.pow(this.speed.x, 2) + Math.pow(this.speed.y, 2));
 				} else if(this.position.z > ESP.StandardFireballHeight) {
 					this.speed.z -= 0.5;
 				} else {
 					this.speed.z = 0;
 					if(this.position.z < ESP.StandardFireballHeight) {
 						this.speed.z += 0.01;
-						if(this.position.z >= ESP.StandardFireballHeight) this.position.z = ESP.StandardFireballHeight;
+						if(this.position.z >= ESP.StandardFireballHeight) {
+							this.speed.z = 0;
+							this.position.z = ESP.StandardFireballHeight;
+						}
 					}
 				}
 			}

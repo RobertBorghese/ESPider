@@ -25,6 +25,7 @@ class ESPGamePlayer extends ESPGameObject {
 
 		this._jumpHelp = 0;
 		this._triggerHelp = 0;
+		this._didJumpThisFrame = false;
 		this._canControl = true;
 		this._isDying = false;
 		this._canTransition = true;
@@ -91,6 +92,7 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	update() {
+		this._didJumpThisFrame = false;
 		this.updateInterpreter();
 		this.updatePlayerControl();
 		this.updateInput();
@@ -208,6 +210,7 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	doJump() {
+		this._didJumpThisFrame = true;
 		this.speed.z = this.JUMP_POWER;
 		ESPAudio.jump();
 	}
@@ -638,10 +641,12 @@ class ESPGamePlayer extends ESPGameObject {
 			return;
 		}
 
-		if(this._connectionCandidates) {
-			this._connectionCandidates.push(obj);
-		} else {
-			this.actuallyConnect(obj);
+		if(Math.abs(obj.realZ() - this.realZ()) < 12) {
+			if(this._connectionCandidates) {
+				this._connectionCandidates.push(obj);
+			} else {
+				this.actuallyConnect(obj);
+			}
 		}
 	}
 

@@ -28,6 +28,10 @@ class ESPMovingPlatformSprite extends ESPGameSprite {
 			case 6: { url = "PlatTB"; break; }
 			case 7: { url = "PlatMB"; break; }
 			case 8: { url = "PlatBB"; break; }
+
+			case 50: { url = "PlatHorLeft"; break; }
+			case 51: { url = "PlatHorMiddle"; break; }
+			case 52: { url = "PlatHorRight"; break; }
 		}
 
 		this._platform = new Sprite(ImageManager.loadBitmapFromUrl("img/other/MovingPlatforms/" + url + ".png"));

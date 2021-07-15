@@ -213,7 +213,6 @@ modify_Game_Map_1 = class {
 				if(this._boss1Timer >= 3501) {
 					const r = (200 - (this._boss1Timer - 3501).clamp(0, 200)) / 200;
 					const r2 = Easing.easeOutCubic(r);
-					console.log("FJKFJFDS");
 					SceneManager._scene._spriteset._tilemap.scale.set(1 + (6 * r2));
 					SceneManager._scene._overlay.alpha = 0;
 					SceneManager._scene.updateCameraPos(true);
