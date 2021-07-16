@@ -59,6 +59,7 @@ modify_Game_Map = class {
 		$gameMapTemp._mapReferences = {};
 		$gameMapTemp._mapGroupReferences = {};
 		$gameMapTemp._gravityManipulators = [];
+		$gameMapTemp._requestedRespawns = null;
 		this._espStartX = 0;
 		this._espStartY = 0;
 	}
