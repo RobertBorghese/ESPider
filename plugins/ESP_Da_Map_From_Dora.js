@@ -669,6 +669,11 @@ modify_Game_Map = class {
 		$gameMapTemp._requestedRespawns.push([eventId, curr + time, z]);
 	}
 
+	shake(duration = 100, weakMagnitude = 0.6, strongMagnitude = 0.9, start = 10) {
+		SceneManager._scene._spriteset.shake();
+		Input.vibrate(duration, weakMagnitude, strongMagnitude, start);
+	}
+
 	// need more precise method for getting touch x/y
 	canvasToMapXPrecise(x) {
 		const tileWidth = this.tileWidth();

@@ -34,7 +34,7 @@ class ESPAbilityGainObject extends ESPGameObject {
 			this._touched = true;
 
 			ESPAudio.keyGet();
-			SceneManager._scene._spriteset.shake();
+			$gameMap.shake();
 		}
 	}
 

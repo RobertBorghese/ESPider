@@ -173,7 +173,7 @@ modify_Game_Map_2 = class {
 		}
 
 		if(time === 300) {
-			SceneManager._scene._spriteset.shake();
+			$gameMap.shake(100, 0.6, 0.9, 50);
 			ESPAudio.boss2Roar();
 		}
 
@@ -264,7 +264,7 @@ modify_Game_Map_2 = class {
 			this._boss2Data.currentAttack = 0;
 		}
 		if(time === 300) {
-			SceneManager._scene._spriteset.shake();
+			$gameMap.shake(100, 0.6, 0.9, 50);
 			ESPAudio.boss2Roar();
 			if(this._boss2Data._webdevice) this._boss2Data._webdevice.speed.set(0, 4, 4);
 			if(this._boss2Data._button) this._boss2Data._button.speed.set(0, 4, 4);
@@ -442,6 +442,9 @@ modify_Game_Map_2 = class {
 					ESPAudio.boss2Charge();
 				}
 			}
+			if(this._boss2Data.bigBall && time === 250) {
+				Input.vibrate(100, 0.6, 0.9, 10);
+			}
 		} else if(time > (80 + FIRETIME) && time <= (100 + FIRETIME)) {
 			const r = (time - (80 + FIRETIME)) / 20;
 			$gameMapTemp._boss2Face._baseY = (140 - (80 * r));
@@ -616,7 +619,7 @@ modify_Game_Map_2 = class {
 					const obj = $gameMap.createPresetObject(10, x, y, "WebDevice", 0, {
 					});
 					obj.CollisionHeight = 2;
-					obj.position.z = 430;
+					obj.position.z = 500;
 					this._boss2Data._webdevice = obj;
 				}
 			}
@@ -630,7 +633,7 @@ modify_Game_Map_2 = class {
 		$gameMapTemp._boss2RightLeg._spr.setBlendColor(blend);
 		$gameMapTemp._boss2Face._damageOffsetY = -$gameMapTemp._boss2Face._damageOffsetYMax;
 		this._boss2Data.wasDamaged = true;
-		SceneManager._scene._spriteset.shake();
+		$gameMap.shake(100, 0.6, 0.9, 10);
 		ESPAudio.boss2Damage();
 	}
 }

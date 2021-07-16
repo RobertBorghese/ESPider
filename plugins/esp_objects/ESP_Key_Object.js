@@ -46,7 +46,7 @@ class ESPKeyObject extends ESPGameObject {
 		if(!this._isTouched && this.getDistance($espGamePlayer) < size) {
 			ESPAudio.keyGet();
 			if(this._immediate) this.execute();
-			SceneManager._scene._spriteset.shake();
+			$gameMap.shake();
 			this._isTouched = true;
 		}
 	}

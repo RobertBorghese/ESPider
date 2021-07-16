@@ -188,7 +188,7 @@ class ESPFirespitterObject extends ESPGameObject {
 	defeat() {
 		if(!this._isDefeated) {
 			this._isDefeated = true;
-			SceneManager._scene._spriteset.shake();
+			$gameMap.shake();
 			ESPAudio.triggerBugKill();
 		}
 	}

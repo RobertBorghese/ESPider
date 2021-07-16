@@ -43,6 +43,7 @@ modify_Input = class {
 		this.GamepadAxis = [];
 		this.OldGamepadAxis = [];
 		this.IsControlStickDirTriggered = [];
+		this.GamepadsUsedTime = [];
 	}
 	
 	static update() {
@@ -153,6 +154,17 @@ modify_Input = class {
 		ESP.Input._updateGamepadState.apply(this, arguments);
 		this.OldGamepadAxis = this.GamepadAxis;
 		this.GamepadAxis = gamepad.axes;
+
+		let gamepadUsed = Math.abs(gamepad.axes[0]) >= 0.2 || Math.abs(gamepad.axes[1]) >= 0.2;
+		if(!gamepadUsed) {
+			const len = gamepad.buttons.length;
+			for(let i = 0; i < len; i++) {
+				if(gamepad.buttons[i].pressed) { gamepadUsed = true; break; }
+			}
+		}
+		if(gamepadUsed) {
+			this.GamepadsUsedTime[gamepad.index] = this.TrueTriggerTimer;
+		}
 	}
 
 	static updateInputVector() {
@@ -200,5 +212,34 @@ modify_Input = class {
 		}
 
 		this.Input4Dir = (this.InputDir === 1 || this.InputDir === 7) ? 4 : ((this.InputDir === 9 || this.InputDir === 3) ? 6 : this.InputDir);
+	}
+
+	static _controllerActiveTime() {
+		return 10000;
+	}
+
+	static vibrate(duration = 150, weakMagnitude = 0.5, strongMagnitude = 0.5, startDelay = 0) {
+		const gamepads = navigator.getGamepads();
+		if(gamepads) {
+			let index = null;
+			let highestTime = -1;
+			const len = this.GamepadsUsedTime.length;
+			for(let i = 0; i < len; i++) {
+				const time = this.GamepadsUsedTime[i];
+				if(time && time > highestTime && (this.TrueTriggerTimer - time) < this._controllerActiveTime()) {
+					highestTime = time;
+					index = i;
+				}
+			}
+			const gamepad = gamepads[index];
+			if(gamepad && gamepad.vibrationActuator) {
+				gamepad.vibrationActuator.playEffect("dual-rumble", {
+					duration: duration,
+					weakMagnitude: weakMagnitude,
+					strongMagnitude: strongMagnitude,
+					startDelay: startDelay
+				});
+			}
+		}
 	}
 }

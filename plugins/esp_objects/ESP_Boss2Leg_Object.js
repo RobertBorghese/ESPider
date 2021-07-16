@@ -50,7 +50,7 @@ class ESPBoss2LegObject extends ESPGameObject {
 
 	onGroundHit() {
 		ESPAudio.boss2Footstomp(100);
-		SceneManager._scene._spriteset.shake();
+		$gameMap.shake(100, 0.7, 1, 10);
 		if(this._doCallback) {
 			this._doCallback = false;
 			$gameMap.onLegStomp();

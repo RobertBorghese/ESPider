@@ -58,7 +58,7 @@ class ESPFlyObject extends ESPGameObject {
 		if(!this._isConsumed) {
 			$espGamePlayer.incrementFlies(this.makeId());
 			this.CanCollide = false;
-			SceneManager._scene._spriteset.shake();
+			$gameMap.shake();
 			ESPAudio.flyGet();
 		}
 	}

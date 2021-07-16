@@ -70,7 +70,7 @@ class ESPSwitchObject extends ESPGameObject {
 					this.unexecute();
 				}
 				
-				SceneManager._scene._spriteset.shake();
+				$gameMap.shake();
 				
 			}
 		} else if(!this._canTouch && this.getDistance($espGamePlayer) >= (size * 1.5)) {
