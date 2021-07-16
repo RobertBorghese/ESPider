@@ -73,7 +73,6 @@ class ESPInfoBeetleObject extends ESPGameObject {
 		if(this._textType === "roomDeaths") {
 			this._text = data.text[$gameMap.RoomKillCount.clamp(0, data.text.length - 1)];
 		} else if(this._textType === "eval") {
-			console.log(data.text.join("\n"));
 			this._text = eval(data.text.join("\n"));
 		} else {
 			this._text = data.text.join("\n");

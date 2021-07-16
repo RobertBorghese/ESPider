@@ -30,7 +30,7 @@ class ESPSwitchObject extends ESPGameObject {
 
 		this._code = data["On Touch"];
 		this._allowReverse = data["Allow Reverse"] === "true";
-		this._onReverse = data["On Reverese"];
+		this._onReverse = data["On Reverse"];
 		
 		this._isTouched = false;
 		this._canTouch = true;
