@@ -159,6 +159,10 @@ class ESPGameObject {
 		return null;
 	}
 
+	_GetCollisionMap(index) {
+		return $gameMap.espCollisionMap[index] ?? 0
+	}
+
 	_GetCornerIndex(x, y, xPos, yPos) {
 		const tileSize = TS;
 		const xx =  Math.floor(((xPos ?? this.position.x) + (this.rectWidth() * x)) / tileSize);
@@ -174,7 +178,7 @@ class ESPGameObject {
 				return 99;
 			}
 		}
-		return $gameMap.espCollisionMap[xx + (yy * $dataMap.width)] ?? 0;
+		return this._GetCollisionMap(xx + (yy * $dataMap.width));
 	}
 
 	_GetCornerIndexEx(x, y, xPos, yPos) {
@@ -192,7 +196,7 @@ class ESPGameObject {
 				return [99, 0];
 			}
 		}
-		return [$gameMap.espCollisionMap[index] ?? 0, $gameMap.espCollisionKillers[index] ?? 0];
+		return [this._GetCollisionMap(index), $gameMap.espCollisionKillers[index] ?? 0];
 	}
 
 	_GetCornerKill(x, y, expandX, expandY) {
@@ -201,7 +205,7 @@ class ESPGameObject {
 		const yy = Math.floor(((this.position.y) + ((this.rectHeight() + expandY) * y)) / tileSize);
 		if(xx < 0 || yy < 0 || xx >= $gameMap.width() || (xx + (yy * $dataMap.width)) >= $gameMap.espCollisionKillers.length) return 0;
 		const index = xx + (yy * $dataMap.width);
-		if($gameMap.espCollisionMap[index] > this.CollisionHeight) {
+		if(this._GetCollisionMap(index) > this.CollisionHeight) {
 			return -1;
 		}
 		return $gameMap.espCollisionKillers[index] ?? 0;
@@ -456,5 +460,8 @@ class ESPGameObject {
 	}
 
 	onPlayerLeavesTheMap() {
+	}
+
+	onRemoved() {
 	}
 }

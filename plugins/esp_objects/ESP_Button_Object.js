@@ -63,6 +63,14 @@ class ESPButtonObject extends ESPGameObject {
 		if(this._touchingObject && !this._touchingObject._isTouched) {
 			return this._touchingObject !== null;
 		}
+		this._touchingObject = this.isTouchingAny($gameMap.findObjectGroup("firespitter"));
+		if(this._touchingObject && !this._touchingObject._isDefeated) {
+			return this._touchingObject !== null;
+		}
+		this._touchingObject = this.isTouchingAny($gameMap.findObjectGroup("icemaker"));
+		if(this._touchingObject && !this._touchingObject._isDefeated) {
+			return this._touchingObject !== null;
+		}
 		return false;
 	}
 

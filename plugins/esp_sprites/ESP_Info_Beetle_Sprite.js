@@ -17,7 +17,7 @@ class ESPInfoBeetleSprite extends ESPGameSprite {
 
 		this.Text = new PIXI.Text(text.replace(/(?:\[STH\]|\[WTH\])/, "          "), {
 			fontFamily: $gameSystem.mainFontFace(),
-			fontSize: 20,
+			fontSize: object._textSize ?? 20,
 			fill: 0xffffff,
 			align: "center",
 			stroke: "rgba(0, 0, 0, 0.75)",
@@ -76,7 +76,11 @@ class ESPInfoBeetleSprite extends ESPGameSprite {
 				SceneManager._scene.addUiChild(this.TextHolder);
 			}
 			if(showing) {
-				ESPAudio.talk();
+				if(this.Text.style.fontSize < 20) {
+					ESPAudio.whisper();
+				} else {
+					ESPAudio.talk();
+				}
 			}
 		}
 	}

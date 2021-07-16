@@ -101,9 +101,14 @@ class ESPSpearWallObject extends ESPGameObject {
 		const playerX = other.position.x;
 		const playerY = other.position.y;
 		const playerZ = other.realZ();
-		return playerX >= (this.position.x - TS2) && playerX < (this.position.x + TS2 + ((this._width - 1) * TS)) &&
-		(playerY >= this.position.y - TS2) && (playerY < this.position.y + TS2) && 
-		(playerZ >= this.realZ()) && (playerZ < this.realZ() + TS * 2);
+		return this.isTouchingPos(playerX, playerY, playerZ);
+	}
+
+	isTouchingPos(posX, posY, posZ) {
+		const TS2 = TS / 2;
+		return posX >= (this.position.x - TS2) && posX < (this.position.x + TS2 + ((this._width - 1) * TS)) &&
+		(posY >= this.position.y - TS2) && (posY < this.position.y + TS2) && 
+		(posZ >= this.realZ() + (TS * 2) - 10) && (posZ < this.realZ() + (TS * 2) + 10);
 	}
 
 	showSpears(refresh = true) {
@@ -120,6 +125,31 @@ class ESPSpearWallObject extends ESPGameObject {
 
 	isChanging() {
 		return this._showAnimation !== 0;
+	}
+
+	_GetCollisionMap(index) {
+		if(this._changedCollisions && this._changedCollisions[index] !== undefined) {
+			return this._changedCollisions[index];
+		}
+		return $gameMap.espCollisionMap[index] ?? 0
+	}
+
+	onCreate() {
+		this._changedCollisions = {};
+		const x = Math.floor(this.position.x / TS);
+		const y = Math.floor(this.position.y / TS);
+		for(let i = x; i < x + this._width; i++) {
+			const index = i + (y * $gameMap.width());
+			this._changedCollisions[index] = $gameMap.espCollisionMap[index];
+			$gameMap.espCollisionMap[index] = this.CollisionHeight + 2;
+		}
+	}
+
+	onRemoved() {
+		const keys = Object.keys(this._changedCollisions);
+		for(let i = 0; i < keys.length; i++) {
+			$gameMap.espCollisionMap[keys[i]] = this._changedCollisions[keys[i]];
+		}
 	}
 }
 

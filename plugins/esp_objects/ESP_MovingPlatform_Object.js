@@ -20,6 +20,11 @@
  * @type number
  * @default 300
  *
+ * @arg Offset Time
+ * @desc
+ * @type number
+ * @default 0
+ * 
  * @arg Platform Width
  * @desc
  * @type number
@@ -29,6 +34,26 @@
  * @desc
  * @type number
  * @default 1
+ * 
+ * @arg Orbit Movement
+ * @desc
+ * @type boolean
+ * @default false
+ * 
+ * @arg Orbit Radius
+ * @desc
+ * @type number
+ * @default 76
+ * 
+ * @arg Orbit X
+ * @desc
+ * @type string
+ * @default 0
+ * 
+ * @arg Orbit Y
+ * @desc
+ * @type string
+ * @default 0
  */
 
 class ESPMovingPlatformObject extends ESPGameObject {
@@ -43,6 +68,15 @@ class ESPMovingPlatformObject extends ESPGameObject {
 		this._collisionHeight = parseInt(data?.["Collision Height"]) ?? 1;
 		this._width = parseInt(data?.["Platform Width"]) ?? 1;
 		this._height = parseInt(data?.["Platform Height"]) ?? 1;
+
+		this._offsetTime = parseInt(data["Offset Time"]) || 0;
+
+		this._orbit = data["Orbit Movement"] === "true";
+		this._orbitRadius = parseInt(data["Orbit Radius"]) || 76;
+		this._orbitX = parseInt(data["Orbit X"]) || 0;
+		this._orbitY = parseInt(data["Orbit Y"]) || 0;
+		this._orbitOffsetX = parseFloat(data["Orbit Offset X"]) || 0;
+		this._orbitOffsetY = parseFloat(data["Orbit Offset Y"]) || 0;
 
 		const points = data?.["Points"];
 		if(Array.isArray(points)) {
@@ -66,7 +100,7 @@ class ESPMovingPlatformObject extends ESPGameObject {
 		this.oldX = 0;
 		this.oldY = 0;
 
-		this._time = 0;
+		this._time = this._offsetTime;
 		this._maxTime = parseInt(data?.["Duration"]) ?? 300;
 	}
 
@@ -147,9 +181,16 @@ class ESPMovingPlatformObject extends ESPGameObject {
 						"Platform Height": 1,
 						"Points": newPoints,
 						"Duration": this._maxTime,
+						"Offset Time": this._offsetTime,
 						"Image Type": imageType,
 						"Shadowless": true,
-						"Parent": this
+						"Parent": this,
+						"Orbit Movement": this._orbit ? "true" : "false",
+						"Orbit Radius": this._orbitRadius,
+						"Orbit X": this._orbitX,
+						"Orbit Y": this._orbitY,
+						"Orbit Offset X": x,
+						"Orbit Offset Y": y
 					});
 					$gameMap.addGameObject(obj, this.position.x + (x * TS), this.position.y + (y * TS));
 					//obj.update();
@@ -176,7 +217,14 @@ class ESPMovingPlatformObject extends ESPGameObject {
 		}
 
 		let resultData = null;
-		if(this._points.length > 1) {
+		if(this._orbit) {
+			const r = Math.PI * 2 * (this._time / this._maxTime);
+			const x = Math.round((Math.cos(r) * this._orbitRadius) + (this._orbitX * TS));
+			const y = Math.round((Math.sin(r) * this._orbitRadius) + (this._orbitY * TS));
+			this.position.x = x + (this._orbitOffsetX * TS);
+			this.position.y = y + (this._orbitOffsetY * TS);
+			this.position.z = (this._collisionHeight - this.CollisionHeight) * TS;
+		} else if(this._points.length > 1) {
 			const ratio = this._time / this._maxTime;
 			const len = this._points.length;
 			for(let i = 0; i < len; i++) {

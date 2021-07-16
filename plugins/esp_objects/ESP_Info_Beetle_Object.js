@@ -31,6 +31,11 @@
  * @value eval
  * @default all
  *
+ * @arg Text Size
+ * @desc
+ * @type number
+ * @default 20
+ * 
  * @arg Image
  * @desc The character image used.
  * @type string
@@ -64,6 +69,7 @@ class ESPInfoBeetleObject extends ESPGameObject {
 		this._untriggerDist = parseInt(data["Untrigger Distance"]) || 140;
 		this._mirror = data["Looking Left"] === "false";
 		this._textType = data["Text Type"];
+		this._textSize = parseInt(data["Text Size"] ?? "20") || 20;
 
 		this._customImage = data["Image"] ?? null;
 		this._customImageRate = parseInt(data["Image Rate"]) || 20;

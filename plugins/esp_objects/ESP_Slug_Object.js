@@ -21,6 +21,10 @@ class ESPSlugObject extends ESPGameObject {
 		return new ESPSlugSprite(this);
 	}
 
+	saveIndividual() {
+		return true;
+	}
+
 	update() {
 		super.update();
 
@@ -95,8 +99,13 @@ class ESPSlugObject extends ESPGameObject {
 		if(this._mode === 0) {
 			this.redoIdleMotion();
 		} else if(this._mode === 2) {
-			this.resetToDefaultMode();
-			this.redoIdleMotion(true);
+			/*this.resetToDefaultMode();
+			this.redoIdleMotion(true);*/
+			if(direction === 8 || direction === 2) {
+				this.speed.y = this.speed.y * -0.5;
+			} else if(direction === 6 || direction === 4) {
+				this.speed.x = this.speed.x * -0.5;
+			}
 		}
 	}
 

@@ -57,6 +57,8 @@
  * @value grounded
  * @option Random
  * @value random
+ * @option Constant
+ * @value constant
  * @desc
  * @default default
  * 
@@ -93,7 +95,7 @@ class ESPFirespitterObject extends ESPGameObject {
 		}
 		this._shootRateOffset = parseInt(data["Shoot Rate Offset"]) || 0;
 		this._distance = parseInt(data["Shoot Distance"]) || 0;
-		this._zLevel = data["Z Level Shift"] === "grounded" ? 1 : (data["Z Level Shift"] === "random" ? 2 : 0);
+		this._zLevel = data["Z Level Shift"] === "grounded" ? 1 : (data["Z Level Shift"] === "random" ? 2 : (data["Z Level Shift"] === "constant" ? 3 : 0));
 
 		this._respawnTime = parseInt(data["Respawn Time"]) || 0;
 
@@ -107,7 +109,10 @@ class ESPFirespitterObject extends ESPGameObject {
 	}
 
 	constructSprite() {
-		return new ESPFirespitterSprite(this, this._lookDir);
+		if(!this._spr) {
+			this._spr = new ESPFirespitterSprite(this, this._lookDir);
+		}
+		return this._spr;
 	}
 
 	saveGroup() {
@@ -139,30 +144,31 @@ class ESPFirespitterObject extends ESPGameObject {
 		return 25;
 	}
 
-	shoot() {
+	shoot(speed = null) {
 		if(this._distance !== 0 && this.getDistance($espGamePlayer) >= this._distance) {
 			return;
 		}
 
+		speed ??= this._fireballSpeed;
 		this._latestFireball = this.makeProjectile();
 		this._latestFireball.speed.x = this._latestFireball.speed.y = 0;
 		this._latestFireball.CollisionHeight = this.CollisionHeight;
 		switch(this._shootDir) {
-			case "left": { this._latestFireball.speed.x = -this._fireballSpeed; break; }
-			case "right": { this._latestFireball.speed.x = this._fireballSpeed; break; }
-			case "up": { this._latestFireball.speed.y = -this._fireballSpeed; break; }
-			case "down": { this._latestFireball.speed.y = this._fireballSpeed; break; }
+			case "left": { this._latestFireball.speed.x = -speed; break; }
+			case "right": { this._latestFireball.speed.x = speed; break; }
+			case "up": { this._latestFireball.speed.y = -speed; break; }
+			case "down": { this._latestFireball.speed.y = speed; break; }
 			case "player": {
 				const radians = Math.atan2(this.position.y - $espGamePlayer.position.y, this.position.x - $espGamePlayer.position.x);
-				this._latestFireball.speed.x = Math.cos(radians) * -this._fireballSpeed;
-				this._latestFireball.speed.y = Math.sin(radians) * -this._fireballSpeed;
+				this._latestFireball.speed.x = Math.cos(radians) * -speed;
+				this._latestFireball.speed.y = Math.sin(radians) * -speed;
 				break;
 			}
 			case "direction": {
 				const degrees = this._shootDirectionMin + (Math.random() * (this._shootDirectionMax - this._shootDirectionMin));
 				const radians = degrees * (Math.PI / 180);
-				this._latestFireball.speed.x = Math.cos(radians) * -this._fireballSpeed;
-				this._latestFireball.speed.y = Math.sin(radians) * -this._fireballSpeed;
+				this._latestFireball.speed.x = Math.cos(radians) * -speed;
+				this._latestFireball.speed.y = Math.sin(radians) * -speed;
 				break;
 			}
 		}

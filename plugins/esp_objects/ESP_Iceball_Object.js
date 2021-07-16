@@ -19,7 +19,7 @@ class ESPIceballObject extends ESPFireballObject {
 			if(firespitters.length > 0) {
 				const len = firespitters.length;
 				for(let i = 0; i < len; i++) {
-					if(this.getDistance(firespitters[i]) < this._collisionSize) {
+					if(!firespitters[i]._isDefeated && this.getDistance(firespitters[i]) < this._collisionSize) {
 						firespitters[i].defeat();
 					}
 				}

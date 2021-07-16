@@ -104,10 +104,10 @@ modify_Game_Map_1 = class {
 			ESPAudio.superFireballShot();
 		};
 
-		const top = (i) => {
+		const top = (i, extraSpd) => {
 			if(this._boss1Timer < 1600) return;
 			if(i === undefined) {
-				this._boss1Topies.forEach(b => b.shoot());
+				this._boss1Topies.forEach(b => b.shoot(extraSpd ? 2.5 : null));
 			} else {
 				this._boss1Topies.filterIndex(i).forEach(b => b.shoot());
 			}
@@ -162,10 +162,10 @@ modify_Game_Map_1 = class {
 				top(3); break;
 			}
 
-			case 3000: {
+			case 3020: {
 				left();
 				right();
-				top(); break;
+				top(undefined, true); break;
 			}
 		}
 
@@ -176,6 +176,9 @@ modify_Game_Map_1 = class {
 			if(this._boss1Timer > 3075) {
 				const r = (150 - (this._boss1Timer - 3075).clamp(0, 150)) / 150;
 				ESP.WS = r;
+				if(ESP.WS < 0.5) {
+					$espGamePlayer.canKill = false;
+				}
 			}
 			if(this._boss1Timer >= 3275) {
 				if(this._boss1Timer === 3275) {
@@ -188,6 +191,7 @@ modify_Game_Map_1 = class {
 				SceneManager._scene.updateCameraPos(true);
 			}
 			if(this._boss1Timer === 3500) {
+				$espGamePlayer.disableJump();
 				AudioManager.playBgm({ name: "Flashback", volume: 100, pitch: 100, pan: 0 });
 				SceneManager._scene.startSlideshow([
 					["img/pictures/Scene1/Page1.png"],
@@ -239,12 +243,13 @@ modify_Game_Map_1 = class {
 
 			if(this._boss1DidJump) {
 				if($espGamePlayer.position.z > 0 || $espGamePlayer.speed.z > 0) {
-					$espGamePlayer.speed.x = 0;
+					$espGamePlayer.speed.x = $espGamePlayer.position.x < 596 ? 2 : ($espGamePlayer.position.x > 700 ? -2 : 0);
 					$espGamePlayer.speed.y = $espGamePlayer.position.y > 585 ? -1 : 0;
 					$espGamePlayer._canControl = false;
 				} else {
 					$espGamePlayer.enableJump();
 					$espGamePlayer._canControl = true;
+					$espGamePlayer.canKill = true;
 					this._boss1Timer = 4000;
 				}
 			}

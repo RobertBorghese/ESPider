@@ -106,7 +106,7 @@ class ESPFireballSprite extends ESPGameSprite {
 			this._time += ESP.WS;
 		}
 
-		this._mainParticle.Index = this.mainParticleIndex();
+		this._mainParticle.setIndex(this.mainParticleIndex());
 		this._mainParticle.rotation += (this.espObject.speed.x === 0 ? (Math.sign(this.espObject.speed.y) * 0.1) : (0.1 * Math.sign(this.espObject.speed.x))) * ESP.WS;
 
 		const len = this._particles.length;

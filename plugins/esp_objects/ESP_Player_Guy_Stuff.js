@@ -12,6 +12,8 @@ class ESPGamePlayer extends ESPGameObject {
 		this.respawnPos = {x: 0, y: 0};
 		this.respawnCheckId = 0;
 
+		this.canKill = true;
+
 		this.FlyCount = 0;
 		this.FlyData = {};
 
@@ -437,6 +439,7 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	kill(offsetX, offsetY, offsetZ) {
+		if(!this.canKill) return;
 		if(this._interpreter) {
 			SceneManager._scene.setCameraToPlayer();
 			this.clearInterpreter();

@@ -65,7 +65,10 @@ class ESPIcemakerObject extends ESPFirespitterObject {
 	}
 
 	constructSprite() {
-		return new ESPIcemakerSprite(this, this._lookDir);
+		if(!this._spr) {
+			this._spr = new ESPIcemakerSprite(this, this._lookDir);
+		}
+		return this._spr;
 	}
 
 	saveGroup() {

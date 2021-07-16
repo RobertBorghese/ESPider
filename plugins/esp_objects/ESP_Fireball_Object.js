@@ -49,10 +49,13 @@ class ESPFireballObject extends ESPGameObject {
 		if(!this._isInitializing) {
 			super.update();
 
-			if(this._groundedStyle === 0) {
+			if(this._groundedStyle === 0 || (!this._desiredZ && this._groundedStyle === 3)) {
 				if(this.position.z > ESP.StandardFireballHeight) {
 					this.speed.z = -1;
 				} else {
+					if(this._groundedStyle === 3) {
+						this._desiredZ = this.realZ();
+					}
 					this.speed.z = 0;
 				}
 			} else if(this._groundedStyle === 1) {
@@ -71,6 +74,8 @@ class ESPFireballObject extends ESPGameObject {
 						}
 					}
 				}
+			} else if(this._groundedStyle === 3) {
+				this.speed.z = 0;
 			}
 		}
 
@@ -146,7 +151,7 @@ class ESPFireballObject extends ESPGameObject {
 			if(icemakers.length > 0) {
 				const len = icemakers.length;
 				for(let i = 0; i < len; i++) {
-					if(this.getDistance(icemakers[i]) < this._collisionSize) {
+					if(!icemakers[i]._isDefeated && this.getDistance(icemakers[i]) < this._collisionSize) {
 						icemakers[i].defeat();
 					}
 				}

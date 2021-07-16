@@ -33,6 +33,7 @@ modify_Game_Map = class {
 	setupESPGame() {
 		this.onTransferReady();
 		this.setFrozen(false);
+		this.constructCode();
 		this.initESPFields();
 		this.setupCollisionMap();
 		this.initMapEval();
@@ -43,6 +44,7 @@ modify_Game_Map = class {
 	// reset the map
 	resetESPGame() {
 		this.setFrozen(false);
+		this.constructCode();
 		this.removeAllGameObjects();
 		this.initMapEval();
 		this.initStartingGameObjects();
@@ -256,26 +258,32 @@ modify_Game_Map = class {
 		return null;
 	}
 
-	// handling map "notetags" very lazily
-	initMapEval() {
-		this._espTransitions = {};
-
-		let code = "";
+	constructCode() {
+		this._notetagCode = "";
 
 		if($dataMap && $dataMap.note) {
-			code += $dataMap.note + "\n";
+			this._notetagCode += $dataMap.note + "\n";
 		}
 
 		for(const event of $dataMap.events.filter(event => !!event)) {
 			if(event && event.pages && event.pages[0]) {
 				const data = event.pages[0];
-				data.list.forEach(function(event) {
+				data.list.forEach((event) => {
 					if(event.code === 355 || event.code === 655) {
-						code += event.parameters[0] + "\n";
+						this._notetagCode += event.parameters[0] + "\n";
 					}
 				});
 			}
 		}
+
+		if(this._notetagCode.contains("manualBehindKills()")) {
+			this._manualBehindKills = true;
+		}
+	}
+
+	// handling map "notetags" very lazily
+	initMapEval() {
+		this._espTransitions = {};
 
 		this._espStartX = $dataSystem.startX;
 		this._espStartY = $dataSystem.startY;
@@ -287,7 +295,7 @@ modify_Game_Map = class {
 
 		this._manualBehindKills = false;
 
-		if(code) {
+		if(this._notetagCode) {
 			const addGameObject = this.addGameObject.bind(this);
 			function addTransitionDir(dir, mapId, destDir, dest, requiredZ, newZ) {
 				this._espTransitions[dir] = [mapId, destDir, dest, requiredZ, newZ ?? 0];
@@ -308,7 +316,7 @@ modify_Game_Map = class {
 			const left = addTransitionDir.bind(this, "left");
 			const right = addTransitionDir.bind(this, "right");
 			try {
-				eval(code);
+				eval(this._notetagCode);
 			} catch(e) {
 				console.error(e);
 			}
@@ -461,6 +469,7 @@ modify_Game_Map = class {
 		if($gameMapTemp._gravityManipulators.includes(object)) {
 			$gameMapTemp._gravityManipulators.remove(object);
 		}
+		object.onRemoved();
 	}
 
 	// remove every game object in existance
