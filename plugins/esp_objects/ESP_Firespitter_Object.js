@@ -175,8 +175,12 @@ class ESPFirespitterObject extends ESPGameObject {
 		$gameMap.addGameObject(this._latestFireball, this.position.x, this.position.y, this.projectileInitialZ());
 	}
 
+	collisionKillSize() {
+		return 20;
+	}
+
 	updatePlayerKill() {
-		const size = 20;
+		const size = this.collisionKillSize();
 		if(this.getDistance($espGamePlayer) < size && ($espGamePlayer.position.z !== 0 || $espGamePlayer.CollisionHeight === this.CollisionHeight)) {
 			const spd = 60;
 			const distX = Math.abs(this.position.x - $espGamePlayer.position.x) / size;

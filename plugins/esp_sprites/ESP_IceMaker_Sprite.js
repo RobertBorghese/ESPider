@@ -2,7 +2,7 @@
 // damn thought, firespitter's sprite was simple af, now i gota fuck it all up making ice maker look nice
 
 class ESPIcemakerSprite extends ESPFirespitterSprite {
-	constructor(object, lookLeft) {
+	constructor(object, lookLeft, animationOffset) {
 		super(object, lookLeft, true);
 
 		this.espObject = object;
@@ -23,7 +23,7 @@ class ESPIcemakerSprite extends ESPFirespitterSprite {
 			this._head.addChild(ShadowSprite);
 
 			this._headSpr = new ESPAnimatedSprite("img/enemies/Icemaker_Head.png", 10);
-			this._headSpr.scale.set(2);
+			this._headSpr.scale.set(this._lookLeft ? -2 : 2, 2);
 			this._headSpr.anchor.set(0.5, 1);
 			this._head.addChild(this._headSpr);
 		}
@@ -50,8 +50,8 @@ class ESPIcemakerSprite extends ESPFirespitterSprite {
 			this._bug.addChild(spr);
 			this._bodies.push(spr);
 		}
-		
-		this._time = 0;
+
+		this._time = animationOffset;
 		this._timeInc = 0.2;
 
 		this._animationTime = 1;
@@ -94,12 +94,12 @@ class ESPIcemakerSprite extends ESPFirespitterSprite {
 		const len = this._bodies.length;
 		for(let i = 0; i < len; i++) {
 			const spr = this._bodies[i];
-			spr.x = Math.cos((this._time + ((i * -0.3) * durr * 2)) / durr) * 16;
+			spr.x = Math.cos((this._time + ((i * -0.3) * durr * 2)) / durr) * 16 * (this._lookLeft ? -1 : 1);
 			spr._desiredY = (Math.sin((this._time + ((i * -0.3) * durr * 2)) / durr) * 6);
 			spr.y = spr._desiredY + spr._baseY;
 		}
 
-		this._headSpr.scale.x = this._head.x < 0 ? -2 : 2;
+		this._headSpr.scale.x = (this._head.x < 0 ? -2 : 2) * (this._lookLeft ? -1 : 1);
 	}
 
 	updateShadowSprite() {

@@ -5,68 +5,22 @@
  * @text Options for icemaker.
  * @desc
  *
- * @arg Shoot Rate
+ * @arg Animation Offset
  * @desc 
- * @type number
- * @default 120
- *
- * @arg Shoot Rate Offset
- * @desc 
- * @type number
+ * @type string
  * @default 0
- *
- * @arg Fireball Speed
- * @desc 
- * @type number
- * @default 2
- * 
- * @arg Look Dir
- * @desc 
- * @type boolean
- * @on Left
- * @off Right
- * @default false
- *
- * @arg Shoot Dir
- * @type select
- * @option Up
- * @value up
- * @option Down
- * @value down
- * @option Left
- * @value left
- * @option Right
- * @value right
- * @option Shoot Player
- * @value player
- * @desc
- * @default left
- *
- * @arg Shoot Distance
- * @desc 
- * @type number
- * @default 0
- * 
- * @arg Z Level Shift
- * @type select
- * @option No Change
- * @value default
- * @option Grounded
- * @value grounded
- * @option Random
- * @value random
- * @desc
- * @default default
  */
 
 class ESPIcemakerObject extends ESPFirespitterObject {
 	constructor(data) {
 		super(data);
+
+		this._animationOffset = parseInt(data["Animation Offset"]) || 0;
 	}
 
 	constructSprite() {
 		if(!this._spr) {
-			this._spr = new ESPIcemakerSprite(this, this._lookDir);
+			this._spr = new ESPIcemakerSprite(this, this._lookDir, this._animationOffset);
 		}
 		return this._spr;
 	}
@@ -81,6 +35,10 @@ class ESPIcemakerObject extends ESPFirespitterObject {
 
 	projectileInitialZ() {
 		return 18;
+	}
+
+	collisionKillSize() {
+		return 25;
 	}
 }
 
