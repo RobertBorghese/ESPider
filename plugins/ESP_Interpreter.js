@@ -241,6 +241,22 @@ class ESPInterpreter {
 		return this;
 	}
 
+	callFunction(func, thisObj) {
+		this._list.push([
+			function() {
+				if(thisObj) {
+					func.call(thisObj);
+				} else {
+					func();
+				}
+			},
+			function() {
+				return true;
+			}
+		]);
+		return this;
+	}
+
 	freezeWorldRendering(locations) {
 		this._list.push([
 			function() {
@@ -271,7 +287,12 @@ class ESPInterpreter {
 				switch(num) {
 					case 1: { $gameMap.startBoss1(); break; }
 					case 2: { $gameMap.startBoss2(); break; }
-					case 3: { $gameMap.startBoss3(); break; }
+					case 3: {
+						if($gameMap._slugBoss) {
+							$gameMap._slugBoss.startBoss();
+						}
+						break;
+					}
 					case 4: { $gameMap.startBoss4(); break; }
 				}
 			},
@@ -288,7 +309,7 @@ class ESPInterpreter {
 				switch(num) {
 					case 1: { $gameMap.finishBoss1(); break; }
 					case 2: { $gameMap.finishBoss2(); break; }
-					case 3: { $gameMap.finishBoss3(); break; }
+					case 3: { break; }
 					case 4: { $gameMap.finishBoss4(); break; }
 				}
 			},

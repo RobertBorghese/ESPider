@@ -8,6 +8,8 @@ class ESPAnimatedSprite extends PIXI.Sprite {
 			ESPAnimatedSprite.bitmapFrames = {};
 		}
 
+		this.StartFrame = 0;
+
 		this.FrameDelay = FrameDelay ?? 10;
 		if(typeof InvertOrObj === "object") {
 			this.Invert = InvertOrObj.Invert ?? false;
@@ -15,6 +17,7 @@ class ESPAnimatedSprite extends PIXI.Sprite {
 			this.InitOffset = InvertOrObj.InitOffset ?? 0;
 			this.FrameCount = InvertOrObj.FrameCount ?? null;
 			this.TopCutoff = InvertOrObj.TopCutoff ?? -1;
+			this.StartFrame = InvertOrObj.StartFrame ?? 0;
 		} else {
 			this.Invert = InvertOrObj ?? false;
 			this.Offset = Offset ?? 0;
@@ -147,12 +150,12 @@ class ESPAnimatedSprite extends PIXI.Sprite {
 		} else {
 			this.Index++;
 			if(this.Index >= this.MaxIndex) {
-				this.Index = 0;
+				this.Index = this.StartFrame;
 			}
 		}
 		
 		let FinalIndex = this.Index + this.Offset;
-		if(FinalIndex < 0) FinalIndex += this.MaxIndex;
+		if(FinalIndex < this.StartFrame) FinalIndex += this.MaxIndex;
 		if(FinalIndex >= this.MaxIndex) FinalIndex -= this.MaxIndex;
 
 		if(FinalIndex === this.MaxIndex - 1) {

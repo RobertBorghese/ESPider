@@ -55,6 +55,10 @@ class ESPTriggerBugObject extends ESPGameObject {
 		return this._spr;
 	}
 
+	saveIndividual() {
+		return true;
+	}
+
 	saveGroup() {
 		return "triggerbug";
 	}

@@ -26,6 +26,9 @@ modify_Scene_Map = class {
 	createDisplayObjects() {
 		ESP.Scene_Map.createDisplayObjects.apply(this, arguments);
 
+		this._hudHolder = new Sprite();
+		this.addChild(this._hudHolder);
+
 		this._slideshowHolder = new Sprite();
 		this.addChild(this._slideshowHolder);
 
@@ -120,6 +123,7 @@ modify_Scene_Map = class {
 					const obj = $gameMap.createEventObjectFromId(respawn[0]);
 					obj.position.z = respawn[2];
 					$gameMapTemp._requestedRespawns.splice(i, 1);
+					$gameMap.onRespawn(obj);
 					i--;
 				}
 			}

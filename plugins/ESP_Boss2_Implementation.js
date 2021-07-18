@@ -591,7 +591,7 @@ modify_Game_Map_2 = class {
 
 				let buttonX = 0;//Math.floor(Math.random() * (21 - 9)) + 9;
 				if(this._boss2Data.phase === 0) {
-					buttonX = Math.random() < 0.5 ? 10 : 20;
+					buttonX = 15;
 				} else if(this._boss2Data.phase === 1) {
 					buttonX = Math.random() < 0.5 ? 10 : 20;
 				} else if(this._boss2Data.phase === 2) {
@@ -610,7 +610,7 @@ modify_Game_Map_2 = class {
 					let y = 11;
 					let x = 0;
 					if(this._boss2Data.phase === 0) {
-						x = buttonX;
+						x = Math.random() < 0.5 ? 10 : 20;
 					} else if(this._boss2Data.phase === 1) {
 						x = 15;
 					} else if(this._boss2Data.phase === 2) {

@@ -70,12 +70,14 @@ class ESPIcemakerSprite extends ESPFirespitterSprite {
 	update() {
 		super.update();
 
-		this._bug.children.sort(function(a, b) {
-			if(a._desiredY !== b._desiredY) {
-				return a._desiredY - b._desiredY;
-			}
-			return a.spriteId - b.spriteId;
-		});
+		if(this.visible) {
+			this._bug.children.sort(function(a, b) {
+				if(a._desiredY !== b._desiredY) {
+					return a._desiredY - b._desiredY;
+				}
+				return a.spriteId - b.spriteId;
+			});
+		}
 
 		if(this.espObject._fastAnimation && this._animationTime > 0) {
 			this._animationTime -= 0.3;

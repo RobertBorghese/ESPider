@@ -76,6 +76,7 @@
  * @arg Shoot Direction Max
  * @desc 
  * @type number
+ * @min -1000
  * @default 90
  */
 
@@ -195,6 +196,10 @@ class ESPFirespitterObject extends ESPGameObject {
 			$gameMap.shake();
 			ESPAudio.triggerBugKill();
 		}
+	}
+
+	isDefeated() {
+		return this._isDefeated;
 	}
 
 	updateConsumeAnimation(speedZ) {

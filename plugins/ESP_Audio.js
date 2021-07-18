@@ -98,7 +98,18 @@ class ESPAudio {
 		"Boss2Shot",
 		"Boss2ShotBig",
 		"Boss2Charge",
-		["Boss2Damage2", 0.8]
+		["Boss2Damage2", 0.8],
+
+		"BigSnailDashCharge2",
+		["BigSnailDashStart", 0.7],
+		["BigSnailDashStartLong", 0.7],
+		"BigSnailJump2",
+		"BigSnailLand",
+		"BigSnailDamage",
+		["BigSnailRest2", 0.9],
+		"BigSnailBreathe",
+		["BigSnailBlock2", 0.9],
+		"BigSnailDefeat"
 	];
 
 	static setup() {

@@ -52,6 +52,12 @@
  * @min -9999
  * @default 10
  *
+ * @arg Text Offset Y
+ * @desc The text offset
+ * @type number
+ * @min -9999
+ * @default 0
+ *
  * @arg Dont Show Shadow
  * @desc
  * @type boolean
@@ -75,6 +81,8 @@ class ESPInfoBeetleObject extends ESPGameObject {
 		this._customImageRate = parseInt(data["Image Rate"]) || 20;
 		this._customImageOffsetY = parseInt(data["Image Offset Y"]) || 10;
 		this._dontShowShadow = data["Dont Show Shadow"] === "true";
+
+		this._textOffsetY = parseInt(data["Text Offset Y"]) || 0;
 
 		if(this._textType === "roomDeaths") {
 			this._text = data.text[$gameMap.RoomKillCount.clamp(0, data.text.length - 1)];

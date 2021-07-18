@@ -27,6 +27,7 @@ class ESPFirespitterSprite extends ESPGameSprite {
 
 	update() {
 		super.update();
+		this.updateVisibility();
 		this.updateAnimation();
 
 		if(this._isDefeating === 0) {
@@ -58,5 +59,11 @@ class ESPFirespitterSprite extends ESPGameSprite {
 		this.ShadowSprite.move(0, 0);
 		this.ShadowSprite.scale.set(this._bug.scale.x * (((500 - this.espObject.position.z).clamp(0, 500) / 500) + ((this._spitterSprite.Index === 0 ? 1 : 0) * 0.1)));
 		this.ShadowSprite.alpha = this.ShadowSprite.scale.x;
+	}
+
+	updateVisibility() {
+		if(!this.espObject._isDefeated) {
+			this.visible = $gameMap.inCamera(this.x - 100, this.x + 100, this.y - 100, this.y + 100);
+		}
 	}
 }

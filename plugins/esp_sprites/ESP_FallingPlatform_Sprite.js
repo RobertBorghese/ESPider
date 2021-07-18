@@ -84,6 +84,9 @@ class ESPFallingPlatformSprite extends ESPMovingPlatformSprite {
 		}
 	}
 
+	updateAlpha() {
+	}
+
 	updateShadowSprite() {
 		if(this._hasShadow) {
 			this.ShadowSprite.move((this._shadowWidth - 1) * (TS / 2), (this._shadowHeight - 1) * (TS / 2));

@@ -89,7 +89,7 @@ class ESPInfoBeetleSprite extends ESPGameSprite {
 		const ratio = (this._showingText ? Easing.easeOutBack : Easing.easeOutCubic)(this._time);
 		this.TextHolder.scale.set(ratio);
 		this.TextHolder.x = this.x + this.ObjectHolder.x;
-		this.TextHolder.y = this.y + this.ObjectHolder.y + Math.round((this.TextHolder._baseY * ratio) - (25));
+		this.TextHolder.y = this.y + this.ObjectHolder.y + Math.round((this.TextHolder._baseY * ratio) - (25) + this.espObject._textOffsetY);
 	}
 
 	updateShadowSprite() {

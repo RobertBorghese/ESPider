@@ -51,6 +51,9 @@ modify_Spriteset_Map = class {
 		}
 
 		this.ensureSpritesAreForcedAbove();
+
+		this._hudHolder = new Sprite();
+		this.addChild(this._hudHolder);
 	}
 
 	addGameSprite(obj) {
@@ -642,6 +645,10 @@ modify_Spriteset_Map = class {
 						}
 					}
 
+					if(!spr._espSurronded && $gameMap.permaInvisibleFunc) {
+						spr._espSurronded = $gameMap.permaInvisibleFunc(spr);
+					}
+
 					// try and make far-out walls dark?
 					/*
 					if(spr._espSurronded && $gameMap.highestRegionId === regionId) {
@@ -810,7 +817,13 @@ class ESPGameSprite extends Sprite {
 			this._objY = this.espObject.position.y;
 			this._colZBase = (this.espObject.CollisionHeight * TS) + 1;
 			this._colZ = this.espObject.position.z + this._colZBase;
+
+			this.updateAlpha();
 		}
+	}
+
+	updateAlpha() {
+		this.alpha = this.espObject.position.z > 300 ? 1 - ((this.espObject.position.z - 300) / 200).clamp(0, 1) : 1;
 	}
 
 	updateShadowSprite() {

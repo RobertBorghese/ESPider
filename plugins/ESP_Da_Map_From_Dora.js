@@ -20,6 +20,7 @@ modify_Game_Map = class {
 		this.ESPCameraOffsetX = 0;
 		this.ESPCameraOffsetY = 0;
 		this.skipTransitionIn = false;
+		this.PostObjectsCreation = null;
 		this.initESPFields();
 	}
 
@@ -39,6 +40,9 @@ modify_Game_Map = class {
 		this.initMapEval();
 		this.initStartingGameObjects();
 		this.initPlayerPos();
+		if(this.PostObjectsCreation) {
+			this.PostObjectsCreation();
+		}
 	}
 
 	// reset the map
@@ -49,6 +53,9 @@ modify_Game_Map = class {
 		this.initMapEval();
 		this.initStartingGameObjects();
 		this.cleanUpBosses();
+		if(this.PostObjectsCreation) {
+			this.PostObjectsCreation();
+		}
 		$espGamePlayer.restoreRespawnPos();
 	}
 
@@ -296,6 +303,8 @@ modify_Game_Map = class {
 
 		this._manualBehindKills = false;
 
+		this.PostObjectsCreation = null;
+
 		if(this._notetagCode) {
 			const addGameObject = this.addGameObject.bind(this);
 			function addTransitionDir(dir, mapId, destDir, dest, requiredZ, newZ) {
@@ -426,8 +435,10 @@ modify_Game_Map = class {
 					spriteset.addGameSprite(object);
 					object.onCreate();
 				}
+				return object;
 			}
 		}
+		return null;
 	}
 
 	findObject(name) {
@@ -576,8 +587,8 @@ modify_Game_Map = class {
 	// called whenever a fade in/out is complete
 	onESPFadeOutComplete(isIn) {
 		if(!isIn) {
-			$espGamePlayer.unkill();
 			this.cleanUpBossesAfterFade();
+			$espGamePlayer.unkill();
 			this.espFadeIn();
 		}
 	}
@@ -594,13 +605,31 @@ modify_Game_Map = class {
 		}
 	}
 
+	isBoss3() {
+		return this._slugBoss !== null;
+	}
+
+	cleanUpBoss3(isDefeated = false) {
+		if(this._slugBoss) {
+			this._slugBoss.onDefeatFinal(isDefeated);
+			this._slugBoss = null;
+		}
+	}
+
 	cleanUpBossesAfterFade() {
 		this.cleanUpBoss2AfterFade();
+		if(this.isBoss3()) {
+			this.cleanUpBoss3();
+		}
 	}
 
 	// increment the RoomKillCount
 	onPlayerKilled() {
 		this.RoomKillCount++;
+		$gameMapTemp._requestedRespawns = null;
+		if(this._slugBoss) {
+			this._slugBoss.onPlayerKilled();
+		}
 	}
 
 	// save the game
@@ -668,6 +697,12 @@ modify_Game_Map = class {
 		}
 		const curr = SceneManager._scene.gameTime;
 		$gameMapTemp._requestedRespawns.push([eventId, curr + time, z]);
+	}
+
+	onRespawn(obj) {
+		if(this.OnRespawnFunction) {
+			this.OnRespawnFunction(obj);
+		}
 	}
 
 	shake(duration = 100, weakMagnitude = 0.6, strongMagnitude = 0.9, start = 10) {
