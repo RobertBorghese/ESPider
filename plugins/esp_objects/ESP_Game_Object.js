@@ -168,6 +168,9 @@ class ESPGameObject {
 		const xx =  Math.floor(((xPos ?? this.position.x) + (this.rectWidth() * x)) / tileSize);
 		const yy = Math.floor(((yPos ?? this.position.y) + (this.rectHeight() * y)) / tileSize);
 		if(xx < 0 || yy < 0 || xx >= $gameMap.width() || (xx + (yy * $dataMap.width)) >= $gameMap.espCollisionMap.length) return 99;
+		if(yy >= $gameMap.MapBottom) {
+			return 99;
+		}
 		const movingPlatform = this._GetMovingPlatform(x, y, xPos, yPos);
 		if(movingPlatform !== null) {
 			return movingPlatform.standCollisionHeight();
@@ -186,6 +189,9 @@ class ESPGameObject {
 		const xx =  Math.floor(((xPos ?? this.position.x) + (this.rectWidth() * x)) / tileSize);
 		const yy = Math.floor(((yPos ?? this.position.y) + (this.rectHeight() * y)) / tileSize);
 		if(xx < 0 || yy < 0 || xx >= $gameMap.width() || (xx + (yy * $dataMap.width)) >= $gameMap.espCollisionMap.length) return [99, 0];
+		if(yy >= $gameMap.MapBottom) {
+			return [99, 0];
+		}
 		const index = xx + (yy * $dataMap.width);
 		const movingPlatform = this._GetMovingPlatform(x, y, xPos, yPos);
 		if(movingPlatform !== null) {

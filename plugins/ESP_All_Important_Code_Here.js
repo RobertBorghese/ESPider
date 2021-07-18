@@ -63,7 +63,7 @@ ESP.makeText = function(text, fontSize = 20, align = "center") {
 	Text.anchor.set(0.5, 1);
 	Text.resolution = 2;
 	return Text;
-}
+};
 
 // World Speed
 ESP.WS = 1;

@@ -38,6 +38,8 @@ class ESPGamePlayer extends ESPGameObject {
 		this._deathParticles = null;
 		this._isVisible = true;
 
+		this._dashDirection = null;
+
 		this._interpreter = null;
 
 		this.lastDeathTime = -1;
@@ -97,12 +99,85 @@ class ESPGamePlayer extends ESPGameObject {
 		this._didJumpThisFrame = false;
 		this.updateInterpreter();
 		this.updatePlayerControl();
-		this.updateInput();
-		this.updateFalling();
-		super.update();
+		if(!this.updateDashMovement()) {
+			this.updateInput();
+			this.updateFalling();
+			super.update();
+			this.updateDeathTiles();
+		}
 		this.updateTransition();
-		this.updateDeathTiles();
 		this.updateDying();
+	}
+
+	updateDashMovement() {
+		if(this._isDying) return false;
+
+		this.updateDashAfterImageAlpha();
+
+		if(this.isDashing()) {
+			this.position.x = ESP.lerp(this.position.x, this._dashTargetX, 0.3);
+			this.position.y = ESP.lerp(this.position.y, this._dashTargetY, 0.3);
+
+			if(this._dashChargeString) this._dashChargeString.visible = false;
+
+			const diff = Math.max(Math.abs(this.position.x - this._dashTargetX), Math.abs(this.position.y - this._dashTargetY));
+			if(diff < 1) {
+				this.onDashComplete();
+			} else {
+				this.createDashAfterImage(diff);
+				this.refreshDashString();
+			}
+			return true;
+		}
+		return false;
+	}
+
+	isDashing() {
+		return !!this._dashChargeString && !!this._dashTargetX;
+	}
+
+	updateDashAfterImageAlpha() {
+		if(this._dashSprites) {
+			let allInvis = true;
+			for(let i = 0; i < this._dashSprites.length; i++) {
+				this._dashSprites[i].alpha -= 0.02;
+				if(this._dashSprites[i].alpha > 0) {
+					allInvis = false;
+				}
+			}
+			if(allInvis) {
+				this.destroyAllDashSprites();
+			}
+		}
+	}
+	
+	createDashAfterImage(diff) {
+		if(diff >= 20 && !this._placedDashSprite) {
+			const spr = new Sprite(this._dashBitmap);
+			spr.alpha = 0.5;
+			spr.x = this.position.x - this._dashOriginalX;
+			spr.y = this.position.y - this._dashOriginalY;
+			SceneManager._scene._spriteset._tilemap._uiHolder.addChild(spr);
+			this._dashSprites.push(spr);
+			this._placedDashSprite = true;
+		} else {
+			this._placedDashSprite = false;
+		}
+	}
+
+	onDashComplete() {
+		this.position.x = this._dashTargetX;
+		this.position.y = this._dashTargetY;
+		this.destroyDashData();
+		this.speed.z = this._webChargeAmount === 2 ? 6 : (this._webChargeAmount === 1 ? 3 : 0);
+		if(this.speed.z > 0) {
+			ESPAudio.jump();
+		}
+	}
+
+	destroyDashData() {
+		this._dashTargetX = this._dashTargetY = null;
+		this._dashDirection = null;
 	}
 
 	updateInterpreter() {
@@ -164,6 +239,10 @@ class ESPGamePlayer extends ESPGameObject {
 		return !this._isDying && $gameVariables.value(1) >= 2;
 	}
 
+	canDash() {
+		return !this._isDying && $gameVariables.value(1) >= 3;
+	}
+
 	enableJump() {
 		if(!this.canJump()) {
 			$gameVariables.setValue(1, 1);
@@ -190,7 +269,25 @@ class ESPGamePlayer extends ESPGameObject {
 		} else if(button === 2) {
 			return Input.isReleasedEx("button_x");
 		}
-		return true;
+		return false;
+	}
+
+	isDashTriggered() {
+		if(TouchInput.isRightClickTriggered()) return 1;
+		if(Input.isTriggeredEx("button_l")) return 2;
+		if(Input.isTriggeredEx("button_r")) return 3;
+		return 0;
+	}
+
+	isDashReleased(button) {
+		if(button === 1) {
+			return TouchInput.isRightClickReleased();
+		} else if(button === 2) {
+			return Input.isReleasedEx("button_l");
+		} else if(button === 3) {
+			return Input.isReleasedEx("button_r");
+		}
+		return false;
 	}
 
 	updateJump() {
@@ -275,29 +372,277 @@ class ESPGamePlayer extends ESPGameObject {
 			}
 		}
 
-		/*
-		if(TouchInput.isTriggered()) {
-			if(this._playerIsGravity) {
-				$gameMapTemp._gravityManipulators.remove(this);
+		this.updateDash();
+	}
+
+	updateDash() {
+		if(this.canDash()) {
+			this.updateDashDirection();
+			if(this._dashDirection !== null && this._awaitingDashDirection) {
+				this._awaitingDashDirection = false;
+				this.startDash();
+			}
+			if(!this.IsDashCharging) {
+				if(!this._dashChargeObject) {
+					this._dashButton = this.isDashTriggered();
+					if(this._dashButton !== 0) {
+						this.IsDashCharging = true;
+						if(this._dashDirection === null) {
+							this._awaitingDashDirection = true;
+						} else {
+							this.startDash();
+						}
+					}
+				}
 			} else {
-				$gameMapTemp._gravityManipulators.push(this);
+				const dashReleased = this.isDashReleased(this._dashButton);
+				if(dashReleased) {
+					if(this._awaitingDashDirection) {
+						this._awaitingDashDirection = false;
+					} else {
+						this.releaseDash();
+					}
+				} else {
+					this.incrementDashTime();
+					this.updateDashObject();
+				}
 			}
-			this._playerIsGravity = !this._playerIsGravity;
-		}*/
-		/*
-		if(TouchInput.isTriggered()) {
-			const x = $gameMap.canvasToMapXPrecise(TouchInput.x);
-			const y = $gameMap.canvasToMapYPrecise(TouchInput.y);
-			const obj = new ESPWebGravityObject();
-			$gameMap.addGameObject(obj, x, y);
-			gravityObjects.push(obj);
-		} else if(TouchInput.isCancelled()) {
-			const len = gravityObjects.length;
-			for(let i = 0; i < len; i++) {
-				$gameMap.removeGameObject(gravityObjects[i]);
+			this.updatePostDashShoot();
+		}
+	}
+
+	updateDashDirection() {
+		let radians = null;
+		if(this._dashButton === 1) {
+			const pos = SceneManager._scene._spriteset._espPlayer.getGlobalPosition();
+			radians = Math.atan2(TouchInput.y - pos.y, TouchInput.x - pos.x);
+		} else if(Math.abs($espGamePlayer.speed.x) > 0.2 || Math.abs($espGamePlayer.speed.y) > 0.2) {
+			radians = Math.atan2($espGamePlayer.speed.y, $espGamePlayer.speed.x);
+		}
+		if(radians !== null && this._dashDirection !== radians) {
+			this._dashDirection = radians;
+		}
+	}
+
+	startDash() {
+		this.destroyDashObject();
+
+		this._webDashAimTime = 0;
+		this._webChargeAmount = 0;
+
+		if(this._dashChargeString) {
+			this._dashChargeString.visible = true;
+			this._dashChargeString.alpha = 1;
+		}
+
+		this._dashChargeObject = new ESPWebShotObject();
+		this._dashChargeObject.position.z = 18;
+		$gameMap.addGameObject(this._dashChargeObject);
+		this.updateDashObject(true);
+	}
+
+	releaseDash() {
+		this._dashButton = 0;
+		this.IsDashCharging = false;
+
+		if(this._dashChargeObject._visible) {
+			ESPAudio.webDeviceAttach();
+			this._shootDirection = this._dashDirection;
+			this._dashChargeObject.shoot(Math.cos(this._dashDirection) * 10, Math.sin(this._dashDirection) * 10, this._webChargeAmount);
+		} else {
+			this.destroyDashObject();
+		}
+	}
+
+	incrementDashTime() {
+		if(this._dashChargeObject?._visible) {
+			this._webDashAimTime++;
+		}
+	}
+
+	updateDashObject(force) {
+		if(!this._dashChargeObject) return;
+
+		const was99 = this._dashChargeObject.CollisionHeight >= 99;
+		if(was99) { this._dashChargeObject.CollisionHeight = 0; }
+
+		if(this._webDashAimTime === 6) {
+			ESPAudio.webDashChargeStart();
+		}
+
+		this.updateDashObjectChargePosition(force);
+		this.updateDashObjectChargeRotation();
+		this.updateDashChargeAmount();
+		this.updateDashObjectVisibility(was99);
+		this.refreshDashString();
+	}
+
+	updateDashObjectChargePosition(force) {
+		const r = this._webDashAimTime > 10 ? 1 : Easing.easeOutCubic(this._webDashAimTime / 10);
+		this._dashChargeObjectX = (this.position.x + Math.cos(this._dashDirection) * 40 * r) - 4;
+		this._dashChargeObjectY = this.position.y + (Math.sin(this._dashDirection) * 40 * r) * 0.7;
+		this._dashChargeObjectZ = this.position.z + (TS * (this.CollisionHeight - this._dashChargeObject.CollisionHeight)) + 18 + (Math.sin(this._webDashAimTime / 5) * 3);
+		if(force || !this._dashChargeObject._visible) {
+			this._dashChargeObject.position.x = this._dashChargeObjectX;
+			this._dashChargeObject.position.y = this._dashChargeObjectY;
+			this._dashChargeObject.position.z = this._dashChargeObjectZ;
+		} else {
+			this._dashChargeObject.position.x = ESP.lerp(this._dashChargeObjectX, this._dashChargeObject.position.x, 0.7);
+			this._dashChargeObject.position.y = ESP.lerp(this._dashChargeObjectY, this._dashChargeObject.position.y, 0.7);
+			this._dashChargeObject.position.z = ESP.lerp(this._dashChargeObjectZ, this._dashChargeObject.position.z, 0.7);
+		}
+	}
+
+	updateDashObjectChargeRotation() {
+		this._dashChargeObject.addSpriteRotation(0.06);
+	}
+
+	updateDashChargeAmount() {
+		const newChargeAmount = this._webDashAimTime > 80 ? 2 : (this._webDashAimTime > 40 ? 1 : 0);
+		if(this._webChargeAmount !== newChargeAmount) {
+			this._webChargeAmount = newChargeAmount;
+			if(newChargeAmount === 1) {
+				ESPAudio.webDashChargeMid();
+			} else if(newChargeAmount === 2) {
+				ESPAudio.webDashChargeFinal();
 			}
-			gravityObjects = [];
-		}*/
+		}
+		this._dashChargeObject._spr._mainParticle.setIndex(this._webChargeAmount === 1 ? 2 : (this._webChargeAmount === 2 ? 1 : 3));
+	}
+
+	updateDashObjectVisibility(was99) {
+		this._dashChargeObject.setVisible(!was99 && this._dashChargeObject.CollisionHeight <= this.CollisionHeight);
+		if(this._dashChargeString) this._dashChargeString.visible = this._dashChargeObject._visible;
+		this._dashChargeObject._spr.update();
+	}
+
+	refreshDashString() {
+		if(!this._dashChargeString) {
+			this._dashChargeString = new PIXI.Graphics();
+			SceneManager._scene._spriteset._tilemap._espPlayer._webHolder.addChild(this._dashChargeString);
+		}
+
+		if(!this._dashChargeString.visible) return;
+		
+		this._dashChargeString.clear();
+		this._dashChargeString.lineStyle(2, 0xffffff, 0.8);
+
+		let startX = 0;
+		let startY = -20 + SceneManager._scene._spriteset._tilemap._espPlayer.BodySprite.y;
+		if(this._dashChargeObject && this._dashChargeObject._downMode) {
+			this._dashChargeString.alpha = this._dashChargeObject.alpha;
+		}
+		this._dashChargeString.moveTo(startX, startY);
+
+		let x = 0;
+		let y = 0;
+		let z = 0;
+		if(this._dashTargetX) {
+			x = this._dashTargetX + this._dashTargetDisplayX;
+			y = this._dashTargetY;
+			z = this._dashTargetZ;
+		} else if(this._dashChargeObject) {
+			x = this._dashChargeObject.position.x;
+			y = this._dashChargeObject.position.y;
+			z = this._dashChargeObject.realZ();
+		}
+
+		let offsetX = 0;
+		let offsetY = 0;
+		if(this._dashChargeObject && this._dashChargeObject._shooting && this._dashChargeObject._spr._mainParticle.Index >= 6) {
+			offsetX = Math.cos(this._shootDirection) * 10;
+			offsetY = Math.sin(this._shootDirection) * 10;
+		}
+
+		this._dashChargeString.lineTo((x + 4) - this.position.x + offsetX, (y - (z - this.realZ()) - 6) - this.position.y + offsetY);
+	}
+
+	updatePostDashShoot() {
+		if(this._dashChargeObject) {
+			this.refreshDashString();
+		}
+	}
+
+	destroyDashObject() {
+		if(this._dashChargeObject) {
+			$gameMap.removeGameObject(this._dashChargeObject);
+			this._dashChargeObject = null;
+		}
+		if(this._dashChargeString) {
+			this._dashChargeString.clear();
+			this._dashChargeString.visible = false;
+		}
+	}
+
+	destroyDashString() {
+		if(this._dashChargeString) {
+			SceneManager._scene._spriteset._tilemap._espPlayer._webHolder.removeChild(this._dashChargeString);
+			this._dashChargeString.destroy();
+			this._dashChargeString = null;
+		}
+	}
+
+	endDashShot() {
+		if(this._dashChargeObject) {
+			this._dashChargeObject.enterDownMode();
+		}
+	}
+
+	connectTheDash(direction) {
+		if(this.canConnectDash()) {
+			this.setupDashTargetPositions(direction);
+			ESPAudio.webDashHitWall();
+			this.createDashAfterImageBitmap();
+			this.createDashAfterImageArray();
+			this.createDashInitialAfterImage();
+		}
+		this.destroyDashObject();
+	}
+
+	canConnectDash() {
+		return this._dashChargeObject && this._dashChargeObject.CollisionHeight <= this.CollisionHeight;
+	}
+
+	setupDashTargetPositions(direction) {
+		this._dashTargetDisplayX = (direction === 4 ? -30 : (direction === 6 ? 30 : 0));
+		this._dashTargetX = this._dashChargeObject.position.x;
+		this._dashTargetY = this._dashChargeObject.position.y;
+		this._dashTargetZ = this.position.z;
+
+		this._dashOriginalX = this.position.x;
+		this._dashOriginalY = this.position.y;
+	}
+
+	createDashAfterImageBitmap() {
+		if(this._dashBitmap) {
+			this._dashBitmap.destroy();
+			this._dashBitmap = null;
+		}
+		SceneManager._scene._spriteset._tilemap._espPlayer._webHolder.visible = false;
+		this._dashBitmap = Bitmap.snap(SceneManager._scene._spriteset._tilemap._espPlayer);
+		SceneManager._scene._spriteset._tilemap._espPlayer._webHolder.visible = true;
+	}
+
+	createDashAfterImageArray() {
+		if(!this._dashSprites) {
+			this._dashSprites = [];
+		}
+	}
+
+	createDashInitialAfterImage() {
+		this.createDashAfterImage(99999);
+		this._placedDashSprite = false;
+	}
+
+	destroyAllDashSprites() {
+		if(this._dashSprites) {
+			while(this._dashSprites.length > 0) {
+				const s = this._dashSprites[0];
+				this._dashSprites.splice(0, 1);
+				SceneManager._scene._spriteset._tilemap._uiHolder.removeChild(s);
+				s.destroy();
+			}
+		}
 	}
 
 	clearGrappling() {
@@ -312,30 +657,6 @@ class ESPGamePlayer extends ESPGameObject {
 		if(this.speed.z > -10) {
 			this.speed.z -= (this.GRAVITY * ESP.WS);
 		}
-
-		/*if(this.__PlayerHeightIndex !== NewPlayerHeightIndex) {
-			this.__PlayerHeightIndex = NewPlayerHeightIndex;
-
-			//const oldIndexY = Math.floor(this.position.y / tileSize);
-
-			/*
-			for(let i = 0; i <= NewPlayerHeightIndex; i++) {
-				if(TilemapDecor[i]) {
-					for(let j = 0; j < TilemapDecor[i].length; j++) {
-						TilemapDecor[i][j].ComparisonZ[this._entityId] = ((TopPos) < TilemapDecor[i][j]._colY ? TilemapDecor[i][j]._shouldZ : 3);
-					}
-				}
-			}
-			for(let i = NewPlayerHeightIndex + 1; i <= 5; i++) {
-				if(TilemapDecor[i]) {
-					for(let j = 0; j < TilemapDecor[i].length; j++) {
-						TilemapDecor[i][j].ComparisonZ[this._entityId] = ((TopPos) < (TilemapDecor[i][j]._colY + TS) ? TilemapDecor[i][j]._shouldZ : 3);
-					}
-				}
-			}
-
-			this._spriteNeedsRefresh = true;
-		}*/
 	}
 
 	updateTransition() {
@@ -357,6 +678,9 @@ class ESPGamePlayer extends ESPGameObject {
 				this._canControl = false;
 				this.CanCollide = false;
 				this.clearGrappling();
+				this.destroyDashObject();
+				this.destroyDashString();
+				this.destroyDashData();
 			}
 		}
 	}
@@ -459,6 +783,9 @@ class ESPGamePlayer extends ESPGameObject {
 		};
 		this._customColor = [0, 0, 0, 0];
 		this.clearGrappling();
+		this.destroyDashObject();
+		this.destroyAllDashSprites();
+		this.destroyDashData();
 		ESPAudio.deathContact();
 	}
 

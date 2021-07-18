@@ -11,7 +11,7 @@ if(Utils.isOptionValid("test")) {
 		//SceneManager.goto(Scene_Title);
 		SceneManager.goto(Scene_Map);
 		Window_TitleCommand.initCommandPosition();
-		$gameVariables.setValue(1, 2);
+		$gameVariables.setValue(1, 3);
 		$gameTemp._isNewGame = false;
 	};
 }

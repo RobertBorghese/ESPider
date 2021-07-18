@@ -562,7 +562,7 @@ class ESPPlayerSprite extends ESPGameSprite {
 	isWebAmmoOut() {
 		return this._webAmmoAnimationTime !== 0;
 	}
-	
+
 	updateVisibility() {
 		this.visible = this.espObject.visible();
 	}

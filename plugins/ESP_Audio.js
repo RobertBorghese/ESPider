@@ -109,7 +109,13 @@ class ESPAudio {
 		["BigSnailRest2", 0.9],
 		"BigSnailBreathe",
 		["BigSnailBlock2", 0.9],
-		"BigSnailDefeat"
+		"BigSnailDefeat",
+
+		"WebDash",
+		["WebDashHitWall3", 0.4],
+		["WebDashChargeStart", 0.5],
+		["WebDashChargeMid", 0.2],
+		["WebDashChargeFinal", 0.2]
 	];
 
 	static setup() {

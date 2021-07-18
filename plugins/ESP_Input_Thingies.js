@@ -25,11 +25,7 @@ Input.gamepadMapper = {
 };
 
 Input._ESP_isDisabled = false;
-/*
-Input.update = function() {
-    
-};
-*/
+
 modify_Input = class {
 	static clear() {
 		ESP.Input.clear.apply(this, arguments);
@@ -241,5 +237,38 @@ modify_Input = class {
 				});
 			}
 		}
+	}
+}
+
+modify_TouchInput = class {
+	static clear() {
+		ESP.TouchInput.clear.apply(this, arguments);
+		this.IsRightClicked = false;
+		this.RightClickPressTime = 0;
+		this.RightClickReleaseTime = 0;
+	}
+
+	static _onMouseDown(event) {
+		ESP.TouchInput._onMouseDown.apply(this, arguments);
+		if(event.button === 2) {
+			this.IsRightClicked = true;
+			this.RightClickPressTime = this.TrueTriggerTimer;
+		}
+	};
+	
+	static _onMouseUp(event) {
+		ESP.TouchInput._onMouseUp.apply(this, arguments);
+		if(event.button === 2) {
+			this.IsRightClicked = false;
+			this.RightClickReleaseTime = this.TrueTriggerTimer;
+		}
+	};
+
+	static isRightClickTriggered() {
+		return this.IsRightClicked && this.RightClickPressTime === this.TrueTriggerTimer
+	}
+
+	static isRightClickReleased() {
+		return !this.IsRightClicked && this.RightClickReleaseTime === this.TrueTriggerTimer
 	}
 }

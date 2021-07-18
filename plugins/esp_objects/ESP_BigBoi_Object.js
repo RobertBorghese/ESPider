@@ -619,7 +619,6 @@ class ESPBigBoiObject extends ESPGameObject {
 	}
 
 	onGroundHit() {
-		console.log('fds');
 		ESPAudio.bigSnailLand();
 		$gameMap.shake();
 	}
