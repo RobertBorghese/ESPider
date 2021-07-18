@@ -32,22 +32,19 @@ class ESPBigBoiSprite extends ESPGameSprite {
 		this._hpBarHolder.anchor.set(0.5, 1);
 		this._hpBarHolder.move((Graphics.width / 2) - (this._hpBarSize / 2), -30);
 
-		function makeGradientBit(bit, offset, width, height, offsetY = 0) {
-			bit.gradientFillRect(0, offsetY, offset, height, "rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 255)", false);
-			bit.gradientFillRect(offset, offsetY, width - (offset * 2), height, "rgba(0, 0, 0, 255)", "rgba(0, 0, 0, 255)", false);
-			bit.gradientFillRect(width - offset, offsetY, offset, height, "rgba(0, 0, 0, 255)", "rgba(0, 0, 0, 0)", false);
+		function makeGradientBit(bit, offset, width, height, offsetX = 0, offsetY = 0) {
+			bit.gradientFillRect(offsetX, offsetY, offset, height, "rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 255)", false);
+			bit.gradientFillRect(offset + offsetX, offsetY, width - (offset * 2), height, "rgba(0, 0, 0, 255)", "rgba(0, 0, 0, 255)", false);
+			bit.gradientFillRect(width - offset + offsetX, offsetY, offset, height, "rgba(0, 0, 0, 255)", "rgba(0, 0, 0, 0)", false);
 		};
 
 		const bit = new Bitmap(800, 36);
-		makeGradientBit(bit, 280, 700, 36);
+		makeGradientBit(bit, 280, 700, 36, 50);
 		makeGradientBit(bit, 240, 800, 2);
-		makeGradientBit(bit, 160, 800, 2, 34);
-		/*const offset = 280;
-		const width = 700;
-		const height = 36;*/
-		
+		makeGradientBit(bit, 160, 800, 2, 0, 34);
+
 		this._hpBackground = new Sprite(bit);
-		this._hpBackground.move((bit.width / 2) - 150, 6);
+		this._hpBackground.move((bit.width / 2) - 200, 6);
 		this._hpBackground.anchor.set(0.5);
 		this._hpBackground.alpha = 0.75;
 		this._hpBarHolder.addChild(this._hpBackground);
