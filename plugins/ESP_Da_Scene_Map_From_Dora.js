@@ -496,7 +496,7 @@ modify_Scene_Map = class {
 	}
 
 	isSlideshowIncrementTriggered() {
-		return Input.isTriggeredEx("space") || Input.isTriggeredEx("enter") || TouchInput.isTriggered() || Input.isTriggered("button_a");
+		return Input.isOkTriggeredEx();
 	}
 
 	// no button allowed!

@@ -115,6 +115,14 @@ modify_Input = class {
 		return (this.TrueReleasedTimes[keyName] ?? 0) === this.TrueTriggerTimer;
 	}
 
+	static isTriggeredExOverride(keyName) {
+		return (this.TrueTriggeredTimes[keyName] ?? 0) === this.TrueTriggerTimer;
+	}
+
+	static isOkTriggeredEx() {
+		return  Input.isTriggeredExOverride("space") || Input.isTriggeredExOverride("enter") || TouchInput.isTriggered() || ESP.Input.isTriggered.call(this, "button_a");
+	}
+
 	static isDirectionTriggered(dir) {
 		if(Input._ESP_isDisabled) return false;
 		const Threshold = 0.5;
@@ -264,11 +272,23 @@ modify_TouchInput = class {
 		}
 	};
 
+	static isLeftClickTriggered() {
+		if(Input._ESP_isDisabled) return false;
+		return Input.isTriggered();
+	}
+
+	static isLeftClickReleased() {
+		if(Input._ESP_isDisabled) return false;
+		return Input.isReleased();
+	}
+
 	static isRightClickTriggered() {
-		return this.IsRightClicked && this.RightClickPressTime === this.TrueTriggerTimer
+		if(Input._ESP_isDisabled) return false;
+		return this.IsRightClicked && this.RightClickPressTime === this.TrueTriggerTimer;
 	}
 
 	static isRightClickReleased() {
-		return !this.IsRightClicked && this.RightClickReleaseTime === this.TrueTriggerTimer
+		if(Input._ESP_isDisabled) return false;
+		return !this.IsRightClicked && this.RightClickReleaseTime === this.TrueTriggerTimer;
 	}
 }

@@ -257,6 +257,18 @@ class ESPInterpreter {
 		return this;
 	}
 
+	waitForOkTrigger(preWaitTime) {
+		this.wait(preWaitTime);
+		this._list.push([
+			function() {
+			},
+			function() {
+				return Input.isOkTriggeredEx();
+			}
+		]);
+		return this;
+	}
+
 	freezeWorldRendering(locations) {
 		this._list.push([
 			function() {

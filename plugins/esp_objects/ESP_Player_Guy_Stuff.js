@@ -258,18 +258,18 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	isGrappleTriggered() {
-		if(TouchInput.isTriggered()) return 1;
+		if(TouchInput.isLeftClickTriggered()) return 1;
 		if(Input.isTriggeredEx("button_x")) return 2;
 		return 0;
 	}
 
 	isGrappleReleased(button) {
 		if(button === 1) {
-			return TouchInput.isReleased();
+			return TouchInput.isLeftClickReleased();
 		} else if(button === 2) {
 			return Input.isReleasedEx("button_x");
 		}
-		return false;
+		return true;
 	}
 
 	isDashTriggered() {
