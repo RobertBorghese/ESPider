@@ -68,8 +68,6 @@ modify_Input = class {
 			this._virtualButton = null;
 		}
 		this._updateDirection();
-
-
 		this.updateInputVector();
 	}
 
@@ -159,7 +157,9 @@ modify_Input = class {
 		this.OldGamepadAxis = this.GamepadAxis;
 		this.GamepadAxis = gamepad.axes;
 
-		let gamepadUsed = Math.abs(gamepad.axes[0]) >= 0.2 || Math.abs(gamepad.axes[1]) >= 0.2;
+		let gamepadUsed = gamepad.axes && (Math.abs(gamepad.axes[0]) >= 0.2 || Math.abs(gamepad.axes[1]) >= 0.2 ||
+			(gamepad.axes.length > 2 && Math.abs(gamepad.axes[2]) >= 0.2) ||
+			(gamepad.axes.length > 3 && Math.abs(gamepad.axes[3]) >= 0.2));
 		if(!gamepadUsed) {
 			const len = gamepad.buttons.length;
 			for(let i = 0; i < len; i++) {
@@ -245,6 +245,14 @@ modify_Input = class {
 				});
 			}
 		}
+	}
+
+	static rightStickX() {
+		return this.GamepadAxis?.[2] ?? 0;
+	}
+
+	static rightStickY() {
+		return this.GamepadAxis?.[3] ?? 0;
 	}
 }
 

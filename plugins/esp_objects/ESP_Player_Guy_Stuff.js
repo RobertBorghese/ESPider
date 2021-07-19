@@ -118,7 +118,8 @@ class ESPGamePlayer extends ESPGameObject {
 			this.position.x = ESP.lerp(this.position.x, this._dashTargetX, 0.3);
 			this.position.y = ESP.lerp(this.position.y, this._dashTargetY, 0.3);
 
-			if(this._dashChargeString) this._dashChargeString.visible = false;
+			//if(this._dashChargeString) this._dashChargeString.visible = false;
+			if(this._dashChargeObject) this._dashChargeObject.string().visible = false;
 
 			const diff = Math.max(Math.abs(this.position.x - this._dashTargetX), Math.abs(this.position.y - this._dashTargetY));
 			if(diff < 1) {
@@ -133,7 +134,7 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	isDashing() {
-		return !!this._dashChargeString && !!this._dashTargetX;
+		return !!this._dashTargetX;
 	}
 
 	updateDashAfterImageAlpha() {
@@ -169,7 +170,7 @@ class ESPGamePlayer extends ESPGameObject {
 		this.position.x = this._dashTargetX;
 		this.position.y = this._dashTargetY;
 		this.destroyDashData();
-		this.speed.z = this._webChargeAmount === 2 ? 6 : (this._webChargeAmount === 1 ? 3 : 0);
+		this.speed.z = this._webChargeAmount === 2 ? 5.5 : (this._webChargeAmount === 1 ? 3 : 0);
 		if(this.speed.z > 0) {
 			ESPAudio.jump();
 		}
@@ -213,15 +214,25 @@ class ESPGamePlayer extends ESPGameObject {
 
 	updateMovement() {
 		if(!this._footstepInterval) this._footstepInterval = 14;
+	
+		this._currentlyOnIce = this.findSlide();
 
-		const spd = this._hasBox?.isPulling?.(this) ? 1.5 : 3;
+		const spd = (this._hasBox?.isPulling?.(this) ? 1.5 : 3) * (this._currentlyOnIce ? 1.2 : 1);
 
-		this.speed.x = Input.InputVector.x * spd;
-		this.speed.y = Input.InputVector.y * spd;
+		let spdX = Input.InputVector.x * spd;
+		let spdY = Input.InputVector.y * spd;
+
+		if(this._currentlyOnIce) {
+			spdX = ESP.lerp(this.speed.x, spdX, 0.01);
+			spdY = ESP.lerp(this.speed.y, spdY, 0.01);
+		}
+
+		this.speed.x = spdX;
+		this.speed.y = spdY;
 
 		if(this.canControl() && this.position.z === 0 && Input.InputVector.length() > 0.1 && (Graphics.frameCount % (Input.InputVector.length() > 0.5 ? 14 : 20)) === 0) {
 			AudioManager.playSe({
-				name: this._currentMovingPlatform ? "Footstep2" : $gameMap.FootstepSound(),
+				name: this._currentlyOnIce || this._currentMovingPlatform ? "Footstep2" : $gameMap.FootstepSound(),
 				volume: 20 + (Math.random() * 40),
 				pitch: 75 + (Math.random() * 50),
 				pan: 0
@@ -416,9 +427,22 @@ class ESPGamePlayer extends ESPGameObject {
 		if(this._dashButton === 1) {
 			const pos = SceneManager._scene._spriteset._espPlayer.getGlobalPosition();
 			radians = Math.atan2(TouchInput.y - pos.y, TouchInput.x - pos.x);
-		} else if(Math.abs($espGamePlayer.speed.x) > 0.2 || Math.abs($espGamePlayer.speed.y) > 0.2) {
-			radians = Math.atan2($espGamePlayer.speed.y, $espGamePlayer.speed.x);
+		} else {
+			let radiansAssigned = false;
+			if(this._currentlyOnIce) {
+				if(Math.abs(Input.InputVector.x) > 0.06 || Math.abs(Input.InputVector.y) > 0.06) {
+					radians = Math.atan2(Input.InputVector.y, Input.InputVector.x);
+					radiansAssigned = true;
+				}
+			} else if(Math.abs($espGamePlayer.speed.x) > 0.2 || Math.abs($espGamePlayer.speed.y) > 0.2) {
+				radians = Math.atan2($espGamePlayer.speed.y, $espGamePlayer.speed.x);
+				radiansAssigned = true;
+			}
+			if(!radiansAssigned && (Math.abs(Input.rightStickX()) > 0.6 || Math.abs(Input.rightStickY()) > 0.6)) {
+				radians = Math.atan2(Input.rightStickY(), Input.rightStickX());
+			}
 		}
+
 		if(radians !== null && this._dashDirection !== radians) {
 			this._dashDirection = radians;
 		}
@@ -430,10 +454,11 @@ class ESPGamePlayer extends ESPGameObject {
 		this._webDashAimTime = 0;
 		this._webChargeAmount = 0;
 
+		/*
 		if(this._dashChargeString) {
 			this._dashChargeString.visible = true;
 			this._dashChargeString.alpha = 1;
-		}
+		}*/
 
 		this._dashChargeObject = new ESPWebShotObject();
 		this._dashChargeObject.position.z = 18;
@@ -512,27 +537,34 @@ class ESPGamePlayer extends ESPGameObject {
 
 	updateDashObjectVisibility(was99) {
 		this._dashChargeObject.setVisible(!was99 && this._dashChargeObject.CollisionHeight <= this.CollisionHeight);
-		if(this._dashChargeString) this._dashChargeString.visible = this._dashChargeObject._visible;
+		//if(this._dashChargeString) this._dashChargeString.visible = this._dashChargeObject._visible;
 		this._dashChargeObject._spr.update();
 	}
 
 	refreshDashString() {
-		if(!this._dashChargeString) {
+		/*if(!this._dashChargeString) {
 			this._dashChargeString = new PIXI.Graphics();
 			SceneManager._scene._spriteset._tilemap._espPlayer._webHolder.addChild(this._dashChargeString);
-		}
+		}*/
 
-		if(!this._dashChargeString.visible) return;
+		if(!this._dashChargeObject || !this._dashChargeObject.string().visible) return;
 		
-		this._dashChargeString.clear();
-		this._dashChargeString.lineStyle(2, 0xffffff, 0.8);
+		this._dashChargeObject.string().clear();
+		this._dashChargeObject.string().lineStyle(2, 0xffffff, 0.8);
+
+		let offsetX = 0;
+		let offsetY = 0;
+		if(this._dashChargeObject && this._dashChargeObject._shooting && this._dashChargeObject._spr._mainParticle.Index >= 6) {
+			offsetX = Math.cos(this._shootDirection) * 10;
+			offsetY = Math.sin(this._shootDirection) * 10;
+		}
 
 		let startX = 0;
-		let startY = -20 + SceneManager._scene._spriteset._tilemap._espPlayer.BodySprite.y;
+		let startY = 0;//-20;// + SceneManager._scene._spriteset._tilemap._espPlayer.BodySprite.y;
 		if(this._dashChargeObject && this._dashChargeObject._downMode) {
-			this._dashChargeString.alpha = this._dashChargeObject.alpha;
+			this._dashChargeObject.string().alpha = this._dashChargeObject.alpha;
 		}
-		this._dashChargeString.moveTo(startX, startY);
+		this._dashChargeObject.string().moveTo(startX + offsetX, startY + offsetY);
 
 		let x = 0;
 		let y = 0;
@@ -547,14 +579,7 @@ class ESPGamePlayer extends ESPGameObject {
 			z = this._dashChargeObject.realZ();
 		}
 
-		let offsetX = 0;
-		let offsetY = 0;
-		if(this._dashChargeObject && this._dashChargeObject._shooting && this._dashChargeObject._spr._mainParticle.Index >= 6) {
-			offsetX = Math.cos(this._shootDirection) * 10;
-			offsetY = Math.sin(this._shootDirection) * 10;
-		}
-
-		this._dashChargeString.lineTo((x + 4) - this.position.x + offsetX, (y - (z - this.realZ()) - 6) - this.position.y + offsetY);
+		this._dashChargeObject.string().lineTo(this.position.x - (x + 4), this.position.y - 20 + SceneManager._scene._spriteset._tilemap._espPlayer.BodySprite.y - (y - (z - this.realZ()) - 6));
 	}
 
 	updatePostDashShoot() {
@@ -568,18 +593,20 @@ class ESPGamePlayer extends ESPGameObject {
 			$gameMap.removeGameObject(this._dashChargeObject);
 			this._dashChargeObject = null;
 		}
+		/*
 		if(this._dashChargeString) {
 			this._dashChargeString.clear();
 			this._dashChargeString.visible = false;
-		}
+		}*/
 	}
 
 	destroyDashString() {
+		/*
 		if(this._dashChargeString) {
 			SceneManager._scene._spriteset._tilemap._espPlayer._webHolder.removeChild(this._dashChargeString);
 			this._dashChargeString.destroy();
 			this._dashChargeString = null;
-		}
+		}*/
 	}
 
 	endDashShot() {

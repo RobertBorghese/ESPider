@@ -8,9 +8,9 @@ class ESPTriggerBugSprite extends ESPGameSprite {
 
 		this.espObject = object;
 
-		this.ObjectHolderOffsetY = customOffsetY ?? -16;//-18//-16;
+		this.ObjectHolderOffsetY = customOffsetY ?? -16;
 
-		customImage = customImage ?? "TriggerBug";
+		customImage = customImage || "TriggerBug";
 
 		this._bug = new ESPAnimatedSprite("img/other/" + customImage + ".png", customRate === -1 ? 5 : customRate);
 		this._bug.scale.set(2);

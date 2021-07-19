@@ -46,4 +46,14 @@
  * @desc The specific y the object will spawn at.
  * @type number
  * @default 0
+ * 
+ *
+ * @command Do Not Show On Transition
+ * @text Options for not showing on transision.
+ * @desc
+ *
+ * @arg Do Not Show On Transition
+ * @desc
+ * @type boolean
+ * @default true
  */

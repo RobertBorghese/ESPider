@@ -74,8 +74,9 @@ modify_Game_Map = class {
 	// get height
 	getColHeight(x, y) {
 		let result = this.tileId(x, y, 5) ?? 0;
-		if(result >= 150) result -= 50;
-		if(result >= 100) result -= 100;
+		if(result >= 200) result -= 200;
+		else if(result >= 150) result -= 150;
+		else if(result >= 100) result -= 100;
 		return result;
 	}
 
@@ -83,6 +84,13 @@ modify_Game_Map = class {
 	getColKill(x, y) {
 		let result = this.tileId(x, y, 5) ?? 0;
 		if(result >= 100 && result < 150) return result - 99;
+		return 0;
+	}
+
+	// get slide type
+	getColSlide(x, y) {
+		let result = this.tileId(x, y, 5) ?? 0;
+		if(result >= 200) return 1;
 		return 0;
 	}
 
@@ -104,13 +112,17 @@ modify_Game_Map = class {
 		let largestRegion = 0;
 		this.espCollisionMap = [];
 		this.espCollisionKillers = [];
+		this.espCollisionSlide = [];
 		this.espCollisionShowMap = [];
 		this.espMetaMap = [];
+		this.hasKill = false;
+		this.hasSlide = false;
 		this.highestRegionId = 0;
 		for(let x = 0; x < mapWidth; x++) {
 			for(let y = 0; y < mapHeight; y++) {
 				this.espCollisionMap.push(0);
 				this.espCollisionKillers.push(0);
+				this.espCollisionSlide.push(0);
 				this.espCollisionShowMap.push(0);
 				this.espMetaMap.push(0);
 				const regionId = this.getColHeight(x, y);
@@ -126,6 +138,9 @@ modify_Game_Map = class {
 			for(let y = 0; y < mapHeight; y++) {
 				const regionId = this.getColHeight(x, y);
 				const killId = this.getColKill(x, y);
+				const slideId = this.getColSlide(x, y);
+				if(killId > 0) this.hasKill = true;
+				if(slideId > 0) this.hasSlide = true;
 				const metaId = this.getMeta(x, y);
 				if(regionId > 0) {
 					const newX = x;
@@ -136,14 +151,20 @@ modify_Game_Map = class {
 					}
 
 					const killIdUp = this.getColKill(x, y - 1);
+					const slideIdUp = this.getColSlide(x, y - 1);
 					let offset = 0;
 					for(let i = newY; i >= y; i--) {
 						const index = newX + (i * mapWidth);
 						this.espCollisionShowMap[index] = Math.max(this.espCollisionShowMap[index], regionId - offset);
 						if(i !== newY) {
 							offset++;
-							if(!this._manualBehindKills && killIdUp !== 0) {
-								this.espCollisionKillers[newX + (i * mapWidth)] = killIdUp;
+							if(!this._manualBehindKills) {
+								if(killIdUp !== 0) {
+									this.espCollisionKillers[newX + (i * mapWidth)] = killIdUp;
+								}
+								if(slideIdUp !== 0) {
+									this.espCollisionSlide[newX + (i * mapWidth)] = slideIdUp;
+								}
 							}
 						}
 					}
@@ -152,6 +173,7 @@ modify_Game_Map = class {
 					this.espMetaMap[index] = metaId;
 					this.espCollisionMap[index] = regionId ?? 0;
 					this.espCollisionKillers[index] = killId;
+					this.espCollisionSlide[index] = killId;
 					if(newY > mapHeight) {
 						this.MapBottom = newY;
 					}
@@ -160,9 +182,10 @@ modify_Game_Map = class {
 							this.espCollisionMap[newX + (i * mapWidth)] = 99;
 						}
 					}
-				} else if(killId > 0 || metaId > 0) {
+				} else if(killId > 0 || slideId > 0 || metaId > 0) {
 					const index = x + (y * mapWidth);
 					this.espCollisionKillers[index] = killId;
+					this.espCollisionSlide[index] = slideId;
 					this.espMetaMap[index] = metaId;
 				}
 			}

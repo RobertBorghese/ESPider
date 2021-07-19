@@ -10,7 +10,7 @@ class ESPWebShotObject extends ESPGameObject {
 		this._shooting = false;
 		this._power = 0;
 		this._existTime = 0;
-		this._inc = 4;
+		this._inc = 5;
 		this._visible = true;
 		this._downMode = false;
 		this._deltaX = 0;
@@ -25,14 +25,18 @@ class ESPWebShotObject extends ESPGameObject {
 		return this._spr;
 	}
 
+	string() {
+		return this._spr._dashChargeString;
+	}
+
 	update() {
 		const oldX = this.position.x;
 		const oldY = this.position.y;
 		super.update();
 		if(this._downMode) {
-			this._deltaX += this.position.x - oldX;
-			this._deltaY += this.position.y - oldY;
-			this._deltaZ -= 1;
+			//this._deltaX += this.position.x - oldX;
+			//this._deltaY += this.position.y - oldY;
+			//this._deltaZ -= 1;
 			if(this.alpha > 0) {
 				this.alpha -= 0.08;
 				if(this.alpha <= 0) {
@@ -46,7 +50,7 @@ class ESPWebShotObject extends ESPGameObject {
 			const index = (7 - Math.floor(this._existTime / this._inc)) + 1;
 			this._spr._mainParticle.setIndex(index);
 			if(index >= 6) {
-				this._spr.visible = false;
+				this._spr._mainParticle.visible = false;
 			}
 			if(this._existTime <= 0) {
 				$espGamePlayer.endDashShot();
@@ -88,6 +92,6 @@ class ESPWebShotObject extends ESPGameObject {
 
 	enterDownMode() {
 		this._downMode = true;
-		this.speed.z = -1;
+		this.speed.x = this.speed.y = this.speed.z = 0;
 	}
 }

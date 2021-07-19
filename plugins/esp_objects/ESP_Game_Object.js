@@ -21,6 +21,10 @@ class ESPGameObject {
 		if(data && data["Force Above Ground"] === "true") {
 			this._forceAboveGround = true;
 		}
+
+		if(data && data["Do Not Show On Transition"] === "true") {
+			this._doNotShowOnTransition = true;
+		}
 	}
 
 	onCreate() {
@@ -217,6 +221,18 @@ class ESPGameObject {
 		return $gameMap.espCollisionKillers[index] ?? 0;
 	}
 
+	_GetCornerSlide(x, y, expandX, expandY) {
+		const tileSize = TS;
+		const xx =  Math.floor(((this.position.x) + ((this.rectWidth() + expandX) * x)) / tileSize);
+		const yy = Math.floor(((this.position.y) + ((this.rectHeight() + expandY) * y)) / tileSize);
+		if(xx < 0 || yy < 0 || xx >= $gameMap.width() || (xx + (yy * $dataMap.width)) >= $gameMap.espCollisionSlide.length) return 0;
+		const index = xx + (yy * $dataMap.width);
+		if(this._GetCollisionMap(index) > this.CollisionHeight) {
+			return -1;
+		}
+		return $gameMap.espCollisionSlide[index] ?? 0;
+	}
+
 	_GetCornerShow(x, y) {
 		const tileSize = TS;
 		const xx =  Math.floor(((this.position.x) + ((this.visibleWidth()) * x)) / tileSize);
@@ -236,6 +252,9 @@ class ESPGameObject {
 	}
 
 	findKill() {
+		if(!$gameMap.hasKill) {
+			return 0;
+		}
 		const expandX = 5;
 		const expandY = 5;
 		const topLeft = this._GetCornerKill(-1, -1, expandX, expandY);
@@ -253,6 +272,37 @@ class ESPGameObject {
 		const bottomRight = this._GetCornerKill(1, 1, expandX, expandY);
 		if(bottomRight === 0) {
 			return 0;
+		}
+		const result = Math.max(topLeft, topRight, bottomLeft, bottomRight);
+		if(result === -1) return 0;
+		return result;
+	}
+
+	findSlide() {
+		if(!$gameMap.hasSlide) {
+			return 0;
+		}
+		const expandX = 5;
+		const expandY = 5;
+		const topLeft = this._GetCornerSlide(-1, -1, expandX, expandY);
+		if(topLeft === 0) {
+			const topLeftKill = this._GetCornerKill(-1, -1, expandX, expandY);
+			if(topLeftKill === 0) return 0;
+		}
+		const topRight = this._GetCornerSlide(1, -1, expandX, expandY);
+		if(topRight === 0) {
+			const topRightKill = this._GetCornerKill(1, -1, expandX, expandY);
+			if(topRightKill === 0) return 0;
+		}
+		const bottomLeft = this._GetCornerSlide(-1, 1, expandX, expandY);
+		if(bottomLeft === 0) {
+			const bottomLeftKill = this._GetCornerKill(-1, 1, expandX, expandY);
+			if(bottomLeftKill === 0) return 0;
+		}
+		const bottomRight = this._GetCornerSlide(1, 1, expandX, expandY);
+		if(bottomRight === 0) {
+			const bottomRightKill = this._GetCornerKill(1, 1, expandX, expandY);
+			if(bottomRightKill === 0) return 0;
 		}
 		const result = Math.max(topLeft, topRight, bottomLeft, bottomRight);
 		if(result === -1) return 0;

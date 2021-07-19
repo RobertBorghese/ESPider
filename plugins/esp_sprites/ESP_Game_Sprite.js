@@ -525,7 +525,11 @@ modify_Spriteset_Map = class {
 	setAllSpriteAlpha(alpha) {
 		if(this?._tilemap?._espSprites) {
 			this._tilemap._espSprites.forEach(function(spr) {
-				spr.alpha = alpha;
+				if(spr.doNotShowOnTransition()) {
+					spr.alpha = Math.floor(alpha);
+				} else {
+					spr.alpha = alpha;
+				}
 			});
 		}
 		if(this?._tilemap?._espMovingPlatforms) {
@@ -831,5 +835,9 @@ class ESPGameSprite extends Sprite {
 
 	freezable() {
 		return true;
+	}
+
+	doNotShowOnTransition() {
+		return !!this.espObject?._doNotShowOnTransition;
 	}
 }

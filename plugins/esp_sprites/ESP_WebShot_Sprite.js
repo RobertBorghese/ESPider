@@ -6,6 +6,9 @@ class ESPWebShotSprite extends ESPGameSprite {
 
 		this.espObject = object;
 
+		this._dashChargeString = new PIXI.Graphics();
+		this.ObjectHolder.addChild(this._dashChargeString);
+
 		this._mainParticle = new ESPAnimatedSprite("img/particles/Particle.png", 0);
 		this._mainParticle.scale.set(2);
 		this._mainParticle.anchor.set(0.5);

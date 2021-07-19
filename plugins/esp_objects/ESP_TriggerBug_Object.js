@@ -22,7 +22,6 @@
  *
  * @arg Image Offset Y
  * @desc The image offset
- * @type number
  * @default -16
  */
 
@@ -42,6 +41,7 @@ class ESPTriggerBugObject extends ESPGameObject {
 		}
 
 		this._customImage = data["Image"];
+		if(this._customImage === "") this._customImage = null;
 		this._customImageRate = parseInt(data["Image Rate"]) || -1;
 		this._customImageOffsetY = parseInt(data["Image Offset Y"]) || -16;
 		
