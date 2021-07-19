@@ -69,7 +69,6 @@ class ESPJumpRespondPlatformObject extends ESPMovingPlatformObject {
 			this._time++;
 			if(this._time >= this._maxTime) {
 				this._shouldBeMoving = false;
-				//this._time = 0;
 			}
 
 			let resultData = null;

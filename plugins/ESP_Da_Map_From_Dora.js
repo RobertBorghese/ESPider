@@ -307,6 +307,10 @@ modify_Game_Map = class {
 		this.OnRespawnFunction = null;
 		this.PostObjectsCreation = null;
 
+		this.restrictMapBottom = false;
+
+		this.FootstepSound = () => "Footstep";
+
 		this._slugBoss = null;
 
 		if(this._notetagCode) {

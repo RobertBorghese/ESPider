@@ -15,7 +15,7 @@ class ESPGameObject {
 			this._isUsingVariableCondition = true;
 			this._variableCond = parseInt(data["Variable Cond"]) || 0;
 			this._variableComparison = parseInt(data["Variable Comparison"]) || 0;
-			this._variableBitBool = parseInt(data["Variable Bit Bool"]) || 0;
+			this._variableBitBool = data["Variable Bit Bool"] !== "true";
 		}
 
 		if(data && data["Force Above Ground"] === "true") {
@@ -168,7 +168,7 @@ class ESPGameObject {
 		const xx =  Math.floor(((xPos ?? this.position.x) + (this.rectWidth() * x)) / tileSize);
 		const yy = Math.floor(((yPos ?? this.position.y) + (this.rectHeight() * y)) / tileSize);
 		if(xx < 0 || yy < 0 || xx >= $gameMap.width() || (xx + (yy * $dataMap.width)) >= $gameMap.espCollisionMap.length) return 99;
-		if(yy >= $gameMap.MapBottom) {
+		if($gameMap.restrictMapBottom && yy >= $gameMap.MapBottom) {
 			return 99;
 		}
 		const movingPlatform = this._GetMovingPlatform(x, y, xPos, yPos);
@@ -189,7 +189,7 @@ class ESPGameObject {
 		const xx =  Math.floor(((xPos ?? this.position.x) + (this.rectWidth() * x)) / tileSize);
 		const yy = Math.floor(((yPos ?? this.position.y) + (this.rectHeight() * y)) / tileSize);
 		if(xx < 0 || yy < 0 || xx >= $gameMap.width() || (xx + (yy * $dataMap.width)) >= $gameMap.espCollisionMap.length) return [99, 0];
-		if(yy >= $gameMap.MapBottom) {
+		if($gameMap.restrictMapBottom && yy >= $gameMap.MapBottom) {
 			return [99, 0];
 		}
 		const index = xx + (yy * $dataMap.width);

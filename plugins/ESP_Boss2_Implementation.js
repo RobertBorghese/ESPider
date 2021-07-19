@@ -401,7 +401,33 @@ modify_Game_Map_2 = class {
 		this.cleanUpBoss2();
 		this.cleanUpBoss2AfterFade();
 		{
-			const obj = new ESPAbilityGainObject();
+			const obj = new ESPAbilityGainObject(function() {
+				const interpreter = new ESPInterpreter();
+
+				interpreter
+				.fadeOut()
+				.callCode("ESPAudio.boss1Disappear()", this)
+				.removeGameObject(this)
+				.createInfoBug(20, 13, "Seems you've gained a new skill.", 120, 160, "InfoBug")
+				.fadeIn()
+				.wait(20)
+				.moveCameraToGrid(15.5, 14)
+				.closeSpearWall("Wall")
+				.wait(3)
+				.closeSpearWall("Wall2")
+				.wait(3)
+				.closeSpearWall("Wall3")
+				.wait(3)
+				.closeSpearWall("Wall4")
+				.wait(3)
+				.closeSpearWall("Wall5")
+				.wait(3)
+				.setVariable(1, 2) // enable web grab
+				.save()
+				.moveCameraToPlayer();
+
+				$espGamePlayer.setInterpreter(interpreter);
+			});
 			$gameMap.addGameObject(obj, 15.5 * TS, 14 * TS, 500);
 			obj.CollisionHeight = 2;
 		}

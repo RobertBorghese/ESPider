@@ -20,8 +20,6 @@ class ESPBigBoiObject extends ESPGameObject {
 
 		this._hp = 1000;
 
-		//this.CantWalkOffLedge = true;
-
 		this._currentAttack = 0;
 
 		this._graphicsLineOpacity = 0.2;

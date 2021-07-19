@@ -156,7 +156,7 @@ class ESPGamePlayer extends ESPGameObject {
 			const spr = new Sprite(this._dashBitmap);
 			spr.alpha = 0.5;
 			spr.x = this.position.x - this._dashOriginalX;
-			spr.y = this.position.y - this._dashOriginalY;
+			spr.y = (this.position.y - this._dashOriginalY);
 			SceneManager._scene._spriteset._tilemap._uiHolder.addChild(spr);
 			this._dashSprites.push(spr);
 			this._placedDashSprite = true;
@@ -221,7 +221,7 @@ class ESPGamePlayer extends ESPGameObject {
 
 		if(this.canControl() && this.position.z === 0 && Input.InputVector.length() > 0.1 && (Graphics.frameCount % (Input.InputVector.length() > 0.5 ? 14 : 20)) === 0) {
 			AudioManager.playSe({
-				name: this._currentMovingPlatform ? "Footstep2" : "Footstep",
+				name: this._currentMovingPlatform ? "Footstep2" : $gameMap.FootstepSound(),
 				volume: 20 + (Math.random() * 40),
 				pitch: 75 + (Math.random() * 50),
 				pan: 0
@@ -618,9 +618,11 @@ class ESPGamePlayer extends ESPGameObject {
 			this._dashBitmap.destroy();
 			this._dashBitmap = null;
 		}
-		SceneManager._scene._spriteset._tilemap._espPlayer._webHolder.visible = false;
-		this._dashBitmap = Bitmap.snap(SceneManager._scene._spriteset._tilemap._espPlayer);
-		SceneManager._scene._spriteset._tilemap._espPlayer._webHolder.visible = true;
+
+		const tilemap = SceneManager._scene._spriteset._tilemap;
+		tilemap._espPlayer._webHolder.visible = false;
+		this._dashBitmap = ESP.snap(tilemap._espPlayer, tilemap.width, tilemap.height);
+		tilemap._espPlayer._webHolder.visible = true;
 	}
 
 	createDashAfterImageArray() {

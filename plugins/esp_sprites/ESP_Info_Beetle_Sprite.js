@@ -6,7 +6,7 @@ class ESPInfoBeetleSprite extends ESPGameSprite {
 
 		this.espObject = object;
 
-		this.ObjectHolderOffsetY = object._customImageOffsetY;//-8;
+		this.ObjectHolderOffsetY = object._customImageOffsetY;
 
 		this.Graphics = new ESPAnimatedSprite("img/other/" + (object._customImage ?? "Beetle") + ".png", object._customImageRate);
 		this.Graphics.scale.set(mirror ? -2 : 2, 2);

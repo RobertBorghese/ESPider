@@ -64,7 +64,6 @@ class ESPSpearWallObject extends ESPGameObject {
 				$gameMap.removeGameObject(this);
 			}
 
-			//this._showTime = 0;
 			this._showAnimation = 0;
 		} else if(this.isChanging()) {
 			this._showTime += 0.04 * (this._showAnimation === 1 ? 1 : -1);

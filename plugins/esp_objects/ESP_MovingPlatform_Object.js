@@ -193,8 +193,6 @@ class ESPMovingPlatformObject extends ESPGameObject {
 						"Orbit Offset Y": y
 					});
 					$gameMap.addGameObject(obj, this.position.x + (x * TS), this.position.y + (y * TS));
-					//obj.update();
-					//obj._spr.update();
 					this._espChildren.push(obj);
 				}
 			}

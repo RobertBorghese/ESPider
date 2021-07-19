@@ -274,12 +274,12 @@ modify_TouchInput = class {
 
 	static isLeftClickTriggered() {
 		if(Input._ESP_isDisabled) return false;
-		return Input.isTriggered();
+		return TouchInput.isTriggered();
 	}
 
 	static isLeftClickReleased() {
 		if(Input._ESP_isDisabled) return false;
-		return Input.isReleased();
+		return TouchInput.isReleased();
 	}
 
 	static isRightClickTriggered() {

@@ -65,6 +65,23 @@ ESP.makeText = function(text, fontSize = 20, align = "center") {
 	return Text;
 };
 
+ESP.snap = function(obj, width, height) {
+	const bitmap = new Bitmap(width, height);
+	const renderTexture = PIXI.RenderTexture.create(width, height);
+	if(obj) {
+		const renderer = Graphics.app.renderer;
+		renderer.render(obj, renderTexture);
+		obj.worldTransform.identity();
+		const canvas = renderer.extract.canvas(renderTexture);
+		bitmap.context.drawImage(canvas, 0, 0);
+		canvas.width = 0;
+		canvas.height = 0;
+	}
+	renderTexture.destroy({ destroyBase: true });
+	bitmap.baseTexture.update();
+	return bitmap;
+}
+
 // World Speed
 ESP.WS = 1;
 

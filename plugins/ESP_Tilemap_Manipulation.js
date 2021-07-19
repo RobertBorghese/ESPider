@@ -106,11 +106,6 @@ Tilemap.prototype._sortChildren = function() {
 		}
 	}
 
-	if(this._uiHolder && this.children.contains(this._uiHolder)) {
-		this.removeChild(this._uiHolder);
-		this.addChild(this._uiHolder);
-	}
-
 	if(this._espPlayer) {
 		if(this._playerBasedSprites && this._playerBasedSprites.length > 0) {
 			const len = this._playerBasedSprites.length;
@@ -123,6 +118,11 @@ Tilemap.prototype._sortChildren = function() {
 				}
 			}
 		}
+	}
+
+	if(this._uiHolder && this.children.contains(this._uiHolder)) {
+		this.removeChild(this._uiHolder);
+		this.addChild(this._uiHolder);
 	}
 };
 

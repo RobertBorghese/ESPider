@@ -1,12 +1,14 @@
 // The cool metroid thingy im doing
 
 class ESPAbilityGainObject extends ESPGameObject {
-	constructor() {
+	constructor(executeFunc) {
 		super();
 
 		this.position.set(0, 0, 0);
 		this.speed.set(0, 0, 0);
 		this._touched = false;
+
+		this._executeFunc = executeFunc;
 	}
 
 	constructSprite() {
@@ -45,30 +47,6 @@ class ESPAbilityGainObject extends ESPGameObject {
 	}
 
 	execute() {
-		const interpreter = new ESPInterpreter();
-
-		interpreter
-		.fadeOut()
-		.callCode("ESPAudio.boss1Disappear()", this)
-		.removeGameObject(this)
-		.createInfoBug(20, 13, "Seems you've gained a new skill.", 120, 160, "InfoBug")
-		.fadeIn()
-		.wait(20)
-		.moveCameraToGrid(15.5, 14)
-		.closeSpearWall("Wall")
-		.wait(3)
-		.closeSpearWall("Wall2")
-		.wait(3)
-		.closeSpearWall("Wall3")
-		.wait(3)
-		.closeSpearWall("Wall4")
-		.wait(3)
-		.closeSpearWall("Wall5")
-		.wait(3)
-		.setVariable(1, 2) // enable web grab
-		.save()
-		.moveCameraToPlayer();
-
-		$espGamePlayer.setInterpreter(interpreter);
+		if(this._executeFunc) this._executeFunc();
 	}
 }
