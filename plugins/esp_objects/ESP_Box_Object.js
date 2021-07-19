@@ -1,7 +1,18 @@
 // ive literally run out of fucking quotes to write. which is pretty ironic considering this file is alphabetically higher, thus more likely for someone to encounter first despire it being one of the last ones im making in this project
 
+/*:
+ * @command InfoBeetle
+ * @text Options for info beetle.
+ * @desc
+ *
+ * @arg Image
+ * @desc 
+ * @type string
+ * @default
+ */
+
 class ESPBoxObject extends ESPGameObject {
-	constructor() {
+	constructor(data) {
 		super();
 
 		this.position.set(0, 0, 0);
@@ -16,6 +27,8 @@ class ESPBoxObject extends ESPGameObject {
 		this.deltaY = 0;
 
 		this._shouldSoundTrigger = true;
+
+		this._image = data?.Image ?? null;
 	}
 
 	constructSprite() {
@@ -35,6 +48,10 @@ class ESPBoxObject extends ESPGameObject {
 
 	isSelfMoved() {
 		return false;
+	}
+
+	canPlayerMove() {
+		return true;
 	}
 
 	attachOffsetY() {
@@ -64,6 +81,10 @@ class ESPBoxObject extends ESPGameObject {
 	onPlayerStepOn() {
 	}
 
+	willEncounterMovingPlatform() {
+		return this.movingPlatformsExist();
+	}
+
 	isPulling(player) {
 		const dist = this.getDistance2d($espGamePlayer);
 		return (dist > this._initialDistance) && (this.speed.x !== 0 || this.speed.y !== 0);
@@ -77,7 +98,7 @@ class ESPBoxObject extends ESPGameObject {
 		this.deltaX = this.position.x - this.OldX;
 		this.deltaY = this.position.y - this.OldY;
 
-		if($espGamePlayer.IsGrappling) {
+		if(this.canPlayerMove() && $espGamePlayer.IsGrappling) {
 			if(!$espGamePlayer.isConnectedTo(this)) {
 				const dist = this.getDistance2d($espGamePlayer);
 				if(dist <= 100) {

@@ -38,8 +38,8 @@ class ESPSlugSprite extends ESPGameSprite {
 	}
 
 	updateShadowSprite() {
-		this.ShadowSprite.move(0, 0);
-		this.ShadowSprite.scale.set(1 + (((this._slugSprite.Index) + 5) * 0.01));
+		this.ShadowSprite.move(0, 6);
+		this.ShadowSprite.scale.set(0.9 + (((3 - this._slugSprite.Index)) * 0.1));
 		this.ShadowSprite.alpha = this.ShadowSprite.scale.x;
 	}
 }

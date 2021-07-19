@@ -151,6 +151,7 @@ class ESPGameObject {
 			const len = $gameMapTemp._mapMovingPlatforms.length;
 			for(let i = 0; i < len; i++) {
 				const p = $gameMapTemp._mapMovingPlatforms[i];
+				if(this === p) continue;
 				const thresholdX = p.thresholdX ?? (x < 0 ? 30 : 26);
 				const thresholdY = p.thresholdY ?? 16;
 				if(p.canTouch() && ((this.realZ() >= p.topCollisionZ()) || (p.collideBottom() && this.CollisionHeight === p.CollisionHeight))) {

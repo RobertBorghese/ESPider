@@ -156,8 +156,9 @@ class ESPGamePlayer extends ESPGameObject {
 		if(diff >= 20 && !this._placedDashSprite) {
 			const spr = new Sprite(this._dashBitmap);
 			spr.alpha = 0.5;
-			spr.x = this.position.x - this._dashOriginalX;
-			spr.y = (this.position.y - this._dashOriginalY);
+			SceneManager._scene._spriteset._tilemap._espPlayer.updatePosition();
+			spr.x = SceneManager._scene._spriteset._tilemap._espPlayer.x - 100;
+			spr.y = SceneManager._scene._spriteset._tilemap._espPlayer.y - 100;
 			SceneManager._scene._spriteset._tilemap._uiHolder.addChild(spr);
 			this._dashSprites.push(spr);
 			this._placedDashSprite = true;
@@ -425,7 +426,7 @@ class ESPGamePlayer extends ESPGameObject {
 	updateDashDirection() {
 		let radians = null;
 		if(this._dashButton === 1) {
-			const pos = SceneManager._scene._spriteset._espPlayer.getGlobalPosition();
+			const pos = SceneManager._scene._spriteset._espPlayer.PlayerHolder.getGlobalPosition();
 			radians = Math.atan2(TouchInput.y - pos.y, TouchInput.x - pos.x);
 		} else {
 			let radiansAssigned = false;
@@ -470,7 +471,7 @@ class ESPGamePlayer extends ESPGameObject {
 		this._dashButton = 0;
 		this.IsDashCharging = false;
 
-		if(this._dashChargeObject._visible) {
+		if(this._dashChargeObject && this._dashChargeObject._visible) {
 			ESPAudio.webDeviceAttach();
 			this._shootDirection = this._dashDirection;
 			this._dashChargeObject.shoot(Math.cos(this._dashDirection) * 10, Math.sin(this._dashDirection) * 10, this._webChargeAmount);
@@ -648,7 +649,8 @@ class ESPGamePlayer extends ESPGameObject {
 
 		const tilemap = SceneManager._scene._spriteset._tilemap;
 		tilemap._espPlayer._webHolder.visible = false;
-		this._dashBitmap = ESP.snap(tilemap._espPlayer, tilemap.width, tilemap.height);
+		tilemap._espPlayer.move(100, 100);
+		this._dashBitmap = ESP.snap(tilemap._espPlayer, 200, 200);
 		tilemap._espPlayer._webHolder.visible = true;
 	}
 

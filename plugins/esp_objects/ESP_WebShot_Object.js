@@ -29,6 +29,10 @@ class ESPWebShotObject extends ESPGameObject {
 		return this._spr._dashChargeString;
 	}
 
+	willEncounterMovingPlatform() {
+		return $gameMapTemp._mapGroupReferences && $gameMapTemp._mapGroupReferences["box"] && $gameMapTemp._mapGroupReferences["box"].length > 0;
+	}
+
 	update() {
 		const oldX = this.position.x;
 		const oldY = this.position.y;

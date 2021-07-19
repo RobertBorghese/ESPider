@@ -1,6 +1,6 @@
-// ok, this is where the fun begins (havent i already used this as a header comment already??)
+// the object version of this file doesnt have a header comment. get jebatied :3
 
-class ESPBoxSprite extends ESPGameSprite {
+class ESPBoxStaticSprite extends ESPBoxSprite {
 	constructor(object) {
 		super();
 
@@ -8,9 +8,7 @@ class ESPBoxSprite extends ESPGameSprite {
 
 		this.ObjectHolderOffsetY = 12;
 
-		const img = this.espObject._image ?? "Box4";
-
-		this._box = new Sprite(ImageManager.loadBitmapFromUrl("img/other/" + img + ".png"));
+		this._box = new Sprite(ImageManager.loadBitmapFromUrl("img/other/MetalBox.png"));
 		this._box.x = -3;
 		this._box.anchor.set(0.5, 1);
 		this._box.scale.set(2);
