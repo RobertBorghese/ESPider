@@ -303,7 +303,11 @@ modify_Game_Map = class {
 
 		this._manualBehindKills = false;
 
+		this.permaInvisibleFunc = null;
+		this.OnRespawnFunction = null;
 		this.PostObjectsCreation = null;
+
+		this._slugBoss = null;
 
 		if(this._notetagCode) {
 			const addGameObject = this.addGameObject.bind(this);
