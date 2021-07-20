@@ -176,7 +176,7 @@ modify_Scene_Title = class {
 		this._titleText.y = (Graphics.height / 2) - 100;
 		this._titleTextGlow = new PIXI.filters.GlowFilter({
 			color: 0x543ec4,
-			quality: 1,
+			quality: 0.1,
 			distance: 50
 		});
 		this._titleText.filters = [this._titleTextGlow];

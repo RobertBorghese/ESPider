@@ -332,6 +332,7 @@ modify_Game_Map = class {
 
 		this.restrictMapBottom = false;
 		this.starBackground = false;
+		this.immediateCameraReturnAtDeath = false;
 
 		this.FootstepSound = () => "Footstep";
 
@@ -622,6 +623,9 @@ modify_Game_Map = class {
 			this.cleanUpBossesAfterFade();
 			$espGamePlayer.unkill();
 			this.espFadeIn();
+			if(this.immediateCameraReturnAtDeath) {
+				SceneManager._scene.updateCameraPos(true);
+			}
 		}
 	}
 
@@ -669,7 +673,7 @@ modify_Game_Map = class {
 		$gameSystem.setSavefileId(1);
 		$gameSystem.onBeforeSave();
 		DataManager.saveGame(1).then(function() {
-			console.log("SAVE SUCCESS");
+			//console.log("SAVE SUCCESS");
 		}).catch(function(e) {
 			console.log(e);
 			console.log("SAVE ERROR: \n" + e);
