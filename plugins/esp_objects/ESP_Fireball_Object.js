@@ -83,7 +83,9 @@ class ESPFireballObject extends ESPGameObject {
 			}
 		}
 
-		this.updateInteractions();
+		if(!this._isDead) {
+			this.updateInteractions();
+		}
 	}
 
 	updateInteractions() {

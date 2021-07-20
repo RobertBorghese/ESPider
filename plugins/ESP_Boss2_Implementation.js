@@ -352,8 +352,8 @@ modify_Game_Map_2 = class {
 				if($gameMapTemp._boss2Data.bigBall) {
 					$gameMapTemp._boss2Data._bigBallCombos++;
 				}
-				if($gameMapTemp._boss2Data._bigBallCombos >= 3) {
-					$gameMapTemp._boss2Data._bigBallCombos = 0;
+				if($gameMapTemp._boss2Data._bigBallCombos >= 2) {
+					//$gameMapTemp._boss2Data._bigBallCombos = 0;
 					$gameMapTemp._boss2Data.bigBall = false;
 				}
 
@@ -386,12 +386,12 @@ modify_Game_Map_2 = class {
 	cleanUpBoss2AfterFade() {
 		if($gameMapTemp._boss2Face) {
 			SceneManager._scene._spriteset._tilemap.removePlayerBasedSprite($gameMapTemp._boss2Face);
-			$gameMapTemp._boss2Face.destroy();
+			if(!$gameMapTemp._boss2Face.destroyed && $gameMapTemp._boss2Face._texture) $gameMapTemp._boss2Face.destroy();
 			$gameMapTemp._boss2Face = null;
 		}
 		if($gameMapTemp._attackSprite) {
 			SceneManager._scene._spriteset._tilemap.removePlayerBasedSprite($gameMapTemp._attackSprite);
-			$gameMapTemp._attackSprite.destroy();
+			if(!$gameMapTemp._attackSprite.destroyed && $gameMapTemp._attackSprite._texture) $gameMapTemp._attackSprite.destroy();
 			$gameMapTemp._attackSprite = null;
 		}
 	}

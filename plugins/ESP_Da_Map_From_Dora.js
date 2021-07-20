@@ -687,14 +687,16 @@ modify_Game_Map = class {
 	// check if should increase fade upon player death
 	shouldFastDeathFade() {
 		if($espGamePlayer.lastDeathTime < 0) return false;
-		return Graphics.frameCount - $espGamePlayer.lastDeathTime < 1000;
+		return Graphics.frameCount - $espGamePlayer.lastDeathTime < 2000;
 	}
 
 	// freeze the game world
 	setFrozen(frozen) {
 		if(this._worldFrozen !== frozen) {
 			this._worldFrozen = frozen;
-			SceneManager._scene._spriteset.setFrozen(frozen);
+			if(SceneManager._scene && SceneManager._scene._spriteset) {
+				SceneManager._scene._spriteset.setFrozen(frozen);
+			}
 		}
 	}
 
@@ -703,7 +705,7 @@ modify_Game_Map = class {
 	}
 
 	inCamera(left, right, top, bottom) {
-		if(SceneManager._scene._spriteset._tilemap.scale.x > 1) return true;
+		if((SceneManager._scene?._spriteset?._tilemap?.scale.x ?? 0) > 1) return true;
 		return !(right < this.ESPCameraX || left > (this.ESPCameraX + Graphics.width) ||
 			bottom < this.ESPCameraY || top > (this.ESPCameraY + Graphics.height));
 	}
