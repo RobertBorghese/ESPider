@@ -335,7 +335,7 @@ modify_Game_Map = class {
 
 		this.FootstepSound = () => "Footstep";
 
-		this._slugBoss = null;
+		$gameMapTemp._slugBoss = null;
 
 		if(this._notetagCode) {
 			const addGameObject = this.addGameObject.bind(this);
@@ -638,13 +638,13 @@ modify_Game_Map = class {
 	}
 
 	isBoss3() {
-		return this._slugBoss !== null;
+		return $gameMapTemp._slugBoss !== null;
 	}
 
 	cleanUpBoss3(isDefeated = false) {
-		if(this._slugBoss) {
-			this._slugBoss.onDefeatFinal(isDefeated);
-			this._slugBoss = null;
+		if($gameMapTemp._slugBoss) {
+			$gameMapTemp._slugBoss.onDefeatFinal(isDefeated);
+			$gameMapTemp._slugBoss = null;
 		}
 	}
 
@@ -659,8 +659,8 @@ modify_Game_Map = class {
 	onPlayerKilled() {
 		this.RoomKillCount++;
 		$gameMapTemp._requestedRespawns = null;
-		if(this._slugBoss) {
-			this._slugBoss.onPlayerKilled();
+		if($gameMapTemp._slugBoss) {
+			$gameMapTemp._slugBoss.onPlayerKilled();
 		}
 	}
 
@@ -668,7 +668,12 @@ modify_Game_Map = class {
 	save() {
 		$gameSystem.setSavefileId(1);
 		$gameSystem.onBeforeSave();
-		DataManager.saveGame(1).then(function() {}).catch(function() {});
+		DataManager.saveGame(1).then(function() {
+			console.log("SAVE SUCCESS");
+		}).catch(function(e) {
+			console.log(e);
+			console.log("SAVE ERROR: \n" + e);
+		});
 	}
 
 	onLoad() {

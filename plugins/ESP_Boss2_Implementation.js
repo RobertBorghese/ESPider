@@ -44,7 +44,7 @@ class ESPBoss2Data {
 
 modify_Game_Map_2 = class {
 	startBoss2() {
-		this._boss2Data = new ESPBoss2Data();
+		$gameMapTemp._boss2Data = new ESPBoss2Data();
 
 		{
 			const x = 9;
@@ -82,10 +82,10 @@ modify_Game_Map_2 = class {
 	}
 
 	updateBoss2() {
-		if(!this._boss2Data) return;
-		this._boss2Data.timer++;
+		if(!$gameMapTemp._boss2Data) return;
+		$gameMapTemp._boss2Data.timer++;
 
-		const time = this._boss2Data.timer;
+		const time = $gameMapTemp._boss2Data.timer;
 
 		if(time > 380) {
 			this.updateIdle();
@@ -103,57 +103,57 @@ modify_Game_Map_2 = class {
 			const r = Easing.easeOutCubic((time - 320) / 20);
 			$gameMapTemp._boss2Face._baseY = 110 - (50 * r)
 			$gameMapTemp._boss2Face.setOpenness(0.5 - (0.5 * r));
-			this._boss2Data.TempData = $gameMapTemp._boss2Face._left.rotation;
-			this._boss2Data.TempDataTime = 20;
+			$gameMapTemp._boss2Data.TempData = $gameMapTemp._boss2Face._left.rotation;
+			$gameMapTemp._boss2Data.TempDataTime = 20;
 		} else if(time === 380) {
 			AudioManager.playBgm({ name: "Conflict", volume: 100, pitch: 100, pan: 0 });
 		}
 
-		if(this._boss2Data.killAwait > 0) {
-			this._boss2Data.killAwait--;
-			if(this._boss2Data.killAwait <= 0) {
+		if($gameMapTemp._boss2Data.killAwait > 0) {
+			$gameMapTemp._boss2Data.killAwait--;
+			if($gameMapTemp._boss2Data.killAwait <= 0) {
 				$espGamePlayer.kill(0, 0, 100);
 			}
-		} else if(this._boss2Data.canAttackNextTimer > 0) {
-			this._boss2Data.canAttackNextTimer--;
+		} else if($gameMapTemp._boss2Data.canAttackNextTimer > 0) {
+			$gameMapTemp._boss2Data.canAttackNextTimer--;
 
-			if(this._boss2Data.wasDamaged && $gameMapTemp._boss2Face._damageOffsetY === 0) {
-				this._boss2Data.canAttackNextTimer = 0;
+			if($gameMapTemp._boss2Data.wasDamaged && $gameMapTemp._boss2Face._damageOffsetY === 0) {
+				$gameMapTemp._boss2Data.canAttackNextTimer = 0;
 				this.boss2Attack(-1);
-				this._boss2Data.wasDamaged = false;
+				$gameMapTemp._boss2Data.wasDamaged = false;
 			}
 		} else if(time > 440) {
-			if(this._boss2Data.currentAttack === 1) {
+			if($gameMapTemp._boss2Data.currentAttack === 1) {
 				this.updateSwingAttack();
 				this.onAttackEnd();
-			} else if(this._boss2Data.currentAttack === 2) {
+			} else if($gameMapTemp._boss2Data.currentAttack === 2) {
 				this.updatePoisonShot();
 				this.onAttackEnd();
-			} else if(this._boss2Data.currentAttack === -1) {
+			} else if($gameMapTemp._boss2Data.currentAttack === -1) {
 				this.updateScream();
 				this.onAttackEnd();
-				if(this._boss2Data && this._boss2Data.currentAttack === 0) {
-					if(this._boss2Data.phase === 3) {
+				if($gameMapTemp._boss2Data && $gameMapTemp._boss2Data.currentAttack === 0) {
+					if($gameMapTemp._boss2Data.phase === 3) {
 						this.boss2Attack(-1);
-					} else if(this._boss2Data.phase >= 3) {
+					} else if($gameMapTemp._boss2Data.phase >= 3) {
 						this.boss2Attack(-2);
 					}
 				}
-			} else if(this._boss2Data.currentAttack === -2) {
+			} else if($gameMapTemp._boss2Data.currentAttack === -2) {
 				this.updateLeavingThing();
 				this.onAttackEnd();
-			} else if(this._boss2Data.currentAttack === 0) {
+			} else if($gameMapTemp._boss2Data.currentAttack === 0) {
 				if(!this.updateStompDefense()) {
 					let result = null;
-					const id = this._boss2Data.attackFreqId;
+					const id = $gameMapTemp._boss2Data.attackFreqId;
 					if(id > 0) {
-						if(this._boss2Data.attackFreq === 2) {
+						if($gameMapTemp._boss2Data.attackFreq === 2) {
 							if(id === 1) result = Math.random() < 0.75 ? 2 : 1;
 							else if(id === 2) result = Math.random() < 0.75 ? 1 : 2;
-						} else if(this._boss2Data.attackFreq === 3) {
+						} else if($gameMapTemp._boss2Data.attackFreq === 3) {
 							if(id === 1) result = Math.random() < 0.9 ? 2 : 1;
 							else if(id === 2) result = Math.random() < 0.9 ? 1 : 2;
-						} else if(this._boss2Data.attackFreq >= 4) {
+						} else if($gameMapTemp._boss2Data.attackFreq >= 4) {
 							if(id === 1) result = 2;
 							else if(id === 2) result = 1;
 						}
@@ -162,11 +162,11 @@ modify_Game_Map_2 = class {
 						result = Math.random() < 0.5 ? 1 : 2;
 					}
 					this.boss2Attack(result);
-					if(result !== this._boss2Data.attackFreqId) {
-						this._boss2Data.attackFreqId = result;
-						this._boss2Data.attackFreq = 0;
+					if(result !== $gameMapTemp._boss2Data.attackFreqId) {
+						$gameMapTemp._boss2Data.attackFreqId = result;
+						$gameMapTemp._boss2Data.attackFreq = 0;
 					} else {
-						this._boss2Data.attackFreq++;
+						$gameMapTemp._boss2Data.attackFreq++;
 					}
 				}
 			}
@@ -177,17 +177,17 @@ modify_Game_Map_2 = class {
 			ESPAudio.boss2Roar();
 		}
 
-		if(this._boss2Data && this._boss2Data.stuffExists) {
-			if(this._boss2Data._webdevice && this._boss2Data._webdevice.position.y > 21 * TS) {
-				$gameMap.removeGameObject(this._boss2Data._webdevice);
-				this._boss2Data._webdevice = null;
+		if($gameMapTemp._boss2Data && $gameMapTemp._boss2Data.stuffExists) {
+			if($gameMapTemp._boss2Data._webdevice && $gameMapTemp._boss2Data._webdevice.position.y > 21 * TS) {
+				$gameMap.removeGameObject($gameMapTemp._boss2Data._webdevice);
+				$gameMapTemp._boss2Data._webdevice = null;
 			}
-			if(this._boss2Data._button && this._boss2Data._button.position.y > 21 * TS) {
-				$gameMap.removeGameObject(this._boss2Data._button);
-				this._boss2Data._button = null;
+			if($gameMapTemp._boss2Data._button && $gameMapTemp._boss2Data._button.position.y > 21 * TS) {
+				$gameMap.removeGameObject($gameMapTemp._boss2Data._button);
+				$gameMapTemp._boss2Data._button = null;
 			}
-			if(!this._boss2Data._button && !this._boss2Data._webdevice) {
-				this._boss2Data.stuffExists = false;
+			if(!$gameMapTemp._boss2Data._button && !$gameMapTemp._boss2Data._webdevice) {
+				$gameMapTemp._boss2Data.stuffExists = false;
 			}
 		}
 
@@ -213,36 +213,36 @@ modify_Game_Map_2 = class {
 	}
 
 	updateLeavingThing() {
-		this._boss2Data.attackTimer++;
+		$gameMapTemp._boss2Data.attackTimer++;
 
-		if(this._boss2Data.attackTimer === 40) {
+		if($gameMapTemp._boss2Data.attackTimer === 40) {
 			AudioManager.fadeOutBgm(8);
 		}
-		if(this._boss2Data.attackTimer < 120) {
-			const r = this._boss2Data.attackTimer / 120;
+		if($gameMapTemp._boss2Data.attackTimer < 120) {
+			const r = $gameMapTemp._boss2Data.attackTimer / 120;
 			$gameMapTemp._boss2Face._baseY = 60 - (r * 400);
 		}
-		if(this._boss2Data.attackTimer === 40) {
+		if($gameMapTemp._boss2Data.attackTimer === 40) {
 			$gameMapTemp._boss2LeftLeg.leave();
 		}
-		if(this._boss2Data.attackTimer === 80) {
+		if($gameMapTemp._boss2Data.attackTimer === 80) {
 			$gameMapTemp._boss2RightLeg.leave();
 		}
-		if(this._boss2Data.attackTimer === 280) {
+		if($gameMapTemp._boss2Data.attackTimer === 280) {
 			$gameMap.removeGameObject($gameMapTemp._boss2LeftLeg);
 			$gameMap.removeGameObject($gameMapTemp._boss2RightLeg);
 			this.finishBoss2();
-			//this._boss2Data.currentAttack = -3;
+			//$gameMapTemp._boss2Data.currentAttack = -3;
 		}
 	}
 
 	updateScream() {
-		if(this._boss2Data.attackTimer < 200) {
-			this._boss2Data.attackTimer = 200;
+		if($gameMapTemp._boss2Data.attackTimer < 200) {
+			$gameMapTemp._boss2Data.attackTimer = 200;
 		}
-		this._boss2Data.attackTimer++;
+		$gameMapTemp._boss2Data.attackTimer++;
 
-		const time = this._boss2Data.attackTimer;
+		const time = $gameMapTemp._boss2Data.attackTimer;
 
 		if(time >= 260 && time <= 280) {
 			const r = Easing.easeInCubic((time - 260) / 20);
@@ -256,19 +256,19 @@ modify_Game_Map_2 = class {
 			const r = Easing.easeOutCubic((time - 320) / 20);
 			$gameMapTemp._boss2Face._baseY = 110 - (50 * r)
 			$gameMapTemp._boss2Face.setOpenness(0.5 - (0.5 * r));
-			this._boss2Data.TempData = $gameMapTemp._boss2Face._left.rotation;
-			this._boss2Data.TempDataTime = 20;
+			$gameMapTemp._boss2Data.TempData = $gameMapTemp._boss2Face._left.rotation;
+			$gameMapTemp._boss2Data.TempDataTime = 20;
 		} else if(time === 420) {
-			this._boss2Data.TempData = $gameMapTemp._boss2Face._left.rotation;
-			this._boss2Data.TempDataTime = 20;
-			this._boss2Data.currentAttack = 0;
+			$gameMapTemp._boss2Data.TempData = $gameMapTemp._boss2Face._left.rotation;
+			$gameMapTemp._boss2Data.TempDataTime = 20;
+			$gameMapTemp._boss2Data.currentAttack = 0;
 		}
 		if(time === 300) {
 			$gameMap.shake(100, 0.6, 0.9, 50);
 			ESPAudio.boss2Roar();
-			if(this._boss2Data._webdevice) this._boss2Data._webdevice.speed.set(0, 4, 4);
-			if(this._boss2Data._button) this._boss2Data._button.speed.set(0, 4, 4);
-			this._boss2Data.phase++;
+			if($gameMapTemp._boss2Data._webdevice) $gameMapTemp._boss2Data._webdevice.speed.set(0, 4, 4);
+			if($gameMapTemp._boss2Data._button) $gameMapTemp._boss2Data._button.speed.set(0, 4, 4);
+			$gameMapTemp._boss2Data.phase++;
 		}
 
 		if(time === 240) {
@@ -281,22 +281,22 @@ modify_Game_Map_2 = class {
 	updateIdle() {
 		if(!this.shouldUpdateIdle()) return;
 		const targetOpenness = -0.25 + (0.5 * Math.sin($gameMapTemp._boss2LeftLeg._time * 1.6) * 0.3);
-		if(this._boss2Data.TempDataTime > 0) {
-			this._boss2Data.TempDataTime--;
-			$gameMapTemp._boss2Face.setOpenness(this._boss2Data.TempData + ((targetOpenness - this._boss2Data.TempData) * (1 - (this._boss2Data.TempDataTime / 20))));
+		if($gameMapTemp._boss2Data.TempDataTime > 0) {
+			$gameMapTemp._boss2Data.TempDataTime--;
+			$gameMapTemp._boss2Face.setOpenness($gameMapTemp._boss2Data.TempData + ((targetOpenness - $gameMapTemp._boss2Data.TempData) * (1 - ($gameMapTemp._boss2Data.TempDataTime / 20))));
 		} else {
 			$gameMapTemp._boss2Face.setOpenness(targetOpenness);
 		}
 	}
 
 	shouldUpdateIdle() {
-		return this._boss2Data.currentAttack !== 2 && this._boss2Data.currentAttack !== -1;
+		return $gameMapTemp._boss2Data.currentAttack !== 2 && $gameMapTemp._boss2Data.currentAttack !== -1;
 	}
 
 	onAttackEnd() {
-		if(this._boss2Data && this._boss2Data.currentAttack === 0) {
-			this._boss2Data.attackTimer = 0;
-			this._boss2Data.canAttackNextTimer = (this._boss2Data.lastAttack === 2 && this._boss2Data.stuffExists) ? 360 : 120;
+		if($gameMapTemp._boss2Data && $gameMapTemp._boss2Data.currentAttack === 0) {
+			$gameMapTemp._boss2Data.attackTimer = 0;
+			$gameMapTemp._boss2Data.canAttackNextTimer = ($gameMapTemp._boss2Data.lastAttack === 2 && $gameMapTemp._boss2Data.stuffExists) ? 360 : 120;
 		}
 	}
 
@@ -307,64 +307,64 @@ modify_Game_Map_2 = class {
 			} else {
 				$gameMapTemp._boss2RightLeg.stomp();
 			}
-			this._boss2Data.killAwait = 45;
+			$gameMapTemp._boss2Data.killAwait = 45;
 			return true;
 		}
 		return false;
 	}
 
 	boss2Attack(type) {
-		this._boss2Data.attackTimer = 0;
-		this._boss2Data.currentAttack = type;
-		this._boss2Data.lastAttack = type;
+		$gameMapTemp._boss2Data.attackTimer = 0;
+		$gameMapTemp._boss2Data.currentAttack = type;
+		$gameMapTemp._boss2Data.lastAttack = type;
 
-		if(this._boss2Data.currentAttack === 1) {
+		if($gameMapTemp._boss2Data.currentAttack === 1) {
 			// generate direction
-			if(!this._boss2Data.legDirRatio) this._boss2Data.legDirRatio = 0.5
-			this._boss2Data.legDir = Math.random() < this._boss2Data.legDirRatio ? 1 : 0;
-			if(this._boss2Data.legDir === 1) {
-				this._boss2Data.legDirRatio -= 0.1;
+			if(!$gameMapTemp._boss2Data.legDirRatio) $gameMapTemp._boss2Data.legDirRatio = 0.5
+			$gameMapTemp._boss2Data.legDir = Math.random() < $gameMapTemp._boss2Data.legDirRatio ? 1 : 0;
+			if($gameMapTemp._boss2Data.legDir === 1) {
+				$gameMapTemp._boss2Data.legDirRatio -= 0.1;
 			} else {
-				this._boss2Data.legDirRatio += 0.1;
+				$gameMapTemp._boss2Data.legDirRatio += 0.1;
 			}
-			this._boss2Data.legDirRatio = this._boss2Data.legDirRatio.clamp(0.1, 0.9);
+			$gameMapTemp._boss2Data.legDirRatio = $gameMapTemp._boss2Data.legDirRatio.clamp(0.1, 0.9);
 
 			// generate leg speed
-			if(this._boss2Data.phase === 0) {
-				this._boss2Data.legSpeed = 80;
-			} else if(this._boss2Data.phase === 1) {
-				this._boss2Data.legSpeed = 40;
-			} else if(this._boss2Data.phase >= 2) {
-				this._boss2Data.legSpeed = Math.random() < 0.5 ? 40 : 80;
+			if($gameMapTemp._boss2Data.phase === 0) {
+				$gameMapTemp._boss2Data.legSpeed = 80;
+			} else if($gameMapTemp._boss2Data.phase === 1) {
+				$gameMapTemp._boss2Data.legSpeed = 40;
+			} else if($gameMapTemp._boss2Data.phase >= 2) {
+				$gameMapTemp._boss2Data.legSpeed = Math.random() < 0.5 ? 40 : 80;
 			}
-		} else if(this._boss2Data.currentAttack === 2) {
-			this._boss2Data.currentOpeness = $gameMapTemp._boss2Face.getOpenness();
-			if(this._boss2Data.phase === 0) {
-				this._boss2Data.bigBall = false;
-				this._boss2Data.superBalls = false;
-			} else if(this._boss2Data.phase === 1) {
-				this._boss2Data.bigBall = true;
-				this._boss2Data.superBalls = false;
-			} else if(this._boss2Data.phase >= 2) {
-				this._boss2Data.bigBall = Math.random() < 0.5;
+		} else if($gameMapTemp._boss2Data.currentAttack === 2) {
+			$gameMapTemp._boss2Data.currentOpeness = $gameMapTemp._boss2Face.getOpenness();
+			if($gameMapTemp._boss2Data.phase === 0) {
+				$gameMapTemp._boss2Data.bigBall = false;
+				$gameMapTemp._boss2Data.superBalls = false;
+			} else if($gameMapTemp._boss2Data.phase === 1) {
+				$gameMapTemp._boss2Data.bigBall = true;
+				$gameMapTemp._boss2Data.superBalls = false;
+			} else if($gameMapTemp._boss2Data.phase >= 2) {
+				$gameMapTemp._boss2Data.bigBall = Math.random() < 0.5;
 
 				// ensure big ball only happens twice in a row
-				if(this._boss2Data.bigBall) {
-					this._boss2Data._bigBallCombos++;
+				if($gameMapTemp._boss2Data.bigBall) {
+					$gameMapTemp._boss2Data._bigBallCombos++;
 				}
-				if(this._boss2Data._bigBallCombos >= 3) {
-					this._boss2Data._bigBallCombos = 0;
-					this._boss2Data.bigBall = false;
+				if($gameMapTemp._boss2Data._bigBallCombos >= 3) {
+					$gameMapTemp._boss2Data._bigBallCombos = 0;
+					$gameMapTemp._boss2Data.bigBall = false;
 				}
 
 				// ensure "super balls" only happens twice ever
-				if(!this._boss2Data.bigBall) {
-					this._boss2Data._doneSuperBalls--;
-					if(this._boss2Data._doneSuperBalls <= -3) {
-						this._boss2Data._doneSuperBalls = 1;
+				if(!$gameMapTemp._boss2Data.bigBall) {
+					$gameMapTemp._boss2Data._doneSuperBalls--;
+					if($gameMapTemp._boss2Data._doneSuperBalls <= -3) {
+						$gameMapTemp._boss2Data._doneSuperBalls = 1;
 					}
 				}
-				this._boss2Data.superBalls = this._boss2Data._doneSuperBalls > 0;
+				$gameMapTemp._boss2Data.superBalls = $gameMapTemp._boss2Data._doneSuperBalls > 0;
 			}
 		}
 	}
@@ -374,9 +374,9 @@ modify_Game_Map_2 = class {
 	}
 
 	cleanUpBoss2() {
-		if(this._boss2Data) {
-			this._boss2Data.destroy();
-			this._boss2Data = null;
+		if($gameMapTemp._boss2Data) {
+			$gameMapTemp._boss2Data.destroy();
+			$gameMapTemp._boss2Data = null;
 			AudioManager.fadeOutBgm(this._boss2Complete ? 2 : 1);
 			$gameMap.ESPCameraOffsetX = 0;
 			$gameMap.ESPCameraOffsetY = 0;
@@ -389,10 +389,10 @@ modify_Game_Map_2 = class {
 			$gameMapTemp._boss2Face.destroy();
 			$gameMapTemp._boss2Face = null;
 		}
-		if(this._attackSprite) {
-			SceneManager._scene._spriteset._tilemap.removePlayerBasedSprite(this._attackSprite);
-			this._attackSprite.destroy();
-			this._attackSprite = null;
+		if($gameMapTemp._attackSprite) {
+			SceneManager._scene._spriteset._tilemap.removePlayerBasedSprite($gameMapTemp._attackSprite);
+			$gameMapTemp._attackSprite.destroy();
+			$gameMapTemp._attackSprite = null;
 		}
 	}
 
@@ -434,64 +434,64 @@ modify_Game_Map_2 = class {
 	}
 
 	updatePoisonShot() {
-		this._boss2Data.attackTimer++;
+		$gameMapTemp._boss2Data.attackTimer++;
 
-		const time = this._boss2Data.attackTimer;
+		const time = $gameMapTemp._boss2Data.attackTimer;
 
-		const FIRERATE = this._boss2Data.superBalls ? 20 : 40;//20;
-		const FIRETIME = this._boss2Data.bigBall ? 220 : (this._boss2Data.superBalls ? 220 : 120);//220;
+		const FIRERATE = $gameMapTemp._boss2Data.superBalls ? 20 : 40;//20;
+		const FIRETIME = $gameMapTemp._boss2Data.bigBall ? 220 : ($gameMapTemp._boss2Data.superBalls ? 220 : 120);//220;
 
 		if(time <= 30) {
 			const r = Easing.easeInCubic(time / 30);
-			$gameMapTemp._boss2Face.setOpenness(this._boss2Data.currentOpeness + ((-0.8 - this._boss2Data.currentOpeness) * r));
+			$gameMapTemp._boss2Face.setOpenness($gameMapTemp._boss2Data.currentOpeness + ((-0.8 - $gameMapTemp._boss2Data.currentOpeness) * r));
 			$gameMapTemp._boss2Face._baseY = (60 - (40 * r));
 			if(time === 30) {
 				ESPAudio.boss2Clap();
-				this._boss2Data.currentOpeness = $gameMapTemp._boss2Face.getOpenness();
+				$gameMapTemp._boss2Data.currentOpeness = $gameMapTemp._boss2Face.getOpenness();
 			}
 		} else if(time > 50 && time <= 80) {
 			const r = Easing.easeOutBack((time - 50) / 30);
 			$gameMapTemp._boss2Face._baseY = (20 + (120 * r));
-			$gameMapTemp._boss2Face.setOpenness(this._boss2Data.currentOpeness + ((0.3 - this._boss2Data.currentOpeness) * r));
+			$gameMapTemp._boss2Face.setOpenness($gameMapTemp._boss2Data.currentOpeness + ((0.3 - $gameMapTemp._boss2Data.currentOpeness) * r));
 		} else if(time > 80 && time <= (80 + FIRETIME)) {
 			$gameMapTemp._boss2Face.setOpenness(0.3 + (Math.sin(time / 3) * 0.05));
-			if((this._boss2Data.bigBall && time === 81) || (!this._boss2Data.bigBall && (time % FIRERATE === 0))) {
-				const obj = new ESPPoisonballObject(this._boss2Data.bigBall, 2, this._boss2Data.bigBall);
-				$gameMap.addGameObject(obj, $gameMapTemp._boss2Face.x, (10 * TS) + (this._boss2Data.bigBall ? TS : 0), 110 + (this._boss2Data.bigBall ? 20 : 0));
+			if(($gameMapTemp._boss2Data.bigBall && time === 81) || (!$gameMapTemp._boss2Data.bigBall && (time % FIRERATE === 0))) {
+				const obj = new ESPPoisonballObject($gameMapTemp._boss2Data.bigBall, 2, $gameMapTemp._boss2Data.bigBall);
+				$gameMap.addGameObject(obj, $gameMapTemp._boss2Face.x, (10 * TS) + ($gameMapTemp._boss2Data.bigBall ? TS : 0), 110 + ($gameMapTemp._boss2Data.bigBall ? 20 : 0));
 				const radians = Math.atan2(obj.position.x - $espGamePlayer.position.x, (obj.position.y - $espGamePlayer.position.y) + $gameMapTemp._boss2Face._baseY) + ((ESPBoss2Data.getRandomNumber() * 2) - 1);
-				obj.speed.x = (Math.sin(radians) * -2);
-				obj.speed.y = (Math.cos(radians) * -2);
+				obj.speed.x = (Math.sin(radians) * -3);
+				obj.speed.y = (Math.cos(radians) * -3);
 				if(obj.speed.y < 0.2) {
 					obj.speed.y = 0.2;
 				}
-				if(this._boss2Data.bigBall) {
+				if($gameMapTemp._boss2Data.bigBall) {
 					ESPAudio.boss2Charge();
 				}
 			}
-			if(this._boss2Data.bigBall && time === 250) {
+			if($gameMapTemp._boss2Data.bigBall && time === 250) {
 				Input.vibrate(100, 0.6, 0.9, 10);
 			}
 		} else if(time > (80 + FIRETIME) && time <= (100 + FIRETIME)) {
 			const r = (time - (80 + FIRETIME)) / 20;
 			$gameMapTemp._boss2Face._baseY = (140 - (80 * r));
 		} else if(time === (101 + FIRETIME)) {
-			this._boss2Data.TempData = $gameMapTemp._boss2Face._left.rotation;
-			this._boss2Data.TempDataTime = 20;
-			this._boss2Data.currentAttack = 0;
+			$gameMapTemp._boss2Data.TempData = $gameMapTemp._boss2Face._left.rotation;
+			$gameMapTemp._boss2Data.TempDataTime = 20;
+			$gameMapTemp._boss2Data.currentAttack = 0;
 		}
 	}
 
 	updateSwingAttack() {
-		this._boss2Data.attackTimer++;
+		$gameMapTemp._boss2Data.attackTimer++;
 
 		const START_WAIT = 0;//10;
-		const ATTACK_DURATION = this._boss2Data.legSpeed;
+		const ATTACK_DURATION = $gameMapTemp._boss2Data.legSpeed;
 		const LEAVE_DURATION = 20;
 
-		const time = this._boss2Data.attackTimer;
+		const time = $gameMapTemp._boss2Data.attackTimer;
 
 		if(time === 1) {
-			if(this._boss2Data.legDir === 0) {
+			if($gameMapTemp._boss2Data.legDir === 0) {
 				$gameMapTemp._boss2LeftLeg.goUp();
 			} else {
 				$gameMapTemp._boss2RightLeg.goUp();
@@ -499,18 +499,18 @@ modify_Game_Map_2 = class {
 		} else if(time === 20) {
 			$gameMap.ESPCameraOffsetY = 0;
 		} else if(time === 60) {
-			if(this._boss2Data.legSpeed === 40) {
-				if(this._boss2Data.legDir === 0) {
+			if($gameMapTemp._boss2Data.legSpeed === 40) {
+				if($gameMapTemp._boss2Data.legDir === 0) {
 					$gameMapTemp._boss2RightLeg.stomp();
 				} else {
 					$gameMapTemp._boss2LeftLeg.stomp();
 				}
 			}
 		} else if(time === 80) {
-			if(!this._attackSprite) {
-				this._attackSprite = new Sprite(ImageManager.loadBitmapFromUrl("img/bosses/boss2/LegAttack1.png"));
-				this._attackSprite.anchor.set(37 / 73, 37 / 260);
-				this._attackSprite.filters = [new PIXI.filters.DropShadowFilter({
+			if(!$gameMapTemp._attackSprite) {
+				$gameMapTemp._attackSprite = new Sprite(ImageManager.loadBitmapFromUrl("img/bosses/boss2/LegAttack1.png"));
+				$gameMapTemp._attackSprite.anchor.set(37 / 73, 37 / 260);
+				$gameMapTemp._attackSprite.filters = [new PIXI.filters.DropShadowFilter({
 					blur: 0,
 					distance: 30,
 					resolution: 2,
@@ -518,109 +518,109 @@ modify_Game_Map_2 = class {
 					alpha: 0.3
 				})];
 
-				this._attackSprite2 = new Sprite(ImageManager.loadBitmapFromUrl("img/bosses/boss2/LegAttack2.png"));
-				this._attackSprite2.anchor.set(9 / 32, 10 / 123);
-				this._attackSprite2.move(5, 210);
-				this._attackSprite.addChild(this._attackSprite2);
+				$gameMapTemp._attackSprite2 = new Sprite(ImageManager.loadBitmapFromUrl("img/bosses/boss2/LegAttack2.png"));
+				$gameMapTemp._attackSprite2.anchor.set(9 / 32, 10 / 123);
+				$gameMapTemp._attackSprite2.move(5, 210);
+				$gameMapTemp._attackSprite.addChild($gameMapTemp._attackSprite2);
 
-				this._attackSprite3 = new Sprite(ImageManager.loadBitmapFromUrl("img/bosses/boss2/LegAttack3.png"));
-				this._attackSprite3.anchor.set(8 / 26, 8 / 82);
-				this._attackSprite3.move(5, 110);
-				this._attackSprite2.addChild(this._attackSprite3);
+				$gameMapTemp._attackSprite3 = new Sprite(ImageManager.loadBitmapFromUrl("img/bosses/boss2/LegAttack3.png"));
+				$gameMapTemp._attackSprite3.anchor.set(8 / 26, 8 / 82);
+				$gameMapTemp._attackSprite3.move(5, 110);
+				$gameMapTemp._attackSprite2.addChild($gameMapTemp._attackSprite3);
 
-				this._attackSprite._alwaysOnTop = 100;
-				this._attackSprite.scale.set(2);
-				SceneManager._scene._spriteset._tilemap.addPlayerBasedSprite(this._attackSprite, SceneManager._scene._spriteset._tilemap.children.indexOf($gameMapTemp._boss2Face));
+				$gameMapTemp._attackSprite._alwaysOnTop = 100;
+				$gameMapTemp._attackSprite.scale.set(2);
+				SceneManager._scene._spriteset._tilemap.addPlayerBasedSprite($gameMapTemp._attackSprite, SceneManager._scene._spriteset._tilemap.children.indexOf($gameMapTemp._boss2Face));
 			}
 
-			if(this._boss2Data.legDir === 0) {
-				this._attackSprite.scale.set(2, 2);
+			if($gameMapTemp._boss2Data.legDir === 0) {
+				$gameMapTemp._attackSprite.scale.set(2, 2);
 			} else {
-				this._attackSprite.scale.set(-2, 2);
+				$gameMapTemp._attackSprite.scale.set(-2, 2);
 			}
 
-			this._attackSprite.visible = true;
-			this._attackSprite.y = -800;
-			if(this._boss2Data.legDir === 0) {
-				this._attackSprite.x = 400;
+			$gameMapTemp._attackSprite.visible = true;
+			$gameMapTemp._attackSprite.y = -800;
+			if($gameMapTemp._boss2Data.legDir === 0) {
+				$gameMapTemp._attackSprite.x = 400;
 			} else {
-				this._attackSprite.x = 1100;
+				$gameMapTemp._attackSprite.x = 1100;
 			}
-			this._attackSprite.rotation = 0
-			this._attackSprite2.rotation = 0;
-			this._attackSprite3.rotation = 0;
+			$gameMapTemp._attackSprite.rotation = 0
+			$gameMapTemp._attackSprite2.rotation = 0;
+			$gameMapTemp._attackSprite3.rotation = 0;
 		} else if(time > 80 && time <= 100) {
 			const r = Easing.easeOutCubic((time - 80) / 20);
-			this._attackSprite.y = -800 + (900 * r);
+			$gameMapTemp._attackSprite.y = -800 + (900 * r);
 		} else if(time > 100 && time <= 120) {
 			const r = Easing.easeInOutQuad((time - 100) / 20);
 
-			this._attackSprite.rotation = 0.1 * r * (this._boss2Data.legDir === 1 ? -1 : 1);//0.1 * r;
-			this._attackSprite2.rotation = 0.2 * r;
-			this._attackSprite3.rotation = 0.5 * r;
+			$gameMapTemp._attackSprite.rotation = 0.1 * r * ($gameMapTemp._boss2Data.legDir === 1 ? -1 : 1);//0.1 * r;
+			$gameMapTemp._attackSprite2.rotation = 0.2 * r;
+			$gameMapTemp._attackSprite3.rotation = 0.5 * r;
 
-			if(this._boss2Data.legDir === 1) {
-				//this._attackSprite.x = 1100 + (100 * r);
+			if($gameMapTemp._boss2Data.legDir === 1) {
+				//$gameMapTemp._attackSprite.x = 1100 + (100 * r);
 			}
-			this._attackSprite.y = 100 - (100 * r);
+			$gameMapTemp._attackSprite.y = 100 - (100 * r);
 		} else if(time > (120 + START_WAIT) && time <= (120 + ATTACK_DURATION)) {
 			const r = Easing.easeInCubic((time - (120 + START_WAIT)) / (ATTACK_DURATION - START_WAIT));
-			if(this._boss2Data.legDir === 0) {
-				this._attackSprite.x = 400 + (500 * r);
+			if($gameMapTemp._boss2Data.legDir === 0) {
+				$gameMapTemp._attackSprite.x = 400 + (500 * r);
 			} else {
-				this._attackSprite.x = 1100 - (700 * r);
+				$gameMapTemp._attackSprite.x = 1100 - (700 * r);
 			}
 
-			this._attackSprite.rotation = ((this._boss2Data.legDir === 1 ? -0.1 : 0.1) - (0.3 * r));
-			this._attackSprite2.rotation = 0.2 - (0.6 * r);
-			this._attackSprite3.rotation = 0.5 - (1.1 * r);
+			$gameMapTemp._attackSprite.rotation = (($gameMapTemp._boss2Data.legDir === 1 ? -0.1 : 0.1) - (0.3 * r));
+			$gameMapTemp._attackSprite2.rotation = 0.2 - (0.6 * r);
+			$gameMapTemp._attackSprite3.rotation = 0.5 - (1.1 * r);
 
 			if(r) {
-				const damagePos = this._attackSprite.x;
+				const damagePos = $gameMapTemp._attackSprite.x;
 				let damagePosOffset = 0;
-				if(this._boss2Data.legDir === 0) {
+				if($gameMapTemp._boss2Data.legDir === 0) {
 					damagePosOffset = damagePos + (($espGamePlayer.position.x < 900 ? -20 : -40) + (r * 250));
 				} else {
 					damagePosOffset = damagePos + (150 + (r * ($espGamePlayer.position.x < 750 ? 0 : -150)));
 				}
 				if($espGamePlayer.position.z < 6 && Math.abs($espGamePlayer.position.x - damagePosOffset) < 20) {
-					$espGamePlayer.kill((this._boss2Data.legDir === 0 ? 50 : -50), 0, 60);
+					$espGamePlayer.kill(($gameMapTemp._boss2Data.legDir === 0 ? 50 : -50), 0, 60);
 				}
 			}
 
 		} else if(time > (120 + ATTACK_DURATION) && time <= (120 + ATTACK_DURATION + LEAVE_DURATION)) {
 			const r = (time - (120 + ATTACK_DURATION)) / LEAVE_DURATION;
-			this._attackSprite.y = 0 - (800 * r);
-			if(this._boss2Data.legDir === 1) {
-				this._attackSprite.x = 400 - (400 * r);
+			$gameMapTemp._attackSprite.y = 0 - (800 * r);
+			if($gameMapTemp._boss2Data.legDir === 1) {
+				$gameMapTemp._attackSprite.x = 400 - (400 * r);
 			}
 		} else if(time === (120 + ATTACK_DURATION + LEAVE_DURATION + 1)) {
-			this._attackSprite.visible = false;
-			if(this._boss2Data.legDir === 0) {
+			$gameMapTemp._attackSprite.visible = false;
+			if($gameMapTemp._boss2Data.legDir === 0) {
 				$gameMapTemp._boss2LeftLeg.goDown(280, true);
 			} else {
 				$gameMapTemp._boss2RightLeg.goDown(280, true);
 			}
 		} else if(time === (120 + ATTACK_DURATION + LEAVE_DURATION + 120)) {
-			this._boss2Data.currentAttack = 0;
+			$gameMapTemp._boss2Data.currentAttack = 0;
 			$gameMap.ESPCameraOffsetY = ESPBoss2Data.cameraOffset;
 			SceneManager._scene._spriteset._tilemap.refreshPlayer();
 		}
 	}
 
 	onLegStomp() {
-		if(!this._boss2Data.stuffExists) {
-			this._boss2Data.dropStuffTimes++;
-			if(true) {//Math.random() < (this._boss2Data.dropStuffTimes / 6)) {
-				this._boss2Data.dropStuffTimes = 0;
-				this._boss2Data.stuffExists = true;
+		if(!$gameMapTemp._boss2Data.stuffExists) {
+			$gameMapTemp._boss2Data.dropStuffTimes++;
+			if(true) {//Math.random() < ($gameMapTemp._boss2Data.dropStuffTimes / 6)) {
+				$gameMapTemp._boss2Data.dropStuffTimes = 0;
+				$gameMapTemp._boss2Data.stuffExists = true;
 
 				let buttonX = 0;//Math.floor(Math.random() * (21 - 9)) + 9;
-				if(this._boss2Data.phase === 0) {
+				if($gameMapTemp._boss2Data.phase === 0) {
 					buttonX = 15;
-				} else if(this._boss2Data.phase === 1) {
+				} else if($gameMapTemp._boss2Data.phase === 1) {
 					buttonX = Math.random() < 0.5 ? 10 : 20;
-				} else if(this._boss2Data.phase === 2) {
+				} else if($gameMapTemp._boss2Data.phase === 2) {
 					buttonX = Math.random() < 0.5 ? 10 : 20;
 				}
 				const buttonY = 13;
@@ -630,23 +630,23 @@ modify_Game_Map_2 = class {
 				});
 				button.CollisionHeight = 2;
 				button.position.z = 400;
-				this._boss2Data._button = button;
+				$gameMapTemp._boss2Data._button = button;
 
 				{
 					let y = 11;
 					let x = 0;
-					if(this._boss2Data.phase === 0) {
+					if($gameMapTemp._boss2Data.phase === 0) {
 						x = Math.random() < 0.5 ? 10 : 20;
-					} else if(this._boss2Data.phase === 1) {
+					} else if($gameMapTemp._boss2Data.phase === 1) {
 						x = 15;
-					} else if(this._boss2Data.phase === 2) {
+					} else if($gameMapTemp._boss2Data.phase === 2) {
 						x = buttonX === 10 ? 20 : 10;
 					}
 					const obj = $gameMap.createPresetObject(10, x, y, "WebDevice", 0, {
 					});
 					obj.CollisionHeight = 2;
 					obj.position.z = 500;
-					this._boss2Data._webdevice = obj;
+					$gameMapTemp._boss2Data._webdevice = obj;
 				}
 			}
 		}
@@ -658,7 +658,7 @@ modify_Game_Map_2 = class {
 		$gameMapTemp._boss2LeftLeg._spr.setBlendColor(blend);
 		$gameMapTemp._boss2RightLeg._spr.setBlendColor(blend);
 		$gameMapTemp._boss2Face._damageOffsetY = -$gameMapTemp._boss2Face._damageOffsetYMax;
-		this._boss2Data.wasDamaged = true;
+		$gameMapTemp._boss2Data.wasDamaged = true;
 		$gameMap.shake(100, 0.6, 0.9, 10);
 		ESPAudio.boss2Damage();
 	}

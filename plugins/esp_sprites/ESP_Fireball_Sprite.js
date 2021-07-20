@@ -6,7 +6,7 @@ class ESPFireballSprite extends ESPGameSprite {
 
 		this.espObject = object;
 
-		this.ObjectHolderOffsetY = -16;
+		this.ObjectHolderOffsetY = object?.getObjectHolderOffsetY?.() ?? -16;
 
 		this._particleColors = this.getParticleColors();
 		this._ballSize = this.getSize();

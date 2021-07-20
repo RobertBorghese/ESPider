@@ -5,6 +5,7 @@ class ESPPoisonballObject extends ESPFireballObject {
 		super(initAnimation, grounedStyle);
 		this._isBig = !!isBig;
 		this._didDamage = false;
+		this._collisionSize = this.getCollisionSize();
 	}
 
 	constructSprite() {
@@ -12,7 +13,11 @@ class ESPPoisonballObject extends ESPFireballObject {
 	}
 
 	getCollisionSize() {
-		return (26 * 1.5) + (this._isBig ? 16 : 0);
+		return (26 * 1.5) + (this._isBig ? 32 : 0);
+	}
+
+	getObjectHolderOffsetY() {
+		return this._isBig ? 0 : -16;
 	}
 
 	playShotAudio() {

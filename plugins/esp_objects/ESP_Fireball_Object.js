@@ -29,6 +29,10 @@ class ESPFireballObject extends ESPGameObject {
 		return new ESPFireballSprite(this, this._initAnimation);
 	}
 
+	getObjectHolderOffsetY() {
+		return -16;
+	}
+
 	isSelfMoved() {
 		return true;
 	}

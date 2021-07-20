@@ -2,15 +2,15 @@
 
 modify_Game_Map_1 = class {
 	isBoss1() {
-		return $gameMap.mapId() === 13 && !!this._boss1Lefties;
+		return $gameMap.mapId() === 13 && !!$gameMapTemp._boss1Lefties;
 	}
 
 	cleanUpBoss1() {
-		this._boss1Timer = null;
-		this._boss1Lefties = null;
-		this._boss1Righties = null;
-		this._boss1Topies = null;
-		this._boss1DidJump = null;
+		$gameMapTemp._boss1Timer = null;
+		$gameMapTemp._boss1Lefties = null;
+		$gameMapTemp._boss1Righties = null;
+		$gameMapTemp._boss1Topies = null;
+		$gameMapTemp._boss1DidJump = null;
 		if(!this._boss1Complete) $espGamePlayer.disableJump();
 		ESP.WS = 1;
 		SceneManager._scene._spriteset._tilemap.scale.set(1);
@@ -24,10 +24,10 @@ modify_Game_Map_1 = class {
 	}
 
 	startBoss1() {
-		this._boss1Timer = 0;
-		this._boss1Lefties = [];
-		this._boss1Righties = [];
-		this._boss1Topies = [];
+		$gameMapTemp._boss1Timer = 0;
+		$gameMapTemp._boss1Lefties = [];
+		$gameMapTemp._boss1Righties = [];
+		$gameMapTemp._boss1Topies = [];
 		for(let y = 7; y <= 12; y++) {
 			let x = 7;
 			const regionId = this.getColHeight(x, y);
@@ -36,7 +36,7 @@ modify_Game_Map_1 = class {
 				"Shoot Dir": "right",
 				"Shoot Rate": 0
 			});
-			this._boss1Lefties.push(obj);
+			$gameMapTemp._boss1Lefties.push(obj);
 			this.addGameObject(obj, (x * TS) + (TS / 2), (y * TS) + (regionId * TS) + (TS / 2), 500 + (y - 7) * 100);
 		}
 		for(let y = 7; y <= 12; y++) {
@@ -47,7 +47,7 @@ modify_Game_Map_1 = class {
 				"Shoot Dir": "left",
 				"Shoot Rate": 0
 			});
-			this._boss1Righties.push(obj);
+			$gameMapTemp._boss1Righties.push(obj);
 			this.addGameObject(obj, (x * TS) + (TS / 2), (y * TS) + (regionId * TS) + (TS / 2), 500 + (12 - y) * 100);
 		}
 
@@ -66,16 +66,16 @@ modify_Game_Map_1 = class {
 				"Shoot Dir": "down",
 				"Shoot Rate": 0
 			});
-			this._boss1Topies.push(obj);
+			$gameMapTemp._boss1Topies.push(obj);
 			this.addGameObject(obj, (x * TS) + (TS / 2), (y * TS) + (regionId * TS) + (TS / 2), 500 + Math.abs(13 - x) * 100);
 		}
 	}
 
 	finishBoss1() {
 		ESPAudio.boss1Disappear();
-		this._boss1Lefties.forEach(b => this.removeGameObject(b));
-		this._boss1Righties.forEach(b => this.removeGameObject(b));
-		this._boss1Topies.forEach(b => this.removeGameObject(b));
+		$gameMapTemp._boss1Lefties.forEach(b => this.removeGameObject(b));
+		$gameMapTemp._boss1Righties.forEach(b => this.removeGameObject(b));
+		$gameMapTemp._boss1Topies.forEach(b => this.removeGameObject(b));
 		this._boss1Complete = true;
 		this.cleanUpBoss1();
 	}
@@ -83,38 +83,37 @@ modify_Game_Map_1 = class {
 	updateBoss1() {
 		if(!this.isBoss1()) return;
 
-		this._boss1Timer++;
-
+		$gameMapTemp._boss1Timer++;
 
 		const left = (i) => {
 			if(i === undefined) {
-				this._boss1Lefties.forEach(b => b.shoot());
+				$gameMapTemp._boss1Lefties.forEach(b => b.shoot());
 			} else {
-				this._boss1Lefties.filterIndex(i).forEach(b => b.shoot());
+				$gameMapTemp._boss1Lefties.filterIndex(i).forEach(b => b.shoot());
 			}
 			ESPAudio.superFireballShot();
 		};
 
 		const right = (i) => {
 			if(i === undefined) {
-				this._boss1Righties.forEach(b => b.shoot());
+				$gameMapTemp._boss1Righties.forEach(b => b.shoot());
 			} else {
-				this._boss1Righties.filterIndex(i).forEach(b => b.shoot());
+				$gameMapTemp._boss1Righties.filterIndex(i).forEach(b => b.shoot());
 			}
 			ESPAudio.superFireballShot();
 		};
 
 		const top = (i, extraSpd) => {
-			if(this._boss1Timer < 1600) return;
+			if($gameMapTemp._boss1Timer < 1600) return;
 			if(i === undefined) {
-				this._boss1Topies.forEach(b => b.shoot(extraSpd ? 2.5 : null));
+				$gameMapTemp._boss1Topies.forEach(b => b.shoot(extraSpd ? 2.5 : null));
 			} else {
-				this._boss1Topies.filterIndex(i).forEach(b => b.shoot());
+				$gameMapTemp._boss1Topies.filterIndex(i).forEach(b => b.shoot());
 			}
 			ESPAudio.superFireballShot();
 		};
 
-		switch(this._boss1Timer) {
+		switch($gameMapTemp._boss1Timer) {
 			case 50: { AudioManager.playBgm({ name: "TimeToFight_NoMelody", volume: 100, pitch: 100, pan: 0 }); break; }
 			case 60: { left(0); break; }
 			case 260: { right(5); break; }
@@ -169,28 +168,28 @@ modify_Game_Map_1 = class {
 			}
 		}
 
-		if(this._boss1Timer <= 3500) {
-			if(this._boss1Timer === 3075) {
+		if($gameMapTemp._boss1Timer <= 3500) {
+			if($gameMapTemp._boss1Timer === 3075) {
 				AudioManager.fadeOutBgm(3);
 			}
-			if(this._boss1Timer > 3075) {
-				const r = (150 - (this._boss1Timer - 3075).clamp(0, 150)) / 150;
+			if($gameMapTemp._boss1Timer > 3075) {
+				const r = (150 - ($gameMapTemp._boss1Timer - 3075).clamp(0, 150)) / 150;
 				ESP.WS = r;
 				if(ESP.WS < 0.5) {
 					$espGamePlayer.canKill = false;
 				}
 			}
-			if(this._boss1Timer >= 3275) {
-				if(this._boss1Timer === 3275) {
+			if($gameMapTemp._boss1Timer >= 3275) {
+				if($gameMapTemp._boss1Timer === 3275) {
 					ESPAudio.flashback();
 				}
-				const r = (200 - (this._boss1Timer - 3275).clamp(0, 200)) / 200;
+				const r = (200 - ($gameMapTemp._boss1Timer - 3275).clamp(0, 200)) / 200;
 				const r2 = Easing.easeInCubic(1 - r);
 				SceneManager._scene._spriteset._tilemap.scale.set(1 + (6 * r2));
 				SceneManager._scene._overlay.alpha = r2;
 				SceneManager._scene.updateCameraPos(true);
 			}
-			if(this._boss1Timer === 3500) {
+			if($gameMapTemp._boss1Timer === 3500) {
 				$espGamePlayer.disableJump();
 				AudioManager.playBgm({ name: "Flashback", volume: 100, pitch: 100, pan: 0 });
 				SceneManager._scene.startSlideshow([
@@ -207,16 +206,16 @@ modify_Game_Map_1 = class {
 		}
 		
 		if(!$espGamePlayer.canJump()) {
-			if(this._boss1Timer === 3501) {
+			if($gameMapTemp._boss1Timer === 3501) {
 				const regionId = this.getColHeight(13, 14);
-				this._boss1InfoBeetle = new ESPInfoBeetleObject({ text: ["Press [SPACE] or [STH] to jump."], "Trigger Distance": "10", "Untrigger Distance": "10" });
-				this._boss1InfoBeetle.__eventName = "";
-				this._boss1InfoBeetle.saveIndividual = function() { return true; };
-				this.addGameObject(this._boss1InfoBeetle, (13 * TS) + (TS / 2), (14 * TS) + (regionId * TS) + (TS / 2));
+				$gameMapTemp._boss1InfoBeetle = new ESPInfoBeetleObject({ text: ["Press [SPACE] or [STH] to jump."], "Trigger Distance": "10", "Untrigger Distance": "10" });
+				$gameMapTemp._boss1InfoBeetle.__eventName = "";
+				$gameMapTemp._boss1InfoBeetle.saveIndividual = function() { return true; };
+				this.addGameObject($gameMapTemp._boss1InfoBeetle, (13 * TS) + (TS / 2), (14 * TS) + (regionId * TS) + (TS / 2));
 			}
-			if(this._boss1Timer <= 3701) {
-				if(this._boss1Timer >= 3501) {
-					const r = (200 - (this._boss1Timer - 3501).clamp(0, 200)) / 200;
+			if($gameMapTemp._boss1Timer <= 3701) {
+				if($gameMapTemp._boss1Timer >= 3501) {
+					const r = (200 - ($gameMapTemp._boss1Timer - 3501).clamp(0, 200)) / 200;
 					const r2 = Easing.easeOutCubic(r);
 					SceneManager._scene._spriteset._tilemap.scale.set(1 + (6 * r2));
 					SceneManager._scene._overlay.alpha = 0;
@@ -224,25 +223,25 @@ modify_Game_Map_1 = class {
 				}
 			}
 			
-			if(this._boss1Timer === 3750) {
-				this._boss1InfoBeetle._triggerDist = 800;
-				this._boss1InfoBeetle._untriggerDist = 850;
+			if($gameMapTemp._boss1Timer === 3750) {
+				$gameMapTemp._boss1InfoBeetle._triggerDist = 800;
+				$gameMapTemp._boss1InfoBeetle._untriggerDist = 850;
 			}
 
-			if(!this._boss1DidJump && this._boss1Timer > 3701) {
+			if(!$gameMapTemp._boss1DidJump && $gameMapTemp._boss1Timer > 3701) {
 				if($espGamePlayer.isJumpButtonTriggered()) {
 					ESPAudio.jump();
-					this._boss1DidJump = this._boss1Timer;
+					$gameMapTemp._boss1DidJump = $gameMapTemp._boss1Timer;
 					$espGamePlayer.speed.z = 8;
 				}
 			}
 
-			if(ESP.WS < 1 && this._boss1DidJump) {
-				const r = ((this._boss1Timer - this._boss1DidJump).clamp(0, 100)) / 100;
+			if(ESP.WS < 1 && $gameMapTemp._boss1DidJump) {
+				const r = (($gameMapTemp._boss1Timer - $gameMapTemp._boss1DidJump).clamp(0, 100)) / 100;
 				ESP.WS = r;
 			}
 
-			if(this._boss1DidJump) {
+			if($gameMapTemp._boss1DidJump) {
 				if($espGamePlayer.position.z > 0 || $espGamePlayer.speed.z > 0) {
 					$espGamePlayer.speed.x = $espGamePlayer.position.x < 596 ? 2 : ($espGamePlayer.position.x > 700 ? -2 : 0);
 					$espGamePlayer.speed.y = $espGamePlayer.position.y > 585 ? -1 : 0;
@@ -251,12 +250,12 @@ modify_Game_Map_1 = class {
 					$espGamePlayer.enableJump();
 					$espGamePlayer._canControl = true;
 					$espGamePlayer.canKill = true;
-					this._boss1Timer = 4000;
+					$gameMapTemp._boss1Timer = 4000;
 				}
 			}
 		} else {
 
-			switch(this._boss1Timer) {
+			switch($gameMapTemp._boss1Timer) {
 				case 4090: { AudioManager.playBgm({ name: "TimeToFight", volume: 100, pitch: 100, pan: 0 }); break; }
 				case 4100: { left(); break; }
 				case 4300: { right(); break; }
@@ -281,8 +280,8 @@ modify_Game_Map_1 = class {
 					top(); break;
 				}
 				case 6000: {
-					this._boss1InfoBeetle._triggerDist = 100;
-					this._boss1InfoBeetle._untriggerDist = 150;
+					$gameMapTemp._boss1InfoBeetle._triggerDist = 100;
+					$gameMapTemp._boss1InfoBeetle._untriggerDist = 150;
 
 					const interpreter = new ESPInterpreter();
 
@@ -291,7 +290,10 @@ modify_Game_Map_1 = class {
 					.wait(30)
 					.fadeOut()
 					.finishBoss(1)
-					.removeGameObject(this._boss1InfoBeetle)
+					.removeGameObject($gameMapTemp._boss1InfoBeetle)
+					.callFunction(() => {
+						$gameMapTemp._boss1InfoBeetle = null;
+					})
 					.createInfoBug(13, 14, "Nice buddy!", 80, 100, "InfoBug")
 					.fadeIn()
 					.wait(20)
