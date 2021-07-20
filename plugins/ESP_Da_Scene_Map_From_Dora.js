@@ -441,17 +441,28 @@ modify_Scene_Map = class {
 						this._slideshowTime = 0;
 					}
 				}
+				if(this._slideshowFadeInText && this._slideshowFadeInText.alpha < 1) {
+					this._slideshowFadeInText.alpha += 0.03;
+					if(this._slideshowFadeInText.alpha >= 1) {
+						this._slideshowFadeInText.alpha = 1;
+					}
+				}
 				if(!this._slideshowEnding && this._overlay.alpha <= 0 && this.isSlideshowIncrementTriggered()) {
-					{
+					if(this.slideShowDoNotFade()) {
+						this.incrementSlideshow();
+					} else {
 						this._slideshowFadingOut = true;
 						this._slideshowEnding = ((this._slideshowIndex + 1) >= this._slideshowList.length);
 						if(this._slideshowEnding) {
+							ESPAudio.flashback();
 							if(this._slideshowBackground) {
 								AudioManager.fadeOutBgm(2);
 								this._slideshowHolder.removeChild(this._slideshowBackground);
 								this._slideshowBackground.destroy();
 								this._slideshowBackground = null;
 							}
+						} else {
+							ESPAudio.flashbackInput();
 						}
 					}
 				}
@@ -466,6 +477,8 @@ modify_Scene_Map = class {
 		this._slideshowFadingOut = false;
 		this._slideshowEnding = false;
 		this._slideshowTime = 0;
+		this._slideshowPreviousType = -1;
+		this._slideshowFadeInText = null;
 
 		this._slideshowBackground = new PIXI.Graphics();
 		this._slideshowBackground.beginFill(0x000000);
@@ -491,18 +504,35 @@ modify_Scene_Map = class {
 		}
 	}
 
-	incrementSlideshow() {
-		this._slideshowOthers = null;
-		this._slideshowIndex++;
+	removeAllSlideshowChildren() {
 		const hasBackground = this._slideshowHolder.children.contains(this._slideshowBackground);
 		while(this._slideshowHolder.children.length > 0) {
 			let child = this._slideshowHolder.children[0];
 			this._slideshowHolder.removeChild(child);
 		}
 		if(hasBackground) this._slideshowHolder.addChild(this._slideshowBackground);
+	}
+
+	slideShowDoNotFade() {
+		let type = -1;
+		const index = this._slideshowIndex + 1;
+		if(index < this._slideshowList.length) {
+			const data = this._slideshowList[index];
+			if(typeof data === "string") {
+				return this._slideshowPreviousType >= 1;
+			}
+		}
+		return false;
+	}
+
+	incrementSlideshow() {
+		this._slideshowOthers = null;
+		this._slideshowIndex++;
 		if(this._slideshowList && this._slideshowIndex < this._slideshowList.length) {
 			const data = this._slideshowList[this._slideshowIndex];
+			let type = -1;
 			if(Array.isArray(data)) {
+				this.removeAllSlideshowChildren();
 				if(data.length === 1) {
 					const spr = new Sprite(ImageManager.loadBitmapFromUrl(data[0]));
 					this._slideshowHolder.addChild(spr);
@@ -520,18 +550,34 @@ modify_Scene_Map = class {
 						}
 					}
 				}
+				this._slideshowPreviousType = 0;
 			} else if(typeof data === "string") {
-				const background = new PIXI.Graphics();
-				background.beginFill(0x000000);
-				background.drawRect(0, 0, Graphics.width, Graphics.height);
-				background.endFill();
-				this._slideshowHolder.addChild(background);
+				if(this._slideshowPreviousType === 0) {
+					const background = new PIXI.Graphics();
+					background.beginFill(0x000000);
+					background.drawRect(0, 0, Graphics.width, Graphics.height);
+					background.endFill();
+					this._slideshowHolder.addChild(background);
+				}
 
 				const text = ESP.makeText(data);
 				text.x = Graphics.width / 2;
 				text.y = Graphics.height / 2;
 				this._slideshowHolder.addChild(text);
+
+				if(this._slideshowPreviousType >= 1) {
+					if(this._slideshowFadeInText) this._slideshowFadeInText.alpha = 1;
+					this._slideshowFadeInText = text;
+					this._slideshowFadeInText.alpha = 0;
+					text.y += (30 * this._slideshowPreviousType);
+				}
+
+				this._slideshowPreviousType++;
+			} else {
+				this.removeAllSlideshowChildren();
 			}
+		} else {
+			this.removeAllSlideshowChildren();
 		}
 	}
 

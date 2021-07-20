@@ -64,6 +64,7 @@ class ESPAudio {
 		["SnailDashStart", 0.3],
 		["SnailDashCharge2", 0.3],
 		["Flashback", 0.5],
+		"FlashbackInput",
 		["ButtonPress", 0.75],
 		"ButtonUnpress",
 		["TriggerBugKill2", 0.4],
