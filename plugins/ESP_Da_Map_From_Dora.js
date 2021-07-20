@@ -331,6 +331,7 @@ modify_Game_Map = class {
 		this.PostObjectsCreation = null;
 
 		this.restrictMapBottom = false;
+		this.starBackground = false;
 
 		this.FootstepSound = () => "Footstep";
 

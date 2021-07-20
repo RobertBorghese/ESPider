@@ -115,7 +115,10 @@ class ESPAudio {
 		["WebDashHitWall3", 0.4],
 		["WebDashChargeStart", 0.5],
 		["WebDashChargeMid", 0.2],
-		["WebDashChargeFinal", 0.2]
+		["WebDashChargeFinal", 0.2],
+
+		"TitleSceneText2",
+		"TitleSceneConfirm2"
 	];
 
 	static setup() {

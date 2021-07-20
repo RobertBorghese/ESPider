@@ -31,6 +31,17 @@ modify_Spriteset_Map = class {
 	createCharacters() {
 		//ESP.Spriteset_Map.createCharacters.apply(this, arguments);
 
+		if($gameMap.starBackground) {
+			const background = Sprite_StarsBackground.makeColor(Graphics.width, $gameMap.height() * TS);
+			background.z = -2;
+			this._tilemap.addChild(background);
+
+			const spr = new Sprite_StarsBackground(Graphics.width, $gameMap.height() * TS, 1200);
+			spr.z = -1;
+			this._starBackground = spr;
+			this._tilemap.addChild(spr);
+		}
+
 		this._espPlayer = new ESPPlayerSprite();
 		this._espPlayer.z = 4;
 		this._tilemap._espPlayer = this._espPlayer;

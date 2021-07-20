@@ -419,6 +419,28 @@ modify_Scene_Map = class {
 						this.endSlideshow();
 					}
 				}
+				if(this._slideshowOthers) {
+					this._slideshowTime++;
+					if(this._slideshowTime > 20) {
+						let currIndex = -1;
+						for(let i = 0; i < this._slideshowOthers.length; i++) {
+							if(this._slideshowOthers[i].visible) {
+								currIndex = i;
+								break;
+							}
+						}
+						if(currIndex !== -1) {
+							currIndex++;
+							if(currIndex >= this._slideshowOthers.length) {
+								currIndex = 0;
+							}
+							for(let i = 0; i < this._slideshowOthers.length; i++) {
+								this._slideshowOthers[i].visible = currIndex === i;
+							}
+						}
+						this._slideshowTime = 0;
+					}
+				}
 				if(!this._slideshowEnding && this._overlay.alpha <= 0 && this.isSlideshowIncrementTriggered()) {
 					{
 						this._slideshowFadingOut = true;
@@ -443,6 +465,7 @@ modify_Scene_Map = class {
 		this._slideshowTimer = 60;
 		this._slideshowFadingOut = false;
 		this._slideshowEnding = false;
+		this._slideshowTime = 0;
 
 		this._slideshowBackground = new PIXI.Graphics();
 		this._slideshowBackground.beginFill(0x000000);
@@ -459,6 +482,7 @@ modify_Scene_Map = class {
 		this._slideshowTimer = 60;
 		this._slideshowFadingOut = false;
 		this._slideshowEnding = true;
+		this._slideshowOthers = null;
 
 		if(this._slideshowBackground) {
 			this._slideshowHolder.removeChild(this._slideshowBackground);
@@ -468,6 +492,7 @@ modify_Scene_Map = class {
 	}
 
 	incrementSlideshow() {
+		this._slideshowOthers = null;
 		this._slideshowIndex++;
 		const hasBackground = this._slideshowHolder.children.contains(this._slideshowBackground);
 		while(this._slideshowHolder.children.length > 0) {
@@ -478,8 +503,23 @@ modify_Scene_Map = class {
 		if(this._slideshowList && this._slideshowIndex < this._slideshowList.length) {
 			const data = this._slideshowList[this._slideshowIndex];
 			if(Array.isArray(data)) {
-				const spr = new Sprite(ImageManager.loadBitmapFromUrl(data[0]));
-				this._slideshowHolder.addChild(spr);
+				if(data.length === 1) {
+					const spr = new Sprite(ImageManager.loadBitmapFromUrl(data[0]));
+					this._slideshowHolder.addChild(spr);
+				} else if(data.length > 1) {
+					this._slideshowTime = 0;
+					this._slideshowOthers = [];
+
+					const len = data.length;
+					for(let i = 0; i < len; i++) {
+						const spr = new Sprite(ImageManager.loadBitmapFromUrl(data[i]));
+						this._slideshowHolder.addChild(spr);
+						this._slideshowOthers.push(spr);
+						if(i !== 0) {
+							spr.visible = false;
+						}
+					}
+				}
 			} else if(typeof data === "string") {
 				const background = new PIXI.Graphics();
 				background.beginFill(0x000000);

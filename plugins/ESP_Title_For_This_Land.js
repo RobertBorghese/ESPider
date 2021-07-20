@@ -1,5 +1,73 @@
 // title title title title title title title title title title title title title title title
 
+class Sprite_StarsBackground extends Sprite {
+	constructor(width, height, starCount = 300) {
+		super();
+
+		this._starsWidth = width;
+		this._starsHeight = height;
+
+		this._speedY = 0;
+		this._speedX = 0.09;
+
+		this.move((1200 - this._starsWidth) / -2, 0);
+		this.filters = [new PIXI.filters.MotionBlurFilter()];
+
+		const starBit = ImageManager.loadBitmapFromUrl("img/titles1/Star.png");
+		starBit.smooth = true;
+		for(let i = 0; i < starCount; i++) {
+			const star = new Sprite(starBit);
+			star.setFrame(0, 0, 15, 15);
+			star.move(Math.randomInt(1200), Math.randomInt(this._starsHeight));
+			star.anchor.set(0.5);
+			star.scale.set((Math.random()) + 1);
+			this.addChild(star);
+		}
+	}
+
+	update() {
+		this.children.forEach((s) => {
+			if(s._start) {
+				s._start += 0.1;
+				s.setFrame(Math.floor(s._start.clamp(0, 2.99999)) * 15, 0, 15, 15);
+				if(s._start > 4) {
+					s._start = 0;
+					s.setFrame(0, 0, 15, 15);
+					s.rotation = 0;
+				} else if(s._start >= 2) {
+					const ratio = Easing.easeOutQuad((s._start - 2) / 2);
+					s.rotation = (Math.PI / 2) * ratio;
+				}
+			} else if(Math.random() < 0.0004) {
+				s._start = 0.001;
+			}
+
+			const spdY = this._speedY;
+			s.y -= (spdY + 0.12) * s.scale.y;
+			if(s.y < -6) {
+				s.y = this._starsHeight + 6;
+			} else if(s.y > this._starsHeight + 7) {
+				s.y = -5;
+			}
+
+			s.x += this._speedX * s.scale.x;
+			if(s.x > 1200) {
+				s.x = 0;
+			} else if(s.x < -6) {
+				s.x = 1200 - 1;
+			}
+		});
+	}
+
+	static makeColor(width, height) {
+		const background = new PIXI.Graphics();
+		background.beginFill(0x03051f);
+		background.drawRect(0, 0, width, height);
+		background.endFill();
+		return background;
+	}
+}
+
 modify_Window_TitleCommand = class {
 	maxCols() {
 		return 4;
@@ -79,6 +147,17 @@ modify_Scene_Title = class {
 		this._blackOverlay.drawRect(0, 0, Graphics.width, Graphics.height);
 		this._blackOverlay.endFill();
 		this.addChild(this._blackOverlay);
+
+		// new game text
+		this._newGameText = ESP.makeText("", 24, "center");
+		this._newGameText.style.fontStyle = "italic";
+		//this._newGameText.style.fontFamily = "title-font";
+		this._newGameText.alpha = 1;
+		this._newGameText.style.strokeThickness = 4;
+		this._newGameText.style.stroke = "rgba(1, 1, 1, 1)";
+		this._newGameText.x = Graphics.width / 2;
+		this._newGameText.y = Graphics.height / 2;
+		this.addChild(this._newGameText);
 
 		this._titleText = new PIXI.Text("Berry", {
 			fontFamily: "title-font",
@@ -161,7 +240,10 @@ modify_Scene_Title = class {
 
 	commandESPNewGame() {
 		this.disableTheButtons();
-		this.commandNewGame();
+
+		this._newGameAnimationTime = 0;
+		this._newGameCutscene = true;
+		//this.commandNewGame();
 	}
 
 	commandLoadGame() {
@@ -197,27 +279,11 @@ modify_Scene_Title = class {
 
 	drawGameTitle() {
 
-		const background = new PIXI.Graphics();
-		background.beginFill(0x03051f);
-		background.drawRect(0, 0, Graphics.width, Graphics.height);
-		background.endFill();
+		const background = Sprite_StarsBackground.makeColor(Graphics.width, Graphics.height);
 		this._gameTitleSprite.addChild(background);
 
-		this._starsContainer = new Sprite();
-		this._starsContainer.move((1200 - Graphics.width) / -2, 0);
-		this._starsContainer.filters = [new PIXI.filters.MotionBlurFilter()];
+		this._starsContainer = new Sprite_StarsBackground(Graphics.width, Graphics.height);
 		this._gameTitleSprite.addChild(this._starsContainer);
-
-		const starBit = ImageManager.loadBitmapFromUrl("img/titles1/Star.png");
-		starBit.smooth = true;
-		for(let i = 0; i < 300; i++) {
-			const star = new Sprite(starBit);
-			star.setFrame(0, 0, 15, 15);
-			star.move(Math.randomInt(1200), Math.randomInt(Graphics.height));
-			star.anchor.set(0.5);
-			star.scale.set((Math.random()) + 1);
-			this._starsContainer.addChild(star);
-		}
 
 		this._espTitleForeground = new Sprite(ImageManager.loadBitmapFromUrl("img/titles1/Foreground.png"));
 		this._espTitleForeground.filters = [ new PIXI.filters.PixelateFilter(4) ];
@@ -244,10 +310,191 @@ modify_Scene_Title = class {
 	update() {
 		ESP.Scene_Title.update.apply(this, arguments);
 
+		if(this._newGameCutscene === 2) {
+			this._commandWindow.myUpdate();
+			return;
+		}
+		if(this._newGameCutscene) {
+			this.updateNewGameCutscene();
+		} else {
+			this.updateIntroCutscene();
+		}
+	}
+
+	updateNewGameCutscene() {
+		if(this._awaitingInput) {
+			if(Input.isOkTriggeredEx()) {
+				ESPAudio.titleSceneConfirm();
+				this._awaitingInput = false;
+			} else {
+				return;
+			}
+		}
+		this._newGameAnimationTime++;
+
+		const t = this._newGameAnimationTime;
+
+		if(t === 1) {
+			AudioManager.fadeOutBgm(3);
+		} else if(t === 20) {
+			this._flySprite = new ESPAnimatedSprite("img/pictures/Intro/fly.png", 2);
+			const size = 82 * 50;
+			this._flySprite.scale.set(50);
+			this._flySprite.anchor.set(0.5);
+			this._flySprite.x = -1450;
+			this._flySprite.y = 150;
+			this.addChild(this._flySprite);
+		} else if(t > 20 && t <= 140) {
+			const r = Easing.easeInOutCubic((t - 20) / 120);
+			this._flySprite.scale.set(50);
+			this._flySprite.x = ESP.lerpEx(-1450, 450, r);
+			this._flySprite.y = 150;
+
+			this._flySprite.rotation = Math.sin(t * 0.1) * -0.35;
+			this._flySpriteRotation = this._flySprite.rotation;
+
+			if(t === 140) {
+				this._starsContainer._speedY = -4;
+				this._starsContainer._speedX = -7;
+				this._espTitleForeground.visible = false;
+				this._fullscreenText.visible = false;
+				this._controllerText.visible = false;
+				this._titleText.visible = false;
+				this._titleButtons.forEach(t => t.visible = false);
+			}
+		} else if(t > 140 && t <= 140 + 80) {
+			const r = Easing.easeInCubic((t - 140) / 80);
+
+			this._flySprite.scale.set(50 + (4 - 50) * r);
+			//this._flySprite.x = ESP.lerpEx(450, 850, r);
+			//this._flySprite.y = ESP.lerpEx(150, 400, r);
+			
+		} else if(t > 140 + 80 && t <= 140 + 80 + 200) {
+			const r = Easing.easeOutCubic((t - 140) / 200);
+
+			this._flySprite.scale.set(4);
+			
+			//this._flySprite.rotation = ESP.lerpEx(0, -2.0, r);
+		}
+
+		if(t === 30) {
+			AudioManager.playBgs({
+				name: "Wind4", volume: 50, pitch: 100, pan: 0
+			});
+			AudioManager.fadeInBgs(2);
+		}
+
+		if(t > 140 && t <= /*620*/340) {
+			const r = Easing.easeOutCubic((t - 140) / (480));
+			const r2 = ((t - 140) / 80).clamp(0, 1);
+			const newRotation = ESP.lerpEx(0, -2.0, r) + Math.atan2(this._flySprite.y, this._flySprite.x) - 0.46507036044920974;
+			const newX = 450 + (Math.cos(r * Math.PI * 2) * 900 * ((1 - r)));//ESP.lerpEx(450, 850, r);
+			const newY = 200 + (Math.sin((Math.PI * 0.5) + (r * Math.PI * 4)) * 500 * ((1 - r)));//ESP.lerpEx(150, 400, r);
+			
+			this._flySprite.rotation = ESP.lerpEx(this._flySpriteRotation, newRotation, r2);
+			this._flySprite.x = ESP.lerpEx(450, newX, r2);
+			this._flySprite.y = ESP.lerpEx(150, newY, r2);
+
+			this._flySpriteX = this._flySprite.x;
+			this._flySpriteY = this._flySprite.y;
+			this._flySpriteRotation = this._flySprite.rotation;
+		} else if(t > 340 && t < 400) {
+			if(t === 341) ESPAudio.flyGet();
+			this._flySprite.rotation = ESP.lerpEx(this._flySprite.rotation, 0, 0.07);
+			this._flySprite.x = ESP.lerpEx(this._flySprite.x, 1300, 0.07);
+			this._flySprite.y = ESP.lerpEx(this._flySprite.y, -100, 0.07);
+		} else if(t === 400) {
+			AudioManager.stopBgs();
+			ESPAudio.titleSceneText();
+			this._blackOverlay.visible = true;
+			this._blackOverlay.alpha = 1;
+			this._newGameText.text = "It's a spider's dream to claim the brightest light.";
+			this._newGameText.visible = true;
+			this._newGameText.alpha = 1;
+			this._awaitingInput = true;
+		} else if(t > 400 && t <= 450) {
+			const r = ((t - 400) / 50);
+			this._newGameText.style.letterSpacing = 40 * r;
+			this._newGameText.alpha = 1 - r;
+		} else if(t > 450 && t <= 500) {
+			this._starsContainer._speedY = -2.3;
+			this._starsContainer._speedX = 0.09;
+			const r = ((t - 450) / 50);
+			this._blackOverlay.alpha = 1 - r;
+		} else if(t > 500 && t <= 700) {
+			if(t === 501) {
+				this._lamp = new Sprite(ImageManager.loadBitmapFromUrl("img/pictures/Intro/Page2Workspace.png"));
+				this._lamp.scale.set(2);
+				this._lamp.anchor.set(0.5);
+				this._lamp.x = Graphics.width / 2;
+				this._lamp.y = -200;
+				this.addChild(this._lamp);
+			}
+			const r = Easing.easeOutCubic((t - 500) / 250);
+			this._lamp.y = -200 + (400 * r);
+			this._lamp.scale.set(2 + (2 * r));
+			this._starsContainer._speedY = -2.3 + ((2.3 + 0.09) * r);
+			//this._starsContainer._speedX = 0.09;
+			//this._blackOverlay.alpha = 1 - r;
+		} else if(t === 701) {
+			ESPAudio.titleSceneText();
+			this._lamp.visible = false;
+			this._blackOverlay.visible = true;
+			this._blackOverlay.alpha = 1;
+			this._newGameText.text = "Seek out the perfect light...";
+			this._newGameText.style.letterSpacing = 0;
+			this._newGameText.visible = true;
+			this._newGameText.alpha = 1;
+			this._awaitingInput = true;
+		} else if(t > 700 && t <= 750) {
+			const r = ((t - 701) / 49);
+			this._newGameText.style.letterSpacing = 40 * r;
+			this._newGameText.alpha = 1 - r;
+		} else if(t > 750 && t <= 800) {
+			if(t === 751) {
+				this._page3 = new Sprite(ImageManager.loadBitmapFromUrl("img/pictures/Intro/Page3.png"));
+				this._page3.fitlers = [new PIXI.filters.PixelateFilter(2)];
+				this._page3.scale.set(6);
+				this._page3.anchor.set(0.5);
+				this._page3.move(2400, -500);
+				this.addChild(this._page3);
+			}
+			this._starsContainer._speedY = 0.09;
+			this._starsContainer._speedX = 0.09;
+			const r = ((t - 750) / 50);
+			this._blackOverlay.alpha = 1 - r;
+		}
+		if(t > 750 && t <= 1000) {
+			const r = Easing.easeInOutCubic((t - 750) / 250);
+			this._page3.scale.set(6 - (5 * r));
+			this._page3.move(ESP.lerpEx(2400, Graphics.width / 2, r), ESP.lerpEx(-500, Graphics.height / 2, r));
+		}
+
+		if(t === 1020) {
+			ESPAudio.titleSceneText();
+			this._page3.visible = false;
+			this._blackOverlay.visible = true;
+			this._blackOverlay.alpha = 1;
+			this._newGameText.text = "... and your food will seek you.";
+			this._newGameText.style.letterSpacing = 0;
+			this._newGameText.visible = true;
+			this._newGameText.alpha = 1;
+			this._awaitingInput = true;
+		} else if(t > 1020 && t <= 1070) {
+			const r = ((t - 1021) / 49);
+			this._newGameText.style.letterSpacing = 40 * r;
+			this._newGameText.alpha = 1 - r;
+		} else if(t === 1080) {
+			this._newGameCutscene = 2;
+			this.commandNewGame();
+		}
+	}
+
+	updateIntroCutscene() {
 		if(this._titleAnimationTime > 0) {
 			this._titleAnimationTime--;
-
 		}
+
 		if(this._titleAnimationTime <= 120) {
 			this._commandWindow.myUpdate();
 			if(this._commandWindow.active && this._myIndex !== this._commandWindow._index) {
@@ -310,32 +557,6 @@ modify_Scene_Title = class {
 			}
 		}
 
-		this._starsContainer.children.forEach((s) => {
-			if(s._start) {
-				s._start += 0.1;
-				s.setFrame(Math.floor(s._start.clamp(0, 2.99999)) * 15, 0, 15, 15);
-				if(s._start > 4) {
-					s._start = 0;
-					s.setFrame(0, 0, 15, 15);
-					s.rotation = 0;
-				} else if(s._start >= 2) {
-					const ratio = Easing.easeOutQuad((s._start - 2) / 2);
-					s.rotation = (Math.PI / 2) * ratio;
-				}
-			} else if(Math.random() < 0.0004) {
-				s._start = 0.001;
-			}
-
-			const spdY = this._titleAnimationTime > 300 ? 12 : (Easing.easeInQuart(this._titleAnimationTime / 300) * 12);
-			s.y -= (spdY + 0.12) * s.scale.y;
-			if(s.y < -6) {
-				s.y = Graphics.height + 6;
-			}
-
-			s.x += 0.09 * s.scale.x;
-			if(s.x > 1200) {
-				s.x = 0;
-			}
-		});
+		this._starsContainer._speedY = this._titleAnimationTime > 300 ? 12 : (Easing.easeInQuart(this._titleAnimationTime / 300) * 12);
 	}
 }

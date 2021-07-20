@@ -194,13 +194,14 @@ modify_Game_Map_1 = class {
 				$espGamePlayer.disableJump();
 				AudioManager.playBgm({ name: "Flashback", volume: 100, pitch: 100, pan: 0 });
 				SceneManager._scene.startSlideshow([
-					["img/pictures/Scene1/Page1.png"],
-					["img/pictures/Scene1/Page2.png"],
-					"Are you really going to settle for that?",
-					["img/pictures/Scene1/Page3.png"],
-					"There are infinite lights greater than any spider has ever achieved.",
-					["img/pictures/Scene1/Page4.png"],
-					"How cute."
+					["img/pictures/Scene1/_Page1.png"],
+					["img/pictures/Scene1/_Page2.png"],
+					"\"Are you really going to settle for this?\"",
+					["img/pictures/Scene1/_Page3.png"],
+					"\"There are infinite lights greater than any spider has ever achieved.\"",
+					["img/pictures/Scene1/_Page4a.png", "img/pictures/Scene1/_Page4b.png"],
+					"\"Don't be lazy.\"",
+					"\"Achieve what no one else can.\""
 				]);
 			}
 		}

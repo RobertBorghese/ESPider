@@ -50,6 +50,10 @@ ESP.lerp = function(a, b, x) {
 	return a + (b - a) * x;
 };
 
+ESP.lerpEx = function(a, b, x) {
+	return a + (b - a) * x;
+};
+
 ESP.makeText = function(text, fontSize = 20, align = "center") {
 	const Text = new PIXI.Text(text, {
 		fontFamily: $gameSystem.mainFontFace(),

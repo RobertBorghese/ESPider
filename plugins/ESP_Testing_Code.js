@@ -1,4 +1,5 @@
 
+/*
 if(Utils.isOptionValid("test")) {
 	Game_Variables.prototype.value = function(variableId) {
 		//if(variableId === 1) return 2;
@@ -15,3 +16,4 @@ if(Utils.isOptionValid("test")) {
 		$gameTemp._isNewGame = false;
 	};
 }
+*/

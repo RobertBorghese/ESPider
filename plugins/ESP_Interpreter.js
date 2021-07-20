@@ -131,6 +131,25 @@ class ESPInterpreter {
 		return this;
 	}
 
+	setCameraOffsetEase(x, y, duration, easeFunc) {
+		if(!Easing[easeFunc]) return this;
+		let startX = $gameMap.ESPCameraOffsetX;
+		let startY = $gameMap.ESPCameraOffsetY;
+		let time = 0;
+		this._list.push([
+			function() {
+			},
+			function() {
+				const r = time / duration;
+				$gameMap.ESPCameraOffsetX = startX + ((x - startX) * Easing[easeFunc](r));
+				$gameMap.ESPCameraOffsetY = startY + ((y - startY) * Easing[easeFunc](r));
+				time++;
+				return time > duration;
+			}
+		]);
+		return this;
+	}
+	
 	resetCameraOffset() {
 		return this.setCameraOffset(0, 0);
 	}
@@ -339,6 +358,52 @@ class ESPInterpreter {
 			},
 			function() {
 				return true;
+			}
+		]);
+		return this;
+	}
+
+	showPicture(img, id, fadeInDuration, holdDuration, fadeOutDuration) {
+		let time = 0;
+		let mode = 0;
+		this._list.push([
+			() => {
+				const spr = new Sprite(ImageManager.loadBitmapFromUrl(img));
+				spr.anchor.set(0.5);
+				spr.x = Graphics.width / 2;
+				spr.y = Graphics.height / 2;
+				spr.alpha = 0;
+				SceneManager._scene.addChild(spr);
+				this[id] = spr;
+			},
+			() => {
+				let result = false;
+				const spr = this[id];
+				const r = mode === 0 ? (time / fadeInDuration) : (mode === 1 ? (time / holdDuration) : (time / fadeOutDuration));
+				time++;
+				if(mode === 0) {
+					spr.alpha = r;
+					if(time > fadeInDuration) {
+						time = 0;
+						mode = 1;
+					}
+				} else if(mode === 1) {
+					if(time > holdDuration) {
+						time = 0;
+						mode = 2;
+					}
+				} else if(mode === 2) {
+					spr.alpha = 1 - r;
+					if(time > fadeOutDuration) {
+						time = 0;
+						result = true;
+						spr.visible = false;
+						SceneManager._scene.removeChild(spr);
+						spr.destroy();
+						this[id] = null;
+					}
+				}
+				return result;
 			}
 		]);
 		return this;

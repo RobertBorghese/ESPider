@@ -1,8 +1,6 @@
 class ESPBoxStaticObject extends ESPBoxObject {
 	constructor() {
 		super();
-
-		console.log("jfdkls");
 	}
 
 	constructSprite() {
