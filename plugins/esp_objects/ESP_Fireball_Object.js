@@ -95,8 +95,8 @@ class ESPFireballObject extends ESPGameObject {
 			$espGamePlayer.kill(spd * (this.position.x > $espGamePlayer.position.x ? -distX : distX), spd * (this.position.y > $espGamePlayer.position.y ? -distY : distY), 40);
 		}
 
-		if($gameMap._slugBoss) {
-			$gameMap._slugBoss.checkFireball(this);
+		if($gameMapTemp._slugBoss) {
+			$gameMapTemp._slugBoss.checkFireball(this);
 		}
 
 		{

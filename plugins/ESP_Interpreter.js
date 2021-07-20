@@ -319,8 +319,8 @@ class ESPInterpreter {
 					case 1: { $gameMap.startBoss1(); break; }
 					case 2: { $gameMap.startBoss2(); break; }
 					case 3: {
-						if($gameMap._slugBoss) {
-							$gameMap._slugBoss.startBoss();
+						if($gameMapTemp._slugBoss) {
+							$gameMapTemp._slugBoss.startBoss();
 						}
 						break;
 					}
