@@ -363,6 +363,38 @@ class ESPInterpreter {
 		return this;
 	}
 
+	playMusicOnce(songName) {
+		this._list.push([
+			function() {
+				AudioManager.playMe({ name: songName, volume: 100, pitch: 100, pan: 0 });
+			},
+			function() {
+				return true;
+			}
+		]);
+		return this;
+	}
+
+	startMovingDownForFinalCredits(duration) {
+		let time = 0;
+		this._list.push([
+			() => {
+				const spr = new Sprite(ImageManager.loadBitmapFromUrl("img/pictures/End.png"));
+				spr.x = 0;
+				spr.y = Graphics.height;
+				SceneManager._scene.addChild(spr);
+				this._movingDownForCreditsSpr = spr;
+			},
+			() => {
+				const r = Easing.easeOutCubic(time / duration);
+				this._movingDownForCreditsSpr.y = (1 - r) * Graphics.height;
+				time++;
+				return time > duration;
+			}
+		]);
+		return this;
+	}
+
 	showPicture(img, id, fadeInDuration, holdDuration, fadeOutDuration) {
 		let time = 0;
 		let mode = 0;

@@ -67,6 +67,8 @@ class ESPWebDeviceSprite extends ESPGameSprite {
 	update() {
 		super.update();
 
+		this._isWebDeviceSprite = this.espObject._isOpen;
+
 		const newWebCutoff = Math.round(this._webFrameCutoffMax * (1 - this.espObject._animationState));
 		if(this._webFrameCutoff !== newWebCutoff) {
 			this._webFrameCutoff = newWebCutoff;
