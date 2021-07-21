@@ -243,6 +243,7 @@ modify_Scene_Map = class {
 		}.bind(this));
 
 		this.createFlyCounterDisplay();
+		this.createSaveHelpDisplay();
 
 		ESPAudio.pause();
 	}
@@ -280,6 +281,23 @@ modify_Scene_Map = class {
 		this._flyHolder.addChild(this._flyCountText);
 	}
 
+	createSaveHelpDisplay() {
+		if(!this._textHolder) {
+			this._textHolder = new Sprite();
+			this.addChild(this._textHolder);
+
+			this._saveText = ESP.makeText("(Your progress is saved automatically.)", 20);
+			this._saveText.alpha = 0.5;
+			this._textHolder.addChild(this._saveText);
+		} else {
+			this._textHolder.visible = true;
+			this.removeChild(this._textHolder);
+			this.addChild(this._textHolder);
+		}
+		this._textHolder.x = Graphics.width / 2;
+		this._textHolder.y = Graphics.height + 30;
+	}
+
 	restartFromLastCheckpoint() {
 		this.onUnpause();
 		$espGamePlayer.kill(0, 0, 0);
@@ -300,6 +318,7 @@ modify_Scene_Map = class {
 		this._titleButtonParent = null;
 
 		this.destroyFlyCounterDisplay();
+		this.destroySaveTextDisplay();
 
 		this._pauseWindow.select(-1);
 
@@ -330,6 +349,10 @@ modify_Scene_Map = class {
 		}
 	}
 
+	destroySaveTextDisplay() {
+		this._textHolder.visible = false;
+	}
+	
 	commandVolume() {
 		const masterVolume = ConfigManager.incrementVolume();
 		this._titleButtons[2]._text.text = "Volume [" + masterVolume + "%]";
@@ -365,6 +388,9 @@ modify_Scene_Map = class {
 				this._flyHolder.__aniIntroTime += 0.05;
 				if(this._flyHolder.__aniIntroTime >= 1) this._flyHolder.__aniIntroTime = 1;
 				this._flyHolder.x = Easing.easeInBack(1 - this._flyHolder.__aniIntroTime) * -40;
+				if(this._textHolder) {
+					this._textHolder.y = (Graphics.height + 20) - (50 * Easing.easeOutBack(this._flyHolder.__aniIntroTime));
+				}
 			}
 		}
 		if(this.isPauseInputTriggered()) {
