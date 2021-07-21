@@ -449,6 +449,7 @@ modify_Scene_Map = class {
 				}
 				if(!this._slideshowEnding && this._overlay.alpha <= 0 && this.isSlideshowIncrementTriggered()) {
 					if(this.slideShowDoNotFade()) {
+						ESPAudio.flashbackDialog();
 						this.incrementSlideshow();
 					} else {
 						this._slideshowFadingOut = true;
@@ -514,11 +515,10 @@ modify_Scene_Map = class {
 	}
 
 	slideShowDoNotFade() {
-		let type = -1;
 		const index = this._slideshowIndex + 1;
 		if(index < this._slideshowList.length) {
 			const data = this._slideshowList[index];
-			if(typeof data === "string") {
+			if(!Array.isArray(data)) {
 				return this._slideshowPreviousType >= 1;
 			}
 		}
@@ -551,7 +551,7 @@ modify_Scene_Map = class {
 					}
 				}
 				this._slideshowPreviousType = 0;
-			} else if(typeof data === "string") {
+			} else if(typeof data === "string" || typeof data === "object") {
 				if(this._slideshowPreviousType === 0) {
 					const background = new PIXI.Graphics();
 					background.beginFill(0x000000);
@@ -560,7 +560,15 @@ modify_Scene_Map = class {
 					this._slideshowHolder.addChild(background);
 				}
 
-				const text = ESP.makeText(data);
+				const textData = (typeof data === "string") ? { text: data } : data;
+
+				const text = ESP.makeText(textData.text);
+				if(textData.italic) {
+					text.style.fontStyle = "italic";
+				}
+				if(textData.color) {
+					text.style.fill = textData.color;
+				}
 				text.x = Graphics.width / 2;
 				text.y = Graphics.height / 2;
 				this._slideshowHolder.addChild(text);

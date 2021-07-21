@@ -104,6 +104,8 @@ modify_Scene_Title = class {
 	create() {
 		ESP.Scene_Title.create.apply(this, arguments);
 
+		this._anySaveFileExists = DataManager.isAnySavefileExists();
+
 		this._commandWindow.myUpdate = this._commandWindow.update;
 		this._commandWindow.update = function() {}
 
@@ -324,7 +326,7 @@ modify_Scene_Title = class {
 	updateNewGameCutscene() {
 		if(this._awaitingInput) {
 			if(Input.isOkTriggeredEx()) {
-				ESPAudio.titleSceneConfirm();
+				ESPAudio.titleSceneConfirm(70);
 				this._awaitingInput = false;
 			} else {
 				return;
@@ -417,6 +419,12 @@ modify_Scene_Title = class {
 			this._newGameText.style.letterSpacing = 40 * r;
 			this._newGameText.alpha = 1 - r;
 		} else if(t > 450 && t <= 500) {
+			if(t === 451) {
+				AudioManager.playBgs({
+					name: "Wind5", volume: 50, pitch: 100, pan: 0
+				});
+				AudioManager.fadeInBgs(2);
+			}
 			this._starsContainer._speedY = -2.3;
 			this._starsContainer._speedX = 0.09;
 			const r = ((t - 450) / 50);
@@ -437,6 +445,7 @@ modify_Scene_Title = class {
 			//this._starsContainer._speedX = 0.09;
 			//this._blackOverlay.alpha = 1 - r;
 		} else if(t === 701) {
+			AudioManager.stopBgs();
 			ESPAudio.titleSceneText();
 			this._lamp.visible = false;
 			this._blackOverlay.visible = true;
@@ -470,6 +479,10 @@ modify_Scene_Title = class {
 			this._page3.move(ESP.lerpEx(2400, Graphics.width / 2, r), ESP.lerpEx(-500, Graphics.height / 2, r));
 		}
 
+		if(t === 750) {
+			ESPAudio.introSound(25);
+		}
+
 		if(t === 1020) {
 			ESPAudio.titleSceneText();
 			this._page3.visible = false;
@@ -493,6 +506,36 @@ modify_Scene_Title = class {
 	updateIntroCutscene() {
 		if(this._titleAnimationTime > 0) {
 			this._titleAnimationTime--;
+		}
+
+		if(this._anySaveFileExists && this._titleAnimationTime > 120 && Input.isOkTriggeredExNoMouse()) {
+			this._whiteBackground = new PIXI.Graphics();
+			this._whiteBackground.beginFill(0xffffff);
+			this._whiteBackground.drawRect(0, 0, Graphics.width, Graphics.height);
+			this._whiteBackground.endFill();
+			this._whiteBackground.alpha = 0;
+			this.addChild(this._whiteBackground);
+
+			ESPAudio.flashbackInput(35);
+		}
+
+		if(this._whiteBackground) {
+			if(this._whiteBackground.__back) {
+				this._whiteBackground.alpha -= 0.04;
+				if(this._whiteBackground.alpha <= 0) {
+					this._whiteBackground.alpha = 0;
+					this.removeChild(this._whiteBackground);
+					this._whiteBackground.destroy();
+					this._whiteBackground = null;
+				}
+			} else {
+				this._whiteBackground.alpha += 0.08;
+				if(this._whiteBackground.alpha >= 1) {
+					this._whiteBackground.alpha = 1;
+					this._whiteBackground.__back = true;
+					this._titleAnimationTime = 120;
+				}
+			}
 		}
 
 		if(this._titleAnimationTime <= 120) {

@@ -118,7 +118,11 @@ modify_Input = class {
 	}
 
 	static isOkTriggeredEx() {
-		return  Input.isTriggeredExOverride("space") || ESP.Input.isTriggered.call(this, "ok") || TouchInput.isTriggered() || ESP.Input.isTriggered.call(this, "button_a");
+		return Input.isTriggeredExOverride("space") || ESP.Input.isTriggered.call(this, "ok") || TouchInput.isTriggered() || ESP.Input.isTriggered.call(this, "button_a");
+	}
+
+	static isOkTriggeredExNoMouse() {
+		return Input.isTriggeredExOverride("space") || ESP.Input.isTriggered.call(this, "ok") || ESP.Input.isTriggered.call(this, "button_a");
 	}
 
 	static isDirectionTriggered(dir) {

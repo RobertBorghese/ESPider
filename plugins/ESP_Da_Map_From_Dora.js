@@ -57,6 +57,9 @@ modify_Game_Map = class {
 			this.PostObjectsCreation();
 		}
 		$espGamePlayer.restoreRespawnPos();
+		if($espGamePlayer.respawnCheckId === 999990) {
+			this.restoreBoss1Midpoint();
+		}
 	}
 
 	// initialize fields for each map

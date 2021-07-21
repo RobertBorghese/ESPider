@@ -64,7 +64,8 @@ class ESPAudio {
 		["SnailDashStart", 0.3],
 		["SnailDashCharge2", 0.3],
 		["Flashback", 0.5],
-		"FlashbackInput",
+		["FlashbackInput", 0.4],
+		["FlashbackDialog2", 0.4],
 		["ButtonPress", 0.75],
 		"ButtonUnpress",
 		["TriggerBugKill2", 0.4],
@@ -119,7 +120,9 @@ class ESPAudio {
 		["WebDashChargeFinal", 0.2],
 
 		"TitleSceneText2",
-		"TitleSceneConfirm2"
+		"TitleSceneConfirm2",
+
+		["IntroSound2", 0.7]
 	];
 
 	static setup() {
@@ -147,14 +150,15 @@ class ESPAudio {
 	static switchSong = [1, 2, 4, 3, 2, 1, 2, 4, 3, 5, 6, 5, 4, 3, 2];
 	static menuButtonSwitch() {
 		this.playSe("MenuButtonSwitchC", 50);
-		return;
 
+		/*
 		if(this._switchSound === undefined) this._switchSound = -1;
 		this._switchSound++;
 		if(this._switchSound < 0 || this._switchSound >= this.switchSong.length) {
 			this._switchSound = 0;
 		}
 		this.playSe("MenuButtonSwitch" + this.switchAudios[this.switchSong[this._switchSound] - 1], 100);
+		*/
 	}
 }
 

@@ -23,11 +23,7 @@ modify_Game_Map_1 = class {
 		AudioManager.fadeOutBgm(this._boss1Complete ? 2 : 1);
 	}
 
-	startBoss1() {
-		$gameMapTemp._boss1Timer = 0;
-		$gameMapTemp._boss1Lefties = [];
-		$gameMapTemp._boss1Righties = [];
-		$gameMapTemp._boss1Topies = [];
+	createLefties(zFunc) {
 		for(let y = 7; y <= 12; y++) {
 			let x = 7;
 			const regionId = this.getColHeight(x, y);
@@ -37,8 +33,11 @@ modify_Game_Map_1 = class {
 				"Shoot Rate": 0
 			});
 			$gameMapTemp._boss1Lefties.push(obj);
-			this.addGameObject(obj, (x * TS) + (TS / 2), (y * TS) + (regionId * TS) + (TS / 2), 500 + (y - 7) * 100);
+			this.addGameObject(obj, (x * TS) + (TS / 2), (y * TS) + (regionId * TS) + (TS / 2), zFunc(x, y));
 		}
+	}
+
+	createRighties(zFunc) {
 		for(let y = 7; y <= 12; y++) {
 			let x = 19;
 			const regionId = this.getColHeight(x, y);
@@ -48,8 +47,17 @@ modify_Game_Map_1 = class {
 				"Shoot Rate": 0
 			});
 			$gameMapTemp._boss1Righties.push(obj);
-			this.addGameObject(obj, (x * TS) + (TS / 2), (y * TS) + (regionId * TS) + (TS / 2), 500 + (12 - y) * 100);
+			this.addGameObject(obj, (x * TS) + (TS / 2), (y * TS) + (regionId * TS) + (TS / 2), zFunc(x, y));
 		}
+	}
+
+	startBoss1() {
+		$gameMapTemp._boss1Timer = 0;
+		$gameMapTemp._boss1Lefties = [];
+		$gameMapTemp._boss1Righties = [];
+		$gameMapTemp._boss1Topies = [];
+		this.createLefties((x, y) => 500 + (y - 7) * 100);
+		this.createRighties((x, y) => 500 + (12 - y) * 100);
 
 		SceneManager._scene._spriteset.freezeWorldSpriteVisibility([
 			[10, 16], [11, 16], [12, 16], [14, 16], [15, 16], [16, 16],
@@ -58,6 +66,10 @@ modify_Game_Map_1 = class {
 	}
 
 	startBoss1Phase2() {
+		this.createTopies((x, y) => 500 + Math.abs(13 - x) * 100);
+	}
+
+	createTopies(zFunc) {
 		for(let x = 10; x <= 16; x++) {
 			let y = 4;
 			const regionId = this.getColHeight(x, y);
@@ -67,7 +79,7 @@ modify_Game_Map_1 = class {
 				"Shoot Rate": 0
 			});
 			$gameMapTemp._boss1Topies.push(obj);
-			this.addGameObject(obj, (x * TS) + (TS / 2), (y * TS) + (regionId * TS) + (TS / 2), 500 + Math.abs(13 - x) * 100);
+			this.addGameObject(obj, (x * TS) + (TS / 2), (y * TS) + (regionId * TS) + (TS / 2), zFunc(x, y));
 		}
 	}
 
@@ -194,24 +206,27 @@ modify_Game_Map_1 = class {
 				AudioManager.playBgm({ name: "Flashback", volume: 100, pitch: 100, pan: 0 });
 				SceneManager._scene.startSlideshow([
 					["img/pictures/Scene1/_Page1.png"],
+					{ text: "A light, a light, a light!", italic: true, color: 0xb8e8ff },
 					["img/pictures/Scene1/_Page2.png"],
-					"\"Are you really going to settle for this?\"",
+					{ text: "\"Are you really going to settle for this?\"", color: 0xffb8b8 },
 					["img/pictures/Scene1/_Page3.png"],
-					"\"There are infinite lights greater than any spider has ever achieved.\"",
+					{ text: "\"Look upon the sky!\"", color: 0xffb8b8 },
+					{ text: "\"There are infinite lights greater than any spider has ever achieved.\"", color: 0xffb8b8 },
+					{ text: "\"Will you remain satisfied with such a teensy glow for the remainder of your life?\"", color: 0xffb8b8 },
+					["img/pictures/Scene1/_Page4a.png"],
+					{ text: "No.", italic: true, color: 0xb8e8ff },
+					{ text: "I'll make them mine.", italic: true, color: 0xb8e8ff },
 					["img/pictures/Scene1/_Page4a.png", "img/pictures/Scene1/_Page4b.png"],
-					"\"Don't be lazy.\"",
-					"\"Achieve what no one else can.\""
+					{ text: "\"That's right.\"", color: 0xffb8b8 },
+					{ text: "\"Don't settle for what is given to you.\"", color: 0xffb8b8 },
+					{ text: "\"Achieve what no one else can.\"", color: 0xffb8b8 }
 				]);
 			}
 		}
 		
 		if(!$espGamePlayer.canJump()) {
 			if($gameMapTemp._boss1Timer === 3501) {
-				const regionId = this.getColHeight(13, 14);
-				$gameMapTemp._boss1InfoBeetle = new ESPInfoBeetleObject({ text: ["Press [SPACE] or [STH] to jump."], "Trigger Distance": "10", "Untrigger Distance": "10" });
-				$gameMapTemp._boss1InfoBeetle.__eventName = "";
-				$gameMapTemp._boss1InfoBeetle.saveIndividual = function() { return true; };
-				this.addGameObject($gameMapTemp._boss1InfoBeetle, (13 * TS) + (TS / 2), (14 * TS) + (regionId * TS) + (TS / 2));
+				this.spawnJumpTutorialBeetle();
 			}
 			if($gameMapTemp._boss1Timer <= 3701) {
 				if($gameMapTemp._boss1Timer >= 3501) {
@@ -224,8 +239,7 @@ modify_Game_Map_1 = class {
 			}
 			
 			if($gameMapTemp._boss1Timer === 3750) {
-				$gameMapTemp._boss1InfoBeetle._triggerDist = 800;
-				$gameMapTemp._boss1InfoBeetle._untriggerDist = 850;
+				this.updateJumpTutorialBeetle();
 			}
 
 			if(!$gameMapTemp._boss1DidJump && $gameMapTemp._boss1Timer > 3701) {
@@ -251,6 +265,8 @@ modify_Game_Map_1 = class {
 					$espGamePlayer._canControl = true;
 					$espGamePlayer.canKill = true;
 					$gameMapTemp._boss1Timer = 4000;
+					
+					$espGamePlayer.saveRespawnPos(999990);
 				}
 			}
 		} else {
@@ -310,5 +326,46 @@ modify_Game_Map_1 = class {
 		}
 
 		return false;
+	}
+
+	restoreBoss1Midpoint() {
+		$gameMapTemp._boss1Lefties = [];
+		$gameMapTemp._boss1Righties = [];
+		$gameMapTemp._boss1Topies = [];
+		this.createLefties((x, y) => 0);
+		this.createRighties((x, y) => 0);
+		this.createTopies((x, y) => 0);
+
+		$gameMapTemp._boss1Timer = 4000;
+
+		$espGamePlayer.enableJump();
+		$espGamePlayer._canControl = true;
+		$espGamePlayer.canKill = true;
+		$gameMapTemp._boss1DidJump = true;
+
+		{
+			const xGrid = 12;
+			const yGrid = 13;
+			const regionId = $gameMap.getColHeight(xGrid, yGrid);
+			const obj = new ESPSpearWallObject({ Width: 3, StartingState: "down" }, false);
+			obj.__eventName = "Wall";
+			$gameMap.addGameObject(obj, (xGrid * TS) + (TS / 2), (yGrid * TS) + (regionId * TS) + (TS / 2));
+		}
+
+		this.spawnJumpTutorialBeetle();
+		this.updateJumpTutorialBeetle();
+	}
+
+	spawnJumpTutorialBeetle() {
+		const regionId = this.getColHeight(13, 14);
+		$gameMapTemp._boss1InfoBeetle = new ESPInfoBeetleObject({ text: ["Press [SPACE] or [STH] to jump."], "Trigger Distance": "10", "Untrigger Distance": "10" });
+		$gameMapTemp._boss1InfoBeetle.__eventName = "";
+		$gameMapTemp._boss1InfoBeetle.saveIndividual = function() { return true; };
+		this.addGameObject($gameMapTemp._boss1InfoBeetle, (13 * TS) + (TS / 2), (14 * TS) + (regionId * TS) + (TS / 2));
+	}
+
+	updateJumpTutorialBeetle() {
+		$gameMapTemp._boss1InfoBeetle._triggerDist = 800;
+		$gameMapTemp._boss1InfoBeetle._untriggerDist = 850;
 	}
 }

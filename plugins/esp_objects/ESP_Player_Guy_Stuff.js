@@ -355,13 +355,20 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	updateAbilities() {
+		/*
 		if($gameTemp.isPlaytest()) {
 			if(Input.isTriggeredEx("button_y")) {
 				this.position.x += this.speed.x * 20;
 				this.position.y += this.speed.y * 20;
 			}
 		}
+		*/
 
+		this.updateGrapple();
+		this.updateDash();
+	}
+
+	updateGrapple() {
 		if(this.canGrapple()) {
 			if(!this.IsGrappling && !SceneManager._scene._spriteset._tilemap._espPlayer.isWebAmmoOut()) {
 				this._grappleButton = this.position.z <= 0 ? this.isGrappleTriggered() : 0;
@@ -383,8 +390,6 @@ class ESPGamePlayer extends ESPGameObject {
 				}
 			}
 		}
-
-		this.updateDash();
 	}
 
 	updateDash() {
@@ -429,18 +434,14 @@ class ESPGamePlayer extends ESPGameObject {
 			const pos = SceneManager._scene._spriteset._espPlayer.PlayerHolder.getGlobalPosition();
 			radians = Math.atan2(TouchInput.y - pos.y, TouchInput.x - pos.x);
 		} else {
-			let radiansAssigned = false;
-			if(this._currentlyOnIce) {
+			if(Math.abs(Input.rightStickX()) > 0.6 || Math.abs(Input.rightStickY()) > 0.6) {
+				radians = Math.atan2(Input.rightStickY(), Input.rightStickX());
+			} else if(this._currentlyOnIce) {
 				if(Math.abs(Input.InputVector.x) > 0.06 || Math.abs(Input.InputVector.y) > 0.06) {
 					radians = Math.atan2(Input.InputVector.y, Input.InputVector.x);
-					radiansAssigned = true;
 				}
 			} else if(Math.abs($espGamePlayer.speed.x) > 0.2 || Math.abs($espGamePlayer.speed.y) > 0.2) {
 				radians = Math.atan2($espGamePlayer.speed.y, $espGamePlayer.speed.x);
-				radiansAssigned = true;
-			}
-			if(!radiansAssigned && (Math.abs(Input.rightStickX()) > 0.6 || Math.abs(Input.rightStickY()) > 0.6)) {
-				radians = Math.atan2(Input.rightStickY(), Input.rightStickX());
 			}
 		}
 
