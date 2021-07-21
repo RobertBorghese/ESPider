@@ -469,6 +469,7 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	releaseDash() {
+		if(this.position.z > 0) this.speed.z = 2;
 		this._dashButton = 0;
 		this.IsDashCharging = false;
 
