@@ -27,6 +27,8 @@ class ESPBigBoiObject extends ESPGameObject {
 		this._resetTimer = 0;
 
 		this._showText = "";
+
+		this._isInvincible = false;
 	}
 
 	constructSprite() {
@@ -69,7 +71,7 @@ class ESPBigBoiObject extends ESPGameObject {
 	}
 
 	checkFireball(fireball) {
-		if(!fireball._isDead && this.checkIfColliding(fireball)) {
+		if(!this._isInvincible && !fireball._isDead && this.checkIfColliding(fireball)) {
 			this.damage();
 			fireball.onCollided();
 		}
