@@ -394,8 +394,8 @@ modify_Scene_Title = class {
 			const newY = 200 + (Math.sin((Math.PI * 0.5) + (r * Math.PI * 4)) * 500 * ((1 - r)));//ESP.lerpEx(150, 400, r);
 			
 			this._flySprite.rotation = ESP.lerpEx(this._flySpriteRotation, newRotation, r2);
-			this._flySprite.x = ESP.lerpEx(450, newX, r2);
-			this._flySprite.y = ESP.lerpEx(150, newY, r2);
+			this._flySprite.x = ESP.lerpEx(450, newX + 200, r2);
+			this._flySprite.y = ESP.lerpEx(150, newY + 150, r2);
 
 			this._flySpriteX = this._flySprite.x;
 			this._flySpriteY = this._flySprite.y;
@@ -431,16 +431,25 @@ modify_Scene_Title = class {
 			this._blackOverlay.alpha = 1 - r;
 		} else if(t > 500 && t <= 700) {
 			if(t === 501) {
-				this._lamp = new Sprite(ImageManager.loadBitmapFromUrl("img/pictures/Intro/Page2Workspace.png"));
+				this._lamp = new Sprite(ImageManager.loadBitmapFromUrl("img/pictures/Intro/Page2.png"));
 				this._lamp.scale.set(2);
 				this._lamp.anchor.set(0.5);
 				this._lamp.x = Graphics.width / 2;
 				this._lamp.y = -200;
 				this.addChild(this._lamp);
+
+				this._lampBug = new ESPAnimatedSprite(("img/pictures/Intro/Page2Bug.png"), 16);
+				this._lampBug.anchor.set(0.5);
+				this._lampBug.x = 0;
+				this._lampBug.y = 0;
+				this._lamp.addChild(this._lampBug);
 			}
 			const r = Easing.easeOutCubic((t - 500) / 250);
 			this._lamp.y = -200 + (400 * r);
 			this._lamp.scale.set(2 + (2 * r));
+			this._lampBug.x = -10 * r;
+			this._lampBug.y = 30 * r;
+			this._lampBug.tint = ((0xff * r) << 4) | ((0xff * r) << 2) | (0xff * r);
 			this._starsContainer._speedY = -2.3 + ((2.3 + 0.09) * r);
 			//this._starsContainer._speedX = 0.09;
 			//this._blackOverlay.alpha = 1 - r;
@@ -461,12 +470,35 @@ modify_Scene_Title = class {
 			this._newGameText.alpha = 1 - r;
 		} else if(t > 750 && t <= 800) {
 			if(t === 751) {
+				/*
 				this._page3 = new Sprite(ImageManager.loadBitmapFromUrl("img/pictures/Intro/Page3.png"));
 				this._page3.fitlers = [new PIXI.filters.PixelateFilter(2)];
 				this._page3.scale.set(6);
 				this._page3.anchor.set(0.5);
 				this._page3.move(2400, -500);
 				this.addChild(this._page3);
+				*/
+
+				this._page3 = new Sprite(ImageManager.loadBitmapFromUrl("img/pictures/Intro/Page3Light.png"));
+				this._page3.scale.set(6);
+				this._page3.anchor.set(0.5);
+				this._page3.move(2400, -500);
+				this.addChild(this._page3);
+
+				this._page3Fly = new Sprite(ImageManager.loadBitmapFromUrl("img/pictures/Intro/Page3Fly.png"));
+				this._page3Fly.anchor.set(0.5);
+				this._page3.addChild(this._page3Fly);
+
+				this._page3Shine = new Sprite(ImageManager.loadBitmapFromUrl("img/pictures/Intro/Page3Shine.png"));
+				this._page3Shine.anchor.set(0.5);
+				this._page3.addChild(this._page3Shine);
+
+				this._page3Bug = new ESPAnimatedSprite(("img/pictures/Intro/Page3Bug.png"), 16, {
+					FrameCount: 2
+				});
+				this._page3Bug.y = -100;
+				this._page3Bug.anchor.set(0.5);
+				this._page3.addChild(this._page3Bug);
 			}
 			this._starsContainer._speedY = 0.09;
 			this._starsContainer._speedX = 0.09;
@@ -477,6 +509,16 @@ modify_Scene_Title = class {
 			const r = Easing.easeInOutCubic((t - 750) / 250);
 			this._page3.scale.set(6 - (5 * r));
 			this._page3.move(ESP.lerpEx(2400, Graphics.width / 2, r), ESP.lerpEx(-500, Graphics.height / 2, r));
+		}
+
+		if(this._page3Fly && t % 4 === 0) {
+			this._page3Fly.x = Math.random() * 16;
+			this._page3Fly.y = Math.random() * 16;
+		}
+
+		if(t > 800 && this._page3Bug) {
+			this._page3Bug.x -= 0.2;
+			this._page3Bug.y += 0.6;
 		}
 
 		if(t === 750) {

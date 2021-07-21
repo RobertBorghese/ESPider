@@ -469,11 +469,11 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	releaseDash() {
-		if(this.position.z > 0) this.speed.z = 2;
 		this._dashButton = 0;
 		this.IsDashCharging = false;
 
 		if(this._dashChargeObject && this._dashChargeObject._visible) {
+			if(this.position.z > 0) this.speed.z = 2;
 			ESPAudio.webDeviceAttach();
 			this._shootDirection = this._dashDirection;
 			this._dashChargeObject.shoot(Math.cos(this._dashDirection) * 10, Math.sin(this._dashDirection) * 10, this._webChargeAmount);
@@ -496,6 +496,7 @@ class ESPGamePlayer extends ESPGameObject {
 
 		if(this._webDashAimTime === 6) {
 			ESPAudio.webDashChargeStart();
+			this._webDashAimTime++;
 		}
 
 		this.updateDashObjectChargePosition(force);
