@@ -769,6 +769,54 @@ modify_Game_Map = class {
 		const mapY = (originY + y);
 		return mapY;
 	}
+
+	updateFlashback2(t) {
+		if(t >= 0 && t <= 150) {
+			const r = t / 150;
+			ESP.WS = 1 - r;
+		} else if(t > 150 && t <= (350)) {
+			if(t === 151) {
+				ESPAudio.flashback();
+			}
+			const r = (t - 150) / 200;
+			const r2 = Easing.easeInCubic(r);
+			SceneManager._scene._spriteset._tilemap.scale.set(1 + (6 * r2));
+			SceneManager._scene._overlay.alpha = r2;
+			SceneManager._scene.updateCameraPos(true);
+		} else if(t === 351) {
+			SceneManager._scene.startSlideshow([
+				["img/pictures/Scene2/Page1.png"],
+				{ text: "Yamakuu Mountain", italic: false, color: 0xffffff },
+				["img/pictures/Scene2/Page2.png"],
+				{ text: "A tall, treacherous mountain filled with violent bugs.", italic: false, color: 0xffffff },
+				["img/pictures/Scene2/Page3.png"],
+				{ text: "\"It's the highest point in the world.\"", color: 0xffb8b8 },
+				{ text: "\"From there you can reach the stars.\"", color: 0xffb8b8 },
+				{ text: "\"Wait for me here. I'll find my way to the top.\"", color: 0xffb8b8 },
+				{ text: "\"Then I'll return with a greater light.\"", color: 0xffb8b8 },
+				["img/pictures/Scene2/Page4.png"],
+				["img/pictures/Scene2/Page5.png"],
+				["img/pictures/Scene2/Page4.png"],
+				["img/pictures/Scene2/Page5.png"],
+				["img/pictures/Scene2/Page4.png"],
+				["img/pictures/Scene2/Page5.png"],
+				["img/pictures/Scene2/Page4.png"],
+				["img/pictures/Scene2/Page5.png"],
+				["img/pictures/Scene2/Page6.png"],
+				{ text: "Where did you go?", italic: false, color: 0xffffff }
+			]);
+		} else if(t > 351 && t <= 501) {
+			const r = (t - 351) / 150;
+			const r2 = Easing.easeInCubic(1 - r);
+			ESP.WS = 1 - r2;
+			SceneManager._scene._spriteset._tilemap.scale.set(1 + (6 * r2));
+			SceneManager._scene._overlay.alpha = 0;
+			SceneManager._scene.updateCameraPos(true);
+		} else {
+			return true;
+		}
+		return false;
+	}
 }
 
 Array.prototype.filterIndex = function(index) {
