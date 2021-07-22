@@ -352,6 +352,10 @@ modify_Game_Map_1 = class {
 			$gameMap.addGameObject(obj, (xGrid * TS) + (TS / 2), (yGrid * TS) + (regionId * TS) + (TS / 2));
 		}
 
+		if($gameMapTemp._mapReferences.Trap) {
+			$gameMap.removeGameObject($gameMapTemp._mapReferences.Trap);
+		}
+
 		this.spawnJumpTutorialBeetle();
 		this.updateJumpTutorialBeetle();
 	}

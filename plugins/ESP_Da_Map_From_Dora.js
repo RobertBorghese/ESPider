@@ -513,7 +513,9 @@ modify_Game_Map = class {
 
 	// remove other game object partners
 	onGameObjectRemoved(object) {
-		SceneManager._scene._spriteset.removeGameSprite(object);
+		if(SceneManager._scene && SceneManager._scene._spriteset) {
+			SceneManager._scene._spriteset.removeGameSprite(object);
+		}
 		if($gameMapTemp._gravityManipulators.includes(object)) {
 			$gameMapTemp._gravityManipulators.remove(object);
 		}
