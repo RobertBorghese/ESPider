@@ -56,6 +56,103 @@ modify_Scene_Map = class {
 		for(let i = 0; i < len; i++) {
 			objects[i].onCreate();
 		}
+
+		let test = null;
+		let qwe = new PIXI.RenderTexture.create({ width: $dataMap.width * 48, height: $dataMap.height * 48 });
+
+		const planeGeometry = Object.assign(new PIXI3D.MeshGeometry3D(), {
+			positions: {
+				buffer: new Float32Array([0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1])
+			},
+			indices: {
+				buffer: new Uint8Array([0, 1, 2, 0, 3, 1])
+			},
+			normals: {
+				buffer: new Float32Array([0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0])
+			},
+			uvs: [{
+				buffer: new Float32Array([1, 1, 0, 0, 1, 0, 0, 1])
+			}]
+		});
+
+		test = new PIXI3D.Mesh3D(planeGeometry, new PIXI3D.StandardMaterial());//PIXI3D.Mesh3D.createPlane();
+		test.scale.x = $dataMap.width;
+		test.scale.y = 1;
+		test.scale.z = $dataMap.height;
+		test.material = new PIXI3D.StandardMaterial.create(qwe);
+		test.material.unlit = true;
+		test.material.baseColor = new PIXI3D.Color(1, 1, 1, 1);
+		test.material.alphaMode = "opaque";
+		test.material.baseColorTexture = qwe;
+		this.addChild(test);
+
+		let spiderBit = new PIXI.RenderTexture.create({ width: 200, height: 200 });
+		const test2 = new PIXI3D.Sprite3D(spiderBit);
+		test2.billboardType = PIXI3D.SpriteBillboardType.Spherical;
+		this.addChild(test2);
+
+		setInterval(() => {
+			if(this._spriteset?._tilemap?._lowerLayer) {
+				//this._spriteset._tilemap._lowerLayer.scale.x = -1;
+				Graphics.app.renderer.render(this._spriteset._tilemap._lowerLayer, qwe);
+				//this._spriteset._tilemap._lowerLayer.scale.x = 1;
+				//Graphics.app.renderer.render(this._spriteset._tilemap._upperLayer, qwe);
+				//test.material.baseColorTexture = null;
+				//test.material.baseColorTexture = qwe;
+			}
+
+			if(SceneManager._scene?._spriteset?._tilemap?._espPlayer) {
+				const tilemap = SceneManager._scene._spriteset._tilemap;
+				tilemap._espPlayer._webHolder.visible = false;
+				tilemap._espPlayer.move(100, 100);
+				tilemap._espPlayer.scale.x = -1;
+				Graphics.app.renderer.render(tilemap._espPlayer, spiderBit);
+				tilemap._espPlayer.scale.x = 1;
+				tilemap._espPlayer._webHolder.visible = true;
+
+				test2.x = 0;
+				test2.y = 5;
+				test2.z = 0;
+
+				test2.scale.set(5, 5, 5);
+			}
+
+			if(this._camera) {
+				let rot = PIXI3D.Quat.fromEuler(this._camAngles.x, this._camAngles.y, 0, new Float32Array(4));
+				let dir = PIXI3D.Vec3.transformQuat(
+					PIXI3D.Vec3.set(0, 0, 1, new Float32Array(3)), rot, new Float32Array(3)
+				);
+				let pos = PIXI3D.Vec3.subtract(
+					PIXI3D.Vec3.set(this._camTarget.x, this._camTarget.y, this._camTarget.z, new Float32Array(3)),
+					PIXI3D.Vec3.scale(dir, this._camDistance, new Float32Array(3)), new Float32Array(3)
+				);
+
+				this._camera.position.set(pos[0], pos[1], pos[2])
+				this._camera.rotationQuaternion.set(rot[0], rot[1], rot[2], rot[3])
+
+				test2.rotationQuaternion.setEulerAngles(-45, 0, 0);
+			}
+
+
+		}, 1);
+
+
+		//this._camera = new PIXI3D.Camera(Graphics.app.view);
+		//this._camera.angles.x = 25;
+
+		//this.control = new PIXI3D.CameraOrbitControl(Graphics.app.view)
+
+		this._camera = PIXI3D.Camera.main;
+
+		this._camAngles = { x: 115, y: 0 };
+		this._camTarget = { x: 0, y: 0, z: 0 };
+		this._camDistance = 40;
+
+
+		/*let mesh = Graphics.app.stage.addChild(PIXI3D.Mesh3D.createCube())
+
+		PIXI3D.LightingEnvironment.main.lights.push(
+		  Object.assign(new PIXI3D.Light(), { x: -1, z: 3 }))*/
 	}
 
 	updateMain() {
