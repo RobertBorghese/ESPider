@@ -139,6 +139,8 @@ class ESPBoxObject extends ESPGameObject {
 			this.speed.y = 0;
 		}
 	}
+
+	setOwner() {}
 }
 
 Game_Map.presetObjects[14] = ESPBoxObject;

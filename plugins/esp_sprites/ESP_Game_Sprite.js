@@ -634,6 +634,9 @@ modify_Spriteset_Map = class {
 					spr.espOffset = function(x, y) {
 						this.espMove(this._espCurrX + x, this._espCurrY + y);
 					};
+					if(regionId === 18) {
+						spr._alwaysBelowPlayer = true;
+					}
 					spr.espMove(spr._espBaseX, spr._espBaseY);
 					spr._colY = ((y + regionId) * TS);
 					spr._colZ = regionId * TS;
@@ -838,7 +841,6 @@ class ESPGameSprite extends Sprite {
 	}
 
 	updateAlpha() {
-		this.alpha = this.espObject.position.z > 300 ? 1 - ((this.espObject.position.z - 300) / 200).clamp(0, 1) : 1;
 	}
 
 	updateShadowSprite() {

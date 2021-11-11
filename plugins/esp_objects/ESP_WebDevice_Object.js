@@ -56,6 +56,8 @@ class ESPWebDeviceObject extends ESPGameObject {
 			return;
 		}
 
+		obj?.setOwner?.(this);
+
 		this._connections.push(obj);
 
 		this._distances.push(this.getDistance2d(obj));

@@ -124,11 +124,7 @@ class ESPBigBoiSprite extends ESPGameSprite {
 			}
 			if(showing) {
 				this.Text.text = this.espObject.showText();
-				if(this.Text.style.fontSize < 20) {
-					ESPAudio.whisper();
-				} else {
-					ESPAudio.talk();
-				}
+				ESPAudio.talkBigSlug();
 			}
 		}
 	}

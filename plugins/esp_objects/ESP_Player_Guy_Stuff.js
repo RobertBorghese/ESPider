@@ -17,6 +17,14 @@ class ESPGamePlayer extends ESPGameObject {
 		this.FlyCount = 0;
 		this.FlyData = {};
 
+		this.NomiCount = 0;
+		this.TempNomiCount = 0;
+		this.NomiData = [];
+		this.OldNomiCount = 0;
+		this.OldNomiData = [];
+
+		this.Shields = [];
+
 		this.IsGrappling = false;
 		this._connectionCandidates = null;
 		this._connections = [];
@@ -37,6 +45,7 @@ class ESPGamePlayer extends ESPGameObject {
 		this._spriteRotation = 0;
 		this._deathParticles = null;
 		this._isVisible = true;
+		this._invincibilityTime = 0;
 
 		this._dashDirection = null;
 
@@ -106,6 +115,7 @@ class ESPGamePlayer extends ESPGameObject {
 			this.updateDeathTiles();
 		}
 		this.updateTransition();
+		this.updateInvincibility();
 		this.updateDying();
 	}
 
@@ -540,10 +550,12 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	updateDashObjectVisibility(was99) {
-		this._dashChargeObject.setVisible(!was99 && this._dashChargeObject.CollisionHeight <= this.CollisionHeight);
+		this._dashChargeObject.setVisible(!was99 && this.canConnectDash());
 		//if(this._dashChargeString) this._dashChargeString.visible = this._dashChargeObject._visible;
 		this._dashChargeObject._spr.update();
 	}
+
+
 
 	refreshDashString() {
 		/*if(!this._dashChargeString) {
@@ -631,7 +643,10 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 
 	canConnectDash() {
-		return this._dashChargeObject && this._dashChargeObject.CollisionHeight <= this.CollisionHeight;
+		return this._dashChargeObject && (
+			this._dashChargeObject.CollisionHeight <= this.CollisionHeight ||
+			this._dashChargeObject.CollisionHeight <= (this.CollisionHeight + Math.floor(this.position.z / TS))
+		);
 	}
 
 	setupDashTargetPositions(direction) {
@@ -721,7 +736,7 @@ class ESPGamePlayer extends ESPGameObject {
 
 	updateDeathTiles() {
 		if(!this._isDying && !$gameMap._isTransferring && (this.findKill() - 1) >= this.CollisionHeight && this.position.z <= 0) {
-			this.kill(0, 0, 60);
+			this.kill(false, 0, 0, 60);
 		}
 	}
 
@@ -796,31 +811,44 @@ class ESPGamePlayer extends ESPGameObject {
 		this.lastDeathTime = Graphics.frameCount;
 	}
 
-	kill(offsetX, offsetY, offsetZ) {
+	kill(canShield, offsetX, offsetY, offsetZ) {
 		if(!this.canKill) return;
-		if(this._interpreter) {
-			SceneManager._scene.setCameraToPlayer();
-			this.clearInterpreter();
+		if(canShield && this.isInvincible()) return;
+
+		if(canShield && this.hasShield()) {
+
+			ESPAudio.spearsLeave();
+			$gameMap.shake();
+			this.removeShield();
+			this.setInvincible(90);
+
+		} else {
+
+			if(this._interpreter) {
+				SceneManager._scene.setCameraToPlayer();
+				this.clearInterpreter();
+			}
+			$gameMap.initiateKillSequence();
+			$gameMap.espFreezeWorld();
+			$gameMap.onPlayerKilled();
+			this._isDying = true;
+			this._deathAnimationData = {
+				x: offsetX,
+				y: offsetY,
+				z: offsetZ,
+				baseX: this.position.x,
+				baseY: this.position.y,
+				totalZ: 0,
+				time: 0
+			};
+			this._customColor = [0, 0, 0, 0];
+			this.clearGrappling();
+			this.destroyDashObject();
+			this.destroyAllDashSprites();
+			this.destroyDashData();
+			ESPAudio.deathContact();
+
 		}
-		$gameMap.initiateKillSequence();
-		$gameMap.espFreezeWorld();
-		$gameMap.onPlayerKilled();
-		this._isDying = true;
-		this._deathAnimationData = {
-			x: offsetX,
-			y: offsetY,
-			z: offsetZ,
-			baseX: this.position.x,
-			baseY: this.position.y,
-			totalZ: 0,
-			time: 0
-		};
-		this._customColor = [0, 0, 0, 0];
-		this.clearGrappling();
-		this.destroyDashObject();
-		this.destroyAllDashSprites();
-		this.destroyDashData();
-		ESPAudio.deathContact();
 	}
 
 	unkill() {
@@ -892,6 +920,9 @@ class ESPGamePlayer extends ESPGameObject {
 		result.respawnCheckId = this.respawnCheckId;
 		result.FlyCount = this.FlyCount;
 		result.FlyData = this.FlyData;
+		result.NomiCount = this.NomiCount;
+		result.NomiData = this.NomiData;
+		result.Shields = this.Shields;
 		return result;
 	}
 
@@ -902,6 +933,9 @@ class ESPGamePlayer extends ESPGameObject {
 		this.respawnCheckId = data.respawnCheckId ?? 0;
 		this.FlyCount = data.FlyCount ?? 0;
 		this.FlyData = data.FlyData ?? {};
+		this.NomiCount = data.NomiCount ?? 0;
+		this.NomiData = data.NomiData ?? [];
+		this.Shields = data.Shields ?? [];
 	}
 
 	shadowify() {
@@ -919,6 +953,85 @@ class ESPGamePlayer extends ESPGameObject {
 
 	hasFlyBeenEaten(id) {
 		return !!this.FlyData[id];
+	}
+
+	nomi() {
+		return this.NomiCount;
+	}
+
+	incrementNomi(mapId, id) {
+		this.NomiCount++;
+		this.TempNomiCount++;
+		this.LastNomiCollectTime = ESP.Time;
+		if(typeof mapId === "number" && typeof id === "number") {
+			while(this.NomiData.length <= mapId) {
+				this.NomiData.push([]);
+			}
+			const arr = this.NomiData[mapId];
+			while(arr.length <= id) {
+				arr.push(0);
+			}
+			arr[id] = 1;
+		}
+	}
+
+	hasNomiBeenTaken(mapId, id) {
+		return this.NomiData?.[mapId]?.[id] === 1;
+	}
+
+	restoreOldNomiData() {
+		this.NomiCount = this.OldNomiCount;
+		this.NomiData = this.OldNomiData.map(a => a.slice());
+	}
+
+	storeOldNomiData() {
+		this.OldNomiCount = this.NomiCount;
+		this.OldNomiData = this.NomiData.map(a => a.slice());
+	}
+
+	addTempShield() {
+		if(!this.Shields) {
+			this.Shields = [];
+		}
+		this.Shields.push(1);
+	}
+
+	addPermaShield() {
+		if(!this.Shields) {
+			this.Shields = [];
+		}
+		this.Shields.splice(2, 0, 0);
+	}
+
+	shields() {
+		return this.Shields;
+	}
+
+	hasShield() {
+		return this.Shields.length > 0;
+	}
+
+	removeShield() {
+		if(this.hasShield()) {
+			ESPAudio.shieldBlock();
+			const spr = SceneManager._scene._spriteset._espPlayer;
+			spr.removeShield();
+			this.Shields.pop();
+		}
+	}
+
+	isInvincible() {
+		return this._invincibilityTime > 0;
+	}
+
+	setInvincible(time) {
+		this._invincibilityTime = time;
+	}
+
+	updateInvincibility() {
+		if(this.isInvincible()) {
+			this._invincibilityTime--;
+		}
 	}
 
 	setInterpreter(interpreter) {
@@ -1010,10 +1123,10 @@ class ESPGamePlayer extends ESPGameObject {
 
 	connect(obj) {
 		if(this._connections.length >= this.maxConnections()) {
-			return;
+			return false;
 		}
 
-		if(!obj.isSelfMoved() && this._hasBox) return;
+		if(!obj.isSelfMoved() && this._hasBox) return false;
 
 		if(Math.abs(obj.realZ() - this.realZ()) < 12) {
 			if(this._connectionCandidates) {
@@ -1025,6 +1138,8 @@ class ESPGamePlayer extends ESPGameObject {
 	}
 	
 	actuallyConnect(obj) {
+		obj?.setOwner?.(this);
+
 		this._connections.push(obj);
 
 		this._distances.push(this.getDistance2d(obj));
@@ -1066,5 +1181,24 @@ class ESPGamePlayer extends ESPGameObject {
 		while(this._connections.length > 0) {
 			this.disconnect(this._connections[0], true);
 		}
+	}
+
+	showFlyCount() {
+		this._showFlyCount = true;
+	}
+
+	shouldShowFlyCount() {
+		if(this._showFlyCount) {
+			this._showFlyCount = false;
+			return true;
+		}
+		return false;
+	}
+
+	shouldShowNomiCount() {
+		if(!this.LastNomiCollectTime) {
+			return false;
+		}
+		return (ESP.Time - this.LastNomiCollectTime) < 90;
 	}
 }

@@ -85,6 +85,11 @@ class ESPTriggerBugObject extends ESPGameObject {
 		ESPAudio.triggerBugKill();
 	}
 
+	hitWithFireNoExecute() {
+		this._isTouched = true;
+		this._code = null;
+	}
+
 	execute() {
 		if(this._isTouched) {
 			if(this._code) eval(this._code);

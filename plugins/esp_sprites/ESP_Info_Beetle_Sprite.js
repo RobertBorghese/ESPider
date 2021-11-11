@@ -72,11 +72,27 @@ class ESPInfoBeetleSprite extends ESPGameSprite {
 
 		if(this._showingText !== showing) {
 			this._showingText = showing;
+			if(this.espObject?._getExicted) {
+				if(!this.__OriginalFrameDelay) this.__OriginalFrameDelay = this.Graphics.FrameDelay;
+				this.Graphics.FrameDelay = showing ? ((this.__OriginalFrameDelay / 2) - 2) : this.__OriginalFrameDelay;
+			}
 			if(!this.TextHolder.parent && showing) {
 				SceneManager._scene.addUiChild(this.TextHolder);
 			}
 			if(showing) {
-				if(this.Text.style.fontSize < 20) {
+				const isWhisper = this.Text.style.fontSize < 20;
+				if(this.espObject._customAudio) {
+					if(isWhisper) {
+						AudioManager.playSe({
+							name: this.espObject._customAudio.name,
+							volume: this.espObject._customAudio.volume - 20,
+							pitch: this.espObject._customAudio.pitch - 20,
+							pan: this.espObject._customAudio.pan
+						});
+					} else {
+						AudioManager.playSe(this.espObject._customAudio);
+					}
+				} else if(isWhisper) {
 					ESPAudio.whisper();
 				} else {
 					ESPAudio.talk();

@@ -88,6 +88,7 @@ ESP.snap = function(obj, width, height) {
 
 // World Speed
 ESP.WS = 1;
+ESP.Time = 0;
 
 ESP.CameraSmoothing = 0.04;
 

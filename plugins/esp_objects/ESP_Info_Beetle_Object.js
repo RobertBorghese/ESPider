@@ -62,6 +62,21 @@
  * @desc
  * @type boolean
  * @default false
+ *
+ * @arg Get Excited
+ * @desc
+ * @type boolean
+ * @default false
+ *
+ * @arg Constant Text Refresh
+ * @desc
+ * @type boolean
+ * @default false
+ *
+ * @arg Custom Audio JSON
+ * @desc
+ * @type text
+ * @default
  */
 
 class ESPInfoBeetleObject extends ESPGameObject {
@@ -81,17 +96,32 @@ class ESPInfoBeetleObject extends ESPGameObject {
 		this._customImageRate = parseInt(data["Image Rate"]) || 20;
 		this._customImageOffsetY = parseInt(data["Image Offset Y"]) || 10;
 		this._dontShowShadow = data["Dont Show Shadow"] === "true";
+		this._getExicted = data["Get Excited"] === "true";
+		this._refreshText = data["Constant Text Refresh"] === "true";
+
+		const audioJsonText = data["Custom Audio JSON"];
+		if(audioJsonText && !audioJsonText.trim().startsWith("{")) {
+			this._customAudio = { name: audioJsonText, volume: 100, pitch: 100, pan: 0 };
+		} else {
+			this._customAudio = audioJsonText && audioJsonText.trim() ? JSON.parse(audioJsonText) : null;
+		}
 
 		this._textOffsetY = parseInt(data["Text Offset Y"]) || 0;
 
 		if(this._textType === "roomDeaths") {
 			this._text = data.text[$gameMap.RoomKillCount.clamp(0, data.text.length - 1)];
 		} else if(this._textType === "eval") {
-			this._text = eval(data.text.join("\n"));
+			if(this._refreshText) {
+				this._textFunction = new Function("return (" + data.text.join("\n") + ");");
+				this._text = this._textFunction();
+			} else {
+				this._text = eval(data.text.join("\n"));
+			}
 		} else {
 			this._text = data.text.join("\n");
 		}
 		this._shouldShowText = false;
+		this._shouldShowTextTimer = 0;
 	}
 
 	saveIndividual() {
@@ -107,11 +137,31 @@ class ESPInfoBeetleObject extends ESPGameObject {
 
 	update() {
 		super.update();
-		this._shouldShowText = $gameMap._isTranferring ? false : (this.getDistance($espGamePlayer) < (this._shouldShowText ? this._untriggerDist : this._triggerDist));
+		if(this._refreshText) {
+			const newText = this._textFunction();
+			if(this._text !== newText) {
+				this._text = newText;
+				this._spr.Text.text = newText;
+				this._shouldShowText = false;
+				this._spr._time = 0;
+				this._spr.update();
+				this._spr.updateTextHolder();
+			}
+		}
+		if(this._shouldShowTextTimer > 0) {
+			this._shouldShowTextTimer--;
+			this._shouldShowText = true;
+		} else {
+			this._shouldShowText = $gameMap._isTranferring ? false : (this.getDistance($espGamePlayer) < (this._shouldShowText ? this._untriggerDist : this._triggerDist));
+		}
 	}
 
 	shouldShowText() {
 		return this._shouldShowText;
+	}
+
+	showTextForABit(time) {
+		this._shouldShowTextTimer = time;
 	}
 }
 

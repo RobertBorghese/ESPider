@@ -138,7 +138,9 @@ class ESPFirespitterObject extends ESPGameObject {
 	}
 
 	makeProjectile() {
-		return new ESPFireballObject(true, this._zLevel);
+		const result = new ESPFireballObject(true, this._zLevel);
+		result.setOwner(this);
+		return result;
 	}
 
 	projectileInitialZ() {
@@ -186,7 +188,7 @@ class ESPFirespitterObject extends ESPGameObject {
 			const spd = 60;
 			const distX = Math.abs(this.position.x - $espGamePlayer.position.x) / size;
 			const distY = Math.abs(this.position.y - $espGamePlayer.position.y) / size;
-			$espGamePlayer.kill(spd * (this.position.x > $espGamePlayer.position.x ? -distX : distX), spd * (this.position.y > $espGamePlayer.position.y ? -distY : distY), 40);
+			$espGamePlayer.kill(true, spd * (this.position.x > $espGamePlayer.position.x ? -distX : distX), spd * (this.position.y > $espGamePlayer.position.y ? -distY : distY), 40);
 		}
 	}
 
@@ -209,8 +211,22 @@ class ESPFirespitterObject extends ESPGameObject {
 	kill() {
 		if(this._respawnTime > 0) {
 			$gameMap.requestRespawn(this.__eventId, this._respawnTime, 500);
+		} else {
+			if(typeof $gameTemp._unrespawnablesKilled === "number") {
+				$gameTemp._unrespawnablesKilled++;
+			}
 		}
 		$gameMap.removeGameObject(this);
+	}
+
+	bounce() {
+		ESPAudio.nullHit(this.getObjectVolume());
+		this._bounceTime = ESP.Time;
+		this._spr.bounce();
+	}
+
+	canBounce() {
+		return !this._bounceTime || (ESP.Time - this._bounceTime > 60);
 	}
 }
 

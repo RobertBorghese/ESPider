@@ -91,7 +91,7 @@ class ESPSpearWallObject extends ESPGameObject {
 		if(this.isTouching($espGamePlayer)) {
 			const spd = 60;
 			const distY = Math.abs(this.position.y - $espGamePlayer.position.y) / size;
-			$espGamePlayer.kill(0, spd * (this.position.y > $espGamePlayer.position.y ? -distY : distY), 40);
+			$espGamePlayer.kill(true, 0, spd * (this.position.y > $espGamePlayer.position.y ? -distY : distY), 40);
 		}
 	}
 

@@ -361,10 +361,13 @@ class ESPPlayerSprite extends ESPGameSprite {
 		this.updateDirection();
 		this.updateLegSpeed();
 		this.updateFlyCounter();
+		this.updateNomiCounter();
+		this.updateShieldsDisplay();
 		this.updateWebAmmo();
 		this.updateVisibility();
 		this.updateColor();
 		this.updateRotation();
+		this.updateInvincibility();
 	}
 
 	updateContainers() {
@@ -494,6 +497,135 @@ class ESPPlayerSprite extends ESPGameSprite {
 		}
 	}
 
+	updateNomiCounter() {
+		if(this.espObject.shouldShowNomiCount()) {
+			if(!this._nomiCountText) {
+				this._nomiCountText = ESP.makeText("×" + this.espObject.TempNomiCount, 16, "left");
+				this._nomiCountText.anchor.set(0, 0.5);
+				this._nomiCountText.alpha = 1;
+				this._nomiCountText.scale.set(0);
+				SceneManager._scene.addUiChild(this._nomiCountText);
+				window.__blabla = this._nomiCountText;
+			}
+
+			if(this._nomiCountText.scale.x < 1) {
+				this._nomiCountText.scale.set((this._nomiCountText.scale.x + 0.1).clamp(0, 1));
+			}
+		} else if(this._nomiCountText && this._nomiCountText.scale.x > 0) {
+			this._nomiCountText.scale.set((this._nomiCountText.scale.x - 0.05).clamp(0, 1));
+			if(this._nomiCountText.scale.x <= 0) {
+
+				this._nomiCountText.scale.set(0);
+				this.espObject.TempNomiCount = 0;
+
+				SceneManager._scene.removeUiChild(this._nomiCountText);
+				this._nomiCountText.destroy();
+				this._nomiCountText = null;
+			}
+		}
+
+		if(this._nomiCountText) {
+			this._nomiCountText.x = this.x - (this._nomiCountText.width / 2) - 4;
+			this._nomiCountText.y = this.y + this.ObjectHolder.y - 30 - (this._nomiCountText.scale.y * 20) - (this._shields.length > 0 ? 10 : 0);
+			this._nomiCountText.text = "×" + this.espObject.TempNomiCount;
+		}
+	}
+
+	_compArr(arr1, arr2) {
+		if(!arr1 && arr2) return false;
+		if(arr1.length !== arr2.length) return false;
+		for(let i = 0; i < arr1.length; i++) {
+			if(arr1[i] !== arr2[i]) return false;
+		}
+		return true;
+	}
+
+	updateShieldsDisplay() {
+		if(!this.__shieldBitmap) {
+			this.__shieldBitmap = ImageManager.loadSystem("ShieldIcon");
+		}
+		if(!this.__shieldBitmap.isReady()) return;
+
+		const spacing = 1;
+		const isInit = !this._shields;
+		const shields = this.espObject.shields();
+		if(!this._compArr(this._shields, shields)) {
+			const oldShieldCount = this._shields?.length ?? 0;
+			const newShieldCount = shields.length;
+			this._shields = shields.slice();
+
+			if(!this._shieldHolder) {
+				this._shieldHolder = new Sprite();
+				this._shieldHolder.anchor.set(0, 0.5);
+				this._shieldHolder.y = -8;
+				this.PlayerHolder.addChild(this._shieldHolder);
+			}
+
+			for(let i = oldShieldCount; i < newShieldCount; i++) {
+				const s = new Sprite(this.__shieldBitmap);
+				s.anchor.set(0.5, 1);
+				s.x = (i * (this.__shieldBitmap.width + spacing));
+				s.scale.set(isInit ? 1 : 0);
+				this._shieldHolder.addChild(s);
+			}
+		}
+
+		if(this._shieldHolder && this._shieldHolder.children.length > 0) {
+			for(let i = 0; i < this._shieldHolder.children.length; i++) {
+				const c = this._shieldHolder.children[i];
+				c.x = (i * (this.__shieldBitmap.width + spacing));
+				c.y = Math.sin((ESP.Time + c.x) / 30) * 2;
+				if(!c._wasscaled && c.scale.x < 1.5) {
+					c.scale.set(((c.scale.x ? c.scale.x : 0.04) * 1.2));
+					if(!c._wasplayed && c.scale.x > 0.75) {
+						ESPAudio.shieldGet();
+						c._wasplayed = true;
+					}
+				} else if(c.scale.x > 1) {
+					c.scale.set((c.scale.x * 0.9));
+					if(c.scale.x < 1) c.scale.set(1);
+					c._wasscaled = true;
+				}
+			}
+
+			const totalWidth = ((this.__shieldBitmap.width + spacing) * this._shields.length) - spacing;
+			const desiredX = (totalWidth / -2) + 4;
+			if(this._shieldHolder.x < desiredX) {
+				this._shieldHolder.x += 0.4;
+				if(this._shieldHolder.x > desiredX) this._shieldHolder.x = desiredX;
+			} else if(this._shieldHolder.x > desiredX) {
+				this._shieldHolder.x -= 0.4;
+				if(this._shieldHolder.x < desiredX) this._shieldHolder.x = desiredX;
+			}
+		}
+
+		if(this._deadShield) {
+			this._deadShield.y += this._deadShield._upSpeed;
+			this._deadShield.x += 0.5;
+			this._deadShield.alpha -= 0.01;
+			this._deadShield._upSpeed += 0.5;
+			this._deadShield.rotation += 0.03;
+			if(this._deadShield.alpha <= 0) {
+				this.PlayerHolder.removeChild(this._deadShield);
+				this._deadShield.destroy();
+				this._deadShield = null;
+			}
+		}
+	}
+
+	removeShield() {
+		if(this._shieldHolder && this._shieldHolder.children.length > 0) {
+			const c = this._shieldHolder.children[this._shieldHolder.children.length - 1];
+			const pos = c.getGlobalPosition();
+			this._shieldHolder.removeChild(c);
+			this.PlayerHolder.addChild(c);
+			this._deadShield = c;
+			const newPos = this.PlayerHolder.toLocal(pos);
+			this._deadShield.position = newPos;
+			this._deadShield._upSpeed = -7;
+		}
+	}
+
 	setLegSpriteSpeed(speed) {
 		{
 			const len = this.SideLegSprites.length;
@@ -577,5 +709,21 @@ class ESPPlayerSprite extends ESPGameSprite {
 
 	updateRotation() {
 		this.PlayerHolder.rotation = this.espObject.spriteRotation();
+	}
+
+	updateInvincibility() {
+		if(this.espObject.isInvincible()) {
+			if(!this.BodySprite.filters) {
+				const filter = new PIXI.filters.ColorOverlayFilter(0xffffff, 0);
+				this.BodySprite.filters = [filter];
+				this.LegContainerBack.filters = [filter];
+				this.LegContainerFront.filters = [filter];
+			}
+			this.BodySprite.filters[0].alpha = ((this.espObject._invincibilityTime % 15) / 25);
+		} else if(this.BodySprite.filters) {
+			this.BodySprite.filters = null;
+			this.LegContainerBack.filters = null;
+			this.LegContainerFront.filters = null;
+		}
 	}
 }

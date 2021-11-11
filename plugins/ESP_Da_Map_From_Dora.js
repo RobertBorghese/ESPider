@@ -38,6 +38,7 @@ modify_Game_Map = class {
 		this.initESPFields();
 		this.setupCollisionMap();
 		this.initMapEval();
+		this.initPreGameObjectCreation();
 		this.initStartingGameObjects();
 		this.initPlayerPos();
 		if(this.PostObjectsCreation) {
@@ -51,6 +52,7 @@ modify_Game_Map = class {
 		this.constructCode();
 		this.removeAllGameObjects();
 		this.initMapEval();
+		this.initPreGameObjectCreation(true);
 		this.initStartingGameObjects();
 		this.cleanUpBosses();
 		if(this.PostObjectsCreation) {
@@ -214,6 +216,15 @@ modify_Game_Map = class {
 					}
 				}
 			}
+		}
+	}
+
+	// code run prior to game objects being created
+	initPreGameObjectCreation(isRespawn) {
+		$gameTemp._unrespawnablesKilled = 0;
+		ESPMoneyObject.lastUniqueId = 0;
+		if(isRespawn) {
+			$espGamePlayer.restoreOldNomiData();
 		}
 	}
 
@@ -675,6 +686,7 @@ modify_Game_Map = class {
 
 	// save the game
 	save() {
+		$espGamePlayer.storeOldNomiData();
 		$gameSystem.setSavefileId(1);
 		$gameSystem.onBeforeSave();
 		DataManager.saveGame(1).then(function() {

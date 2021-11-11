@@ -93,7 +93,7 @@ class ESPBigBoiObject extends ESPGameObject {
 			this._hp -= this.damageValue();
 
 			if(!before && this._hp < this.newFormHPThreshold()) {
-				const filter = new PIXI.filters.MultiColorReplaceFilter(
+				/*const filter = new PIXI.filters.MultiColorReplaceFilter(
 					[
 						[0x4d4a0e, 0x4d210e],
 						[0x726d15, 0x733115],
@@ -104,7 +104,8 @@ class ESPBigBoiObject extends ESPGameObject {
 					this._spr.filters.push(filter);
 				} else {
 					this._spr.filters = [filter];
-				}
+				}*/
+				this._spr.setHue(320);
 			}
 
 			if(this._hp < 0) {
@@ -186,9 +187,14 @@ class ESPBigBoiObject extends ESPGameObject {
 				}
 
 				if(this._currentAttack === 0) {
-					const radians = Math.atan2(this.position.y - $espGamePlayer.position.y, this.position.x - $espGamePlayer.position.x);
-					this.speed.x = Math.cos(radians) * -2;
-					this.speed.y = Math.sin(radians) * -2;
+					const diffX = this.position.x - $espGamePlayer.position.x;
+					const diffY = this.position.y - $espGamePlayer.position.y;
+					const dist = Math.sqrt((diffX*diffX) + (diffY*diffY));
+					if(dist > 10) {
+						const radians = Math.atan2(diffY, diffX);
+						this.speed.x = Math.cos(radians) * -2;
+						this.speed.y = Math.sin(radians) * -2;
+					}
 				}
 			}
 		} else if(this._currentAttack === 1) {
@@ -308,7 +314,7 @@ class ESPBigBoiObject extends ESPGameObject {
 	killPlayer() {
 		const x = Math.abs(this.position.x - $espGamePlayer.position.x) / 50;
 		const y = Math.abs(this.position.y - $espGamePlayer.position.y) / 20;
-		$espGamePlayer.kill(20 * (this.position.x > $espGamePlayer.position.x ? -x : x), 20 * (this.position.y > $espGamePlayer.position.y ? -y : y), 40);
+		$espGamePlayer.kill(true, 20 * (this.position.x > $espGamePlayer.position.x ? -x : x), 20 * (this.position.y > $espGamePlayer.position.y ? -y : y), 40);
 	}
 
 	checkIfCollidingFromPosition(obj, x, y) {

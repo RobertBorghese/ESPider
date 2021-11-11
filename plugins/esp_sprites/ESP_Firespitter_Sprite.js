@@ -23,6 +23,8 @@ class ESPFirespitterSprite extends ESPGameSprite {
 		this._isDefeating = 0;
 		this._defeatTime = 0;
 		this._defeatingFlySpeed = 0;
+
+		window._blabla = this;
 	}
 
 	update() {
@@ -30,12 +32,7 @@ class ESPFirespitterSprite extends ESPGameSprite {
 		this.updateVisibility();
 		this.updateAnimation();
 
-		if(this._isDefeating === 0) {
-			if(this.espObject._isDefeated) {
-				this._defeatingFlySpeed = 10;
-				this._isDefeating = 1;
-			}
-		} else if(this._isDefeating === 1) {
+		if(this._isDefeating === 1) {
 			this._defeatTime += 2.5;
 			if(this._defeatTime > 100) this._defeatTime = 100;
 			this._bug.rotation = (this._defeatTime / 100) * 7;
@@ -47,6 +44,21 @@ class ESPFirespitterSprite extends ESPGameSprite {
 				this._bug.scale.set(0);
 				this.espObject.kill();
 				this._isDefeating = 2;
+			}
+		} else if(this._isBouncing) {
+			if(this._isBouncing > 10) {
+				const r = 1 - ((this._isBouncing - 10) / 10);
+				this.espObject.position.z = 10 * Easing.easeOutCubic(r);
+			} else {
+				if(this._spitterSprite) this._spitterSprite.tint = 0xFFFFFF;
+				const r = (this._isBouncing) / 10;
+				this.espObject.position.z = 10 * Easing.easeOutCubic(r);
+			}
+			this._isBouncing--;
+		} else if(this._isDefeating === 0) {
+			if(this.espObject._isDefeated) {
+				this._defeatingFlySpeed = 10;
+				this._isDefeating = 1;
 			}
 		}
 	}
@@ -65,5 +77,14 @@ class ESPFirespitterSprite extends ESPGameSprite {
 		if(!this.espObject._isDefeated) {
 			this.visible = $gameMap.inCamera(this.x - 100, this.x + 100, this.y - 100, this.y + 100);
 		}
+	}
+
+	updateAlpha() {
+		this.alpha = this.espObject.position.z > 300 ? 1 - ((this.espObject.position.z - 300) / 200).clamp(0, 1) : 1;
+	}
+
+	bounce() {
+		this._isBouncing = 20;
+		if(this._spitterSprite) this._spitterSprite.tint = 0x777777;
 	}
 }

@@ -30,7 +30,9 @@ class ESPIcemakerObject extends ESPFirespitterObject {
 	}
 
 	makeProjectile() {
-		return new ESPIceballObject(true, this._zLevel);
+		const result = new ESPIceballObject(true, this._zLevel);
+		result.setOwner(this);
+		return result;
 	}
 
 	projectileInitialZ() {

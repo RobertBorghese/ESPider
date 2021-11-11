@@ -112,7 +112,7 @@ modify_Game_Map_2 = class {
 		if($gameMapTemp._boss2Data.killAwait > 0) {
 			$gameMapTemp._boss2Data.killAwait--;
 			if($gameMapTemp._boss2Data.killAwait <= 0) {
-				$espGamePlayer.kill(0, 0, 100);
+				$espGamePlayer.kill(true, 0, 0, 100);
 			}
 		} else if($gameMapTemp._boss2Data.canAttackNextTimer > 0) {
 			$gameMapTemp._boss2Data.canAttackNextTimer--;
@@ -584,7 +584,7 @@ modify_Game_Map_2 = class {
 					damagePosOffset = damagePos + (150 + (r * ($espGamePlayer.position.x < 750 ? 0 : -150)));
 				}
 				if($espGamePlayer.position.z < 6 && Math.abs($espGamePlayer.position.x - damagePosOffset) < 20) {
-					$espGamePlayer.kill(($gameMapTemp._boss2Data.legDir === 0 ? 50 : -50), 0, 60);
+					$espGamePlayer.kill(true, ($gameMapTemp._boss2Data.legDir === 0 ? 50 : -50), 0, 60);
 				}
 			}
 

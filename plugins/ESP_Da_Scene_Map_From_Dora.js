@@ -59,6 +59,7 @@ modify_Scene_Map = class {
 	}
 
 	updateMain() {
+		ESP.Time += ESP.WS;
 		if(this._slideshowList !== null) {
 			this.updateSlideshow();
 		} else {
@@ -243,6 +244,7 @@ modify_Scene_Map = class {
 		}.bind(this));
 
 		this.createFlyCounterDisplay();
+		this.createMoneyCounterDisplay();
 		this.createSaveHelpDisplay();
 
 		ESPAudio.pause();
@@ -281,6 +283,39 @@ modify_Scene_Map = class {
 		this._flyHolder.addChild(this._flyCountText);
 	}
 
+	createMoneyCounterDisplay() {
+		if(!this._moneyHolder) {
+			this._moneyHolder = new Sprite();
+			this._moneyHolder.x = -100;
+		} else {
+			this.removeChild(this._moneyHolder);
+		}
+		this._moneyHolder.x = -1000;
+		this._moneyHolder.__aniIntroTime = 0;
+		this.addChild(this._moneyHolder);
+
+		this._moneyIcon = new Sprite(ImageManager.loadBitmapFromUrl("img/system/MoneyIcon.png"));
+		this._moneyIcon.scale.set(3);
+		this._moneyIcon.move(12, Graphics.height - (2 * 24) - 12 - 40 - 4);
+
+		this._moneyCountText = ESP.makeText("×" + $espGamePlayer.nomi(), 30, "left");
+		this._moneyCountText.anchor.set(0, 0.5);
+		this._moneyCountText.x = (24 * 2) + 12;
+		this._moneyCountText.y = this._moneyIcon.y + 4 + 12;
+
+		this._moneyBackground = new PIXI.Graphics();
+		this._moneyBackground.beginFill(0xffffff);
+		this._moneyBackground.drawRoundedRect(-30, 0, 130 + (this._moneyCountText.width - 30), 35, 8);
+		this._moneyBackground.endFill();
+		this._moneyBackground.alpha = 0.5;
+		this._moneyBackground.x = 0;
+		this._moneyBackground.y = Graphics.height - 65 - 40;
+
+		this._moneyHolder.addChild(this._moneyBackground);
+		this._moneyHolder.addChild(this._moneyIcon);
+		this._moneyHolder.addChild(this._moneyCountText);
+	}
+
 	createSaveHelpDisplay() {
 		if(!this._textHolder) {
 			this._textHolder = new Sprite();
@@ -300,7 +335,7 @@ modify_Scene_Map = class {
 
 	restartFromLastCheckpoint() {
 		this.onUnpause();
-		$espGamePlayer.kill(0, 0, 0);
+		$espGamePlayer.kill(false, 0, 0, 0);
 	}
 
 	onUnpause() {
@@ -318,6 +353,7 @@ modify_Scene_Map = class {
 		this._titleButtonParent = null;
 
 		this.destroyFlyCounterDisplay();
+		this.destroyMoneyCounterDisplay();
 		this.destroySaveTextDisplay();
 
 		this._pauseWindow.select(-1);
@@ -347,6 +383,15 @@ modify_Scene_Map = class {
 			this._flyCountText.destroy();
 			this._flyCountText = null;
 		}
+	}
+
+	destroyMoneyCounterDisplay() {
+		while(this._moneyHolder.children.length > 0) {
+			const child = this._moneyHolder.children[0];
+			this._moneyHolder.removeChild(child);
+			child.destroy();
+		}
+		this._moneyBackground = this._moneyIcon = this._moneyCountText = null;
 	}
 
 	destroySaveTextDisplay() {
@@ -387,7 +432,8 @@ modify_Scene_Map = class {
 			if(this._flyHolder.__aniIntroTime < 1) {
 				this._flyHolder.__aniIntroTime += 0.05;
 				if(this._flyHolder.__aniIntroTime >= 1) this._flyHolder.__aniIntroTime = 1;
-				this._flyHolder.x = Easing.easeInBack(1 - this._flyHolder.__aniIntroTime) * -40;
+				this._flyHolder.x = Easing.easeInBack((1 - this._flyHolder.__aniIntroTime) * 1.1) * -40;
+				this._moneyHolder.x = Easing.easeInBack(1 - this._flyHolder.__aniIntroTime) * -60;
 				if(this._textHolder) {
 					this._textHolder.y = (Graphics.height + 20) - (50 * Easing.easeOutBack(this._flyHolder.__aniIntroTime));
 				}

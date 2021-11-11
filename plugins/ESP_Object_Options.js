@@ -22,7 +22,13 @@
  * @desc The bit compare (a&b === 0 )if true, (a>=b) if false
  * @type boolean
  * @default false
- * 
+ *
+ * @arg Is Opposite
+ * @desc If true, the condition will reverse
+ * @type boolean
+ * @default false
+ *
+ *
  * @command Layering
  * @text Options for layering.
  * @desc

@@ -16,6 +16,7 @@ class ESPGameObject {
 			this._variableCond = parseInt(data["Variable Cond"]) || 0;
 			this._variableComparison = parseInt(data["Variable Comparison"]) || 0;
 			this._variableBitBool = data["Variable Bit Bool"] !== "true";
+			this._variableIsOpposite = data["Is Opposite"] === "true";
 		}
 
 		if(data && data["Force Above Ground"] === "true") {
@@ -52,10 +53,18 @@ class ESPGameObject {
 		if(this._isUsingVariableCondition) {
 			if(this._variableCond === 0) return true;
 			const val = $gameVariables.value(this._variableCond);
-			if(this._variableBitBool) {
-				return val >= this._variableComparison;
+			if(this._variableIsOpposite) {
+				if(this._variableBitBool) {
+					return val < this._variableComparison;
+				} else {
+					return (val & this._variableComparison) !== 0;
+				}
 			} else {
-				return (val & this._variableComparison) === 0;
+				if(this._variableBitBool) {
+					return val >= this._variableComparison;
+				} else {
+					return (val & this._variableComparison) === 0;
+				}
 			}
 		}
 		return true;
@@ -63,7 +72,7 @@ class ESPGameObject {
 
 	getObjectVolume() {
 		if(SceneManager._scene._spriteset._tilemap.scale.x > 1) return 0;
-		let dist = this.getDistance2d($espGamePlayer);
+		let dist = this.getDistanceCameraCenter2d();//this.getDistance2d($espGamePlayer);
 		if(!$gameMap.objectInCamera(this)) {
 			dist *= 2;
 		}
@@ -133,6 +142,13 @@ class ESPGameObject {
 		return Math.sqrt(
 			Math.pow(other.position.x - this.position.x, 2) +
 			Math.pow(other.position.y - this.position.y, 2)
+		);
+	}
+
+	getDistanceCameraCenter2d() {
+		return Math.sqrt(
+			Math.pow($gameMap.ESPCameraX + (Graphics.width / 2) - this.position.x, 2) +
+			Math.pow($gameMap.ESPCameraY + (Graphics.height / 2) - this.position.y, 2)
 		);
 	}
 
@@ -487,18 +503,6 @@ class ESPGameObject {
 	}
 
 	shadowify() {
-		return false;
-	}
-
-	showFlyCount() {
-		this._showFlyCount = true;
-	}
-
-	shouldShowFlyCount() {
-		if(this._showFlyCount) {
-			this._showFlyCount = false;
-			return true;
-		}
 		return false;
 	}
 

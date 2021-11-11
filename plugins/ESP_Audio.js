@@ -40,11 +40,11 @@ String.prototype.lowerCaseFirstOneAndGetRidOfEndNumber = function() {
 // ESPAudio
 
 class ESPAudio {
-	static playSe(name, volume = 100) {
+	static playSe(name, volume = 100, pitch = 100) {
 		return AudioManager.playSe({
 			name: name,
 			volume: volume,
-			pitch: 100,
+			pitch: pitch,
 			pan: 0
 		});
 	}
@@ -122,19 +122,36 @@ class ESPAudio {
 		"TitleSceneText2",
 		"TitleSceneConfirm2",
 
-		["IntroSound2", 0.7]
+		["IntroSound2", 0.7],
+
+		["NullHit", 0.7],
+		["NomiCollect", 0.8],
+		{ name: "TalkBigSlug", pitch: () => (60 + (Math.random() * 30) - 15) },
+
+		["ShieldGet", 0.8],
+		["ShieldBlock", 0.5]
 	];
 
 	static setup() {
 		const len = this.audios.length;
 		for(let i = 0; i < len; i++) {
 			const data = this.audios[i];
-			const audio = typeof data === "string" ? data : data[0];
-			const volume = typeof data === "string" ? 1 : data[1];
-			ESPAudio[audio.lowerCaseFirstOneAndGetRidOfEndNumber()] = function(v = 100) {
-				if(v > 10) return this.playSe(audio, v * volume);
-				return null;
-			};
+			if(typeof data === "object" && !Array.isArray(data)) {
+				const audio = data.name
+				const volume = data.volume ?? 1;
+				const pitch = data.pitch ?? (() => 100);
+				ESPAudio[audio.lowerCaseFirstOneAndGetRidOfEndNumber()] = function(v = 100) {
+					if(v > 10) return this.playSe(audio, v * volume, pitch());
+					return null;
+				};
+			} else {
+				const audio = typeof data === "string" ? data : data[0];
+				const volume = typeof data === "string" ? 1 : data[1];
+				ESPAudio[audio.lowerCaseFirstOneAndGetRidOfEndNumber()] = function(v = 100) {
+					if(v > 10) return this.playSe(audio, v * volume);
+					return null;
+				};
+			}
 		}
 	}
 
@@ -159,6 +176,19 @@ class ESPAudio {
 		}
 		this.playSe("MenuButtonSwitch" + this.switchAudios[this.switchSong[this._switchSound] - 1], 100);
 		*/
+	}
+
+	static nomiGet() {
+		//if(!this.__nomiPattern) this.__nomiPattern = 0;
+		const pitch = ($espGamePlayer?.TempNomiCount ?? 0) % 10;
+		AudioManager.playSe({
+			name: "NomiCollect",
+			volume: 90,
+			pitch: 100 + (-50 + (pitch * 10)),//(Math.random() * 50) - 25,
+			pan: 0
+		});
+		//this.__nomiPattern++;
+		//if(this.__nomiPattern > 20) this.__nomiPattern = 0;
 	}
 }
 

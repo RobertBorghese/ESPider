@@ -94,7 +94,7 @@ class ESPFireballObject extends ESPGameObject {
 			const spd = 60;
 			const distX = Math.abs(this.position.x - $espGamePlayer.position.x) / this._collisionSize;
 			const distY = Math.abs(this.position.y - $espGamePlayer.position.y) / this._collisionSize;
-			$espGamePlayer.kill(spd * (this.position.x > $espGamePlayer.position.x ? -distX : distX), spd * (this.position.y > $espGamePlayer.position.y ? -distY : distY), 40);
+			$espGamePlayer.kill(true, spd * (this.position.x > $espGamePlayer.position.x ? -distX : distX), spd * (this.position.y > $espGamePlayer.position.y ? -distY : distY), 40);
 		}
 
 		if($gameMapTemp._slugBoss) {
@@ -167,6 +167,18 @@ class ESPFireballObject extends ESPGameObject {
 				}
 			}
 		}
+
+		if(this.canConnect()) {
+			const firespitters = $gameMap.findObjectGroup("firespitter");
+			if(firespitters.length > 0) {
+				const len = firespitters.length;
+				for(let i = 0; i < len; i++) {
+					if(this._owner !== firespitters[i] && firespitters[i].canBounce() && this.getDistance(firespitters[i]) < this._collisionSize) {
+						firespitters[i].bounce();
+					}
+				}
+			}
+		}
 	}
 
 	canConnect() {
@@ -200,5 +212,9 @@ class ESPFireballObject extends ESPGameObject {
 
 	kill() {
 		$gameMap.removeGameObject(this);
+	}
+
+	setOwner(owner) {
+		this._owner = owner;
 	}
 }

@@ -8,6 +8,9 @@ Tilemap.prototype.refreshPlayer = function() {
 Tilemap.prototype._sortChildren = function() {
 	//this._espSprites.forEach(s => this.removeChild(s));
 	//this._espSprites.forEach(s => this.addChild(s));
+
+	if(Math.floor(ESP.Time) % 2 !== 0) return;
+
 	this.children.sort(this._compareChildOrder.bind(this));
 
 	if(this._espPlayer) {
@@ -140,6 +143,12 @@ Tilemap.prototype._compareChildOrder = function(a, b) {
 
 	if(a._alwaysOnTop) return 1;
 	else if(b._alwaysOnTop) return -1;
+
+	if(a._alwaysBelowPlayer && (b === this._espPlayer || b === $espGamePlayer._dashChargeObject?._spr)) {
+		return -1;
+	} else if(b._alwaysBelowPlayer && (a === this._espPlayer ||  a === $espGamePlayer._dashChargeObject?._spr)) {
+		return 1;
+	}
 
 	// If both sprites are "tilemap walls", do comparison with objects.
 	if(a._espWorldObject && b._espWorldObject) {

@@ -144,6 +144,15 @@ modify_Scene_Title = class {
 
 		this.addChild(this._controllerText);
 
+		this._controllerTextHelp = ESP.makeText("(Disable \"Steam Input\" if having trouble on Steam Version)", 22, "center");
+		this._controllerTextHelp.style.fontFamily = "title-font";
+		this._controllerTextHelp.alpha = 1;
+		this._controllerTextHelp.style.strokeThickness = 6;
+		this._controllerTextHelp.style.stroke = "rgba(1, 1, 1, 1)";
+		this._controllerTextHelp.x = 60;
+		this._controllerTextHelp.y = 30;
+		this._controllerText.addChild(this._controllerTextHelp);
+
 		this._blackOverlay = new PIXI.Graphics();
 		this._blackOverlay.beginFill(0x000000);
 		this._blackOverlay.drawRect(0, 0, Graphics.width, Graphics.height);
