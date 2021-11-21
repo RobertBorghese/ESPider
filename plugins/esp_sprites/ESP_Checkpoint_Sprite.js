@@ -52,6 +52,7 @@ class ESPCheckpointSprite extends ESPGameSprite {
 		if(this.espObject._shouldOpen === 1) {
 			this.espObject._shouldOpen = 0;
 			this.open();
+			this.dropAllGroundParticles();
 		} else if(this.espObject._shouldOpen === 2) {
 			this.espObject._shouldOpen = 0;
 			this.close();
@@ -84,7 +85,7 @@ class ESPCheckpointSprite extends ESPGameSprite {
 		const r2 = r.clamp(0, 1);
 		this._flag.y = 44 * (1 - r2);
 		this._pole.scale.set(2, 0.5 + (1.5 * r2));
-		this._flag.tint = 0x999999 + (0xffffff - 0x999999) * r2;
+		this._flag.tint = 0x999999 + (this._mode === 2 ? 0 : (0xffffff - 0x999999) * r2);
 		if(this._rate < 1) {
 			this._flag.Index = 0;
 		}
@@ -95,5 +96,33 @@ class ESPCheckpointSprite extends ESPGameSprite {
 		const r = (this._mode === 2 ? Easing.easeInCubic : Easing.easeOutBack)(this._rate);
 		this.ShadowSprite.scale.set(0.8 + (0.6 * (1 - r)));
 		this.ShadowSprite.alpha = this.ShadowSprite.scale.x;
+	}
+
+	dropAllGroundParticles(x, state) {
+		if(!ESPGamePlayer.Particles) return;
+
+		const count = 8;
+		for(let i = 0; i < count; i++) {
+			const p = $gameMap.addParticle(
+				this.espObject.position.x,
+				this.espObject.position.y,
+				Math.cos(i * (Math.PI * 2 / count)) * 2,
+				Math.sin(i * (Math.PI * 2 / count)) * 2 * 0.5,
+				7,
+				"CircleParticle",
+				false
+			);
+			p.rotation = Math.random() * Math.PI * 2;
+			//p.blendMode = PIXI.BLEND_MODES.ADD;
+			//p.NoShadow = true;
+			p.speed.z = 0.5;
+			p.CanCollide = false;
+			p._isParticle = true;
+
+			p.CollisionHeight = this.espObject.CollisionHeight;
+			p.position.z = this.espObject.position.z;
+
+			//p.tint = SceneManager._scene._spriteset.getFloorColor(p.position.x, p.position.y, 0x22);
+		}
 	}
 }

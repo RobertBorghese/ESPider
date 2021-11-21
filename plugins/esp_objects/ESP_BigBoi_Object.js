@@ -41,6 +41,9 @@ class ESPBigBoiObject extends ESPGameObject {
 	startBoss() {
 		this._metaMode = 1;
 		this._spr._showHpBar = true;
+		if($espGamePlayer.flies() === 0) {
+			this._spr.setHue(320);
+		}
 		AudioManager.playBgm({ name: "PrepareToFight", volume: 100, pitch: 100, pan: 0 });
 	}
 
@@ -450,7 +453,7 @@ class ESPBigBoiObject extends ESPGameObject {
 
 	updateChargeAttack() {
 		if(this._mode === 0) {
-			this._isShortDash = this._hp < 250;
+			this._isShortDash = $espGamePlayer.flies() === 0 ? true : this._hp < 250;
 			this._mode = 1;
 			this.speed.x = this.speed.y = 0;
 			this._actionTime = this._isShortDash ? 40 : 80;

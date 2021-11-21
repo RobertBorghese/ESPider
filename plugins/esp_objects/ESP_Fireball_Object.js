@@ -17,6 +17,7 @@ class ESPFireballObject extends ESPGameObject {
 		this._isInitializing = this._initAnimation;
 		this._groundedStyle = grounedStyle;
 		this._onGroundShift = false;
+		this._cannotHurtPlayer = false;
 
 		this._isDead = false;
 
@@ -47,6 +48,10 @@ class ESPFireballObject extends ESPGameObject {
 
 	getCollisionSize() {
 		return 26;
+	}
+
+	cannotHurtPlayer() {
+		this._cannotHurtPlayer = true;
 	}
 
 	update() {
@@ -89,12 +94,15 @@ class ESPFireballObject extends ESPGameObject {
 	}
 
 	updateInteractions() {
-		const playerDistance = this.getDistance($espGamePlayer);
-		if(playerDistance <= this._collisionSize) {
-			const spd = 60;
-			const distX = Math.abs(this.position.x - $espGamePlayer.position.x) / this._collisionSize;
-			const distY = Math.abs(this.position.y - $espGamePlayer.position.y) / this._collisionSize;
-			$espGamePlayer.kill(true, spd * (this.position.x > $espGamePlayer.position.x ? -distX : distX), spd * (this.position.y > $espGamePlayer.position.y ? -distY : distY), 40);
+		let playerDistance = null;
+		if(!this._cannotHurtPlayer) {
+			playerDistance = this.getDistance($espGamePlayer);
+			if(playerDistance <= this._collisionSize) {
+				const spd = 60;
+				const distX = Math.abs(this.position.x - $espGamePlayer.position.x) / this._collisionSize;
+				const distY = Math.abs(this.position.y - $espGamePlayer.position.y) / this._collisionSize;
+				$espGamePlayer.kill(true, spd * (this.position.x > $espGamePlayer.position.x ? -distX : distX), spd * (this.position.y > $espGamePlayer.position.y ? -distY : distY), 40);
+			}
 		}
 
 		if($gameMapTemp._slugBoss) {
@@ -148,8 +156,11 @@ class ESPFireballObject extends ESPGameObject {
 			}
 
 			if($espGamePlayer.IsGrappling) {
-				if(!$espGamePlayer.isConnectedTo(this) && playerDistance <= 200) {
-					$espGamePlayer.connect(this);
+				if(!$espGamePlayer.isConnectedTo(this)) {
+					if(playerDistance === null) playerDistance = this.getDistance($espGamePlayer);
+					if(playerDistance <= 200) {
+						$espGamePlayer.connect(this);
+					}
 				}
 			}
 		}

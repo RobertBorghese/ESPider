@@ -112,7 +112,26 @@ class ESPBoxObject extends ESPGameObject {
 					const radians = Math.atan2(this.position.y - $espGamePlayer.position.y, this.position.x - $espGamePlayer.position.x);
 					this.speed.x += (-Math.cos(radians) * ((dist - this._initialDistance) / 50));
 					this.speed.y += (-Math.sin(radians) * ((dist - this._initialDistance) / 50));
+
+					if(this._image === "Cake" && !this._stealinTheCake) {
+						this._stealinTheCake = 1;
+						const c = $gameMap.findObject("CakeGuy");
+						if(c) {
+							c._triggerDist = 600;
+							c._untriggerDist = 700;
+							c._spr.Text.text = "Please don't steal my cake!";
+							c._spr._showingText = false;
+							c._spr._time = 0;
+						}
+					}
 				}
+			}
+		} else if(this._stealinTheCake === 1) {
+			this._stealinTheCake = 2;
+			const c = $gameMap.findObject("CakeGuy");
+			if(c) {
+				c._triggerDist = 100;
+				c._untriggerDist = 140;
 			}
 		}
 

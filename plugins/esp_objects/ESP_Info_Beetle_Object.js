@@ -77,6 +77,30 @@
  * @desc
  * @type text
  * @default
+ *
+ * @arg Float
+ * @desc
+ * @type boolean
+ * @default false
+ *
+ * @arg Float Min
+ * @desc
+ * @type number
+ * @min -9999
+ * @default
+ *
+ * @arg Float Max
+ * @desc
+ * @type number
+ * @min -9999
+ * @default
+ *
+ * @arg Float Time Ratio
+ * @desc
+ * @decimals 2
+ * @type number
+ * @min -9999
+ * @default
  */
 
 class ESPInfoBeetleObject extends ESPGameObject {
@@ -99,6 +123,11 @@ class ESPInfoBeetleObject extends ESPGameObject {
 		this._getExicted = data["Get Excited"] === "true";
 		this._refreshText = data["Constant Text Refresh"] === "true";
 
+		this._isFloat = data["Float"] === "true";
+		this._floatMin = data["Float Min"] ? parseInt(data["Float Min"]) : null;
+		this._floatMax = data["Float Max"] ? parseInt(data["Float Max"]) : null;
+		this._floatTimeRatio = data["Float Time Ratio"] ? parseFloat(data["Float Time Ratio"]) : null;
+
 		const audioJsonText = data["Custom Audio JSON"];
 		if(audioJsonText && !audioJsonText.trim().startsWith("{")) {
 			this._customAudio = { name: audioJsonText, volume: 100, pitch: 100, pan: 0 };
@@ -109,10 +138,12 @@ class ESPInfoBeetleObject extends ESPGameObject {
 		this._textOffsetY = parseInt(data["Text Offset Y"]) || 0;
 
 		if(this._textType === "roomDeaths") {
+			this._dataText = data.text;
 			this._text = data.text[$gameMap.RoomKillCount.clamp(0, data.text.length - 1)];
 		} else if(this._textType === "eval") {
 			if(this._refreshText) {
 				this._textFunction = new Function("return (" + data.text.join("\n") + ");");
+				this._textFunction = this._textFunction.bind(this);
 				this._text = this._textFunction();
 			} else {
 				this._text = eval(data.text.join("\n"));
@@ -138,12 +169,14 @@ class ESPInfoBeetleObject extends ESPGameObject {
 	update() {
 		super.update();
 		if(this._refreshText) {
-			const newText = this._textFunction();
+			const newText = this._forcedText ?? this._textFunction();
 			if(this._text !== newText) {
 				this._text = newText;
 				this._spr.Text.text = newText;
-				this._shouldShowText = false;
-				this._spr._time = 0;
+				if(this._shouldShowTextTimer === 0) {
+					this._shouldShowText = false;
+					this._spr._time = 0;
+				}
 				this._spr.update();
 				this._spr.updateTextHolder();
 			}
@@ -152,8 +185,33 @@ class ESPInfoBeetleObject extends ESPGameObject {
 			this._shouldShowTextTimer--;
 			this._shouldShowText = true;
 		} else {
-			this._shouldShowText = $gameMap._isTranferring ? false : (this.getDistance($espGamePlayer) < (this._shouldShowText ? this._untriggerDist : this._triggerDist));
+			const prev = this._shouldShowText;
+			this._shouldShowText = this._forcingText ? true : (
+				$gameMap._isTranferring ? false : (
+					this.getDistance($espGamePlayer) < (this._shouldShowText ? this._untriggerDist : this._triggerDist)
+				)
+			);
+			if(!prev && this._shouldShowText) {
+				if(!this._forcingText && this._forcedText) {
+					this._forcedText = null;
+					this.update();
+					return;
+				}
+			}
 		}
+
+		if(this._isFloat) {
+			this.position.z = this._floatMin + (Math.sin(ESP.Time * this._floatTimeRatio) * (this._floatMax - this._floatMin));
+		}
+	}
+
+	forceText(text) {
+		this._forcingText = true;
+		this._forcedText = text;
+	}
+
+	clearForcedText() {
+		this._forcingText = false;
 	}
 
 	shouldShowText() {

@@ -189,4 +189,9 @@ class ESPAnimatedSprite extends PIXI.Sprite {
 		this.texture = null;
 		super.destroy();
 	}
+
+	ratio() {
+		if(this.MaxIndex <= 1) return 0;
+		return ((this.FrameDelay * this.Index) + this.Frame) / ((this.MaxIndex - 1) * this.FrameDelay);
+	}
 }

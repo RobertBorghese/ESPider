@@ -69,6 +69,21 @@ ESP.makeText = function(text, fontSize = 20, align = "center") {
 	return Text;
 };
 
+ESP.makeTextEx = function(text, fontSize = 20, align = "center", fill = 0xffffff) {
+	const Text = new PIXI.Text(text, {
+		fontFamily: $gameSystem.mainFontFace(),
+		fontSize: fontSize,
+		fill: fill,
+		align: align,
+		stroke: "rgba(0, 0, 0, 0.75)",
+		strokeThickness: 4,
+		lineJoin: "round"
+	});
+	Text.anchor.set(0.5, 1);
+	Text.resolution = 2;
+	return Text;
+};
+
 ESP.snap = function(obj, width, height) {
 	const bitmap = new Bitmap(width, height);
 	const renderTexture = PIXI.RenderTexture.create(width, height);

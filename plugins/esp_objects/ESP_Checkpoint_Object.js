@@ -55,16 +55,25 @@ Game_Map.presetObjects[4] = class ESPCheckpointObject extends ESPGameObject {
 			const size = this._triggerDistance;
 			const z = this.realZ();
 			const playerZ = $espGamePlayer.realZ();
-			if(this.getDistance($espGamePlayer) < size && $espGamePlayer.CollisionHeight === this.CollisionHeight && playerZ >= z && playerZ <= z + (TS * 2)) {
-				this._shouldOpen = 1;
-				this._isOpen = true;
-
-				const newId = this.genId();
-				if($espGamePlayer.respawnCheckId !== newId) {
-					ESPAudio.checkpoint();
-					$gameMap.saveRespawnPosAndSave(newId);
-				}
+			if(
+				this.getDistance($espGamePlayer) < size &&
+				$espGamePlayer.CollisionHeight === this.CollisionHeight &&
+				playerZ >= z && playerZ <= z + (TS * 2) &&
+				$espGamePlayer.findKill() === 0
+			) {
+				this.trigger();
 			}
+		}
+	}
+
+	trigger() {
+		this._shouldOpen = 1;
+		this._isOpen = true;
+
+		const newId = this.genId();
+		if($espGamePlayer.respawnCheckId !== newId) {
+			ESPAudio.checkpoint();
+			$gameMap.saveRespawnPosAndSave(newId);
 		}
 	}
 }

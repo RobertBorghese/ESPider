@@ -6,7 +6,7 @@ class Window_PauseCommand extends Window_Command {
 	}
 
 	makeCommandList() {
-		for(let i = 0; i < 5; i++) {
+		for(let i = 0; i < 6; i++) {
 			this.addCommand("", "_" + i);
 		}
 	}
@@ -21,6 +21,7 @@ modify_Scene_Map = class {
 		this._targetCameraY = null;
 		this._slideshowList = null;
 		this.gameTime = 0;
+		this._inventoryOpen = false;
 	}
 
 	createDisplayObjects() {
@@ -65,9 +66,11 @@ modify_Scene_Map = class {
 		} else {
 			if(!this._isPaused) {
 				ESP.Scene_Map.updateMain.apply(this, arguments);
+				$gameMap.updateParticles();
 				this.updateESPRespawns();
 				this.updateESPMovingPlatforms();
 				this.updateESPPlayer();
+				this.updateESPPlayerInventory();
 				this.updateESPGameObjects();
 				this.updatePauseInput();
 				this.updateESPBackground();
@@ -81,6 +84,22 @@ modify_Scene_Map = class {
 	updateESPPlayer() {
 		$espGamePlayer.update();
 		this.updateCameraPos();
+	}
+
+	updateESPPlayerInventory() {
+		if(this._inventoryOpen !== $espGamePlayer.isInventoryOpen()) {
+			this._inventoryOpen = $espGamePlayer.isInventoryOpen();
+
+			if(this._inventoryOpen) {
+				this._inventory = new ESPInventorySprite();
+				this.addChild(this._inventory);
+			} else {
+				if(this._inventory) {
+					this._inventory.end();
+					this._inventory = null;
+				}
+			}
+		}
 	}
 
 	// sets camera x y to certain position
@@ -226,10 +245,11 @@ modify_Scene_Map = class {
 		}
 		this._background.alpha = 0;
 
-		this._titleButtons = ESP.makeButtons(this, 300, 40, 0, -120, 0, 58, [
+		this._titleButtons = ESP.makeButtons(this, 300, 40, 0, -180, 0, 58, [
 			["Resume", this.onUnpause.bind(this), 2],
 			["Restart from Checkpoint", this.restartFromLastCheckpoint.bind(this), 2],
-			["Volume [" + Math.floor(WebAudio._masterVolume * 100) + "%]", this.commandVolume.bind(this)],
+			["View Controls", this.commandControls.bind(this)],
+			["Options", this.commandOptions.bind(this)],
 			["Return to Title", this.commandReturnToTitle.bind(this)],
 			["Exit Game", this.commandExitGame.bind(this)]
 		], 0x123a3b, 0x2e9294, 0x1b5657, 0x216869, this.onMouseEnter, function() { return true; });
@@ -397,12 +417,91 @@ modify_Scene_Map = class {
 	destroySaveTextDisplay() {
 		this._textHolder.visible = false;
 	}
-	
-	commandVolume() {
-		const masterVolume = ConfigManager.incrementVolume();
-		this._titleButtons[2]._text.text = "Volume [" + masterVolume + "%]";
+
+	commandControls() {
 		this._titleButtons[2].unclick();
-		this._titleButtons[2].updateGraphics();
+		this.disableAllButtons();
+		this.setAllVisible(false);
+
+		const bitmap = ImageManager.loadBitmapFromUrl("img/controls/ControlsImage.png");
+		bitmap.addLoadListener(function() {
+			if(!this._controlsSprite) {
+				this._controlsSprite = new Sprite(bitmap);
+				this.addChild(this._controlsSprite);
+
+				function makeTextList(x, y, title, texts) {
+					const spr = new Sprite();
+					spr.move(x, y);
+					let i = 0;
+					for(; i < texts.length; i++) {
+						const info = texts[i];
+						const txt1 = ESP.makeText(info[1], 24, "left");
+						const txt2 = ESP.makeTextEx(info[0], 24, "left", info[2]);
+						txt1.anchor.set(0, 0);
+						txt2.anchor.set(0, 0);
+						txt2.x = 140;
+						txt1.y = txt2.y = (i * 40);
+						spr.addChild(txt1);
+						spr.addChild(txt2);
+
+						const graphics = new PIXI.Graphics();
+						graphics.y = (i * 40) - 4;
+						graphics.beginFill(0xffffff);
+						graphics.drawRect(0, 0, 280, 1);
+						graphics.endFill();
+						graphics.alpha = 0.6;
+						spr.addChild(graphics);
+					}
+
+					const graphics = new PIXI.Graphics();
+					graphics.x = 140 - 4;
+					graphics.y = -4;
+					graphics.beginFill(0xffffff);
+					graphics.drawRect(0, 0, 1, i * 40);
+					graphics.endFill();
+					graphics.alpha = 0.6;
+					spr.addChild(graphics);
+
+					const titleText = ESP.makeText(title, 24, "left");
+					titleText.x = 140 - 4;
+					titleText.y = -4;
+					spr.addChild(titleText);
+
+					return spr;
+				};
+
+				const v = $gameVariables.value(1);
+				this._controlsSprite.addChild(makeTextList(50, 100, "Keyboard", [
+					["W A S D", "Move", 0x7c7cd0],
+					["E", "Inventory", 0xc07cb8],
+					["Space", v >= 1 ? "Jump" : "???", 0x7dbf91],
+					["Left-Click", v >= 2 ? "Attach Web" : "???", 0xbd947a],
+					["Right-Click", v >= 3 ? "Grapple Dash" : "???", 0xbf7d7d]
+				]));
+				this._controlsSprite.addChild(makeTextList(50, 380, "Controller", [
+					["Left-Stick", "Move", 0x7c7cd0],
+					["Top Button", "Inventory", 0xc07cb8],
+					["Bottom Button", v >= 1 ? "Jump" : "???", 0x7dbf91],
+					["Left Button", v >= 2 ? "Attach Web" : "???", 0xbd947a],
+					["Shoulder Button", v >= 3 ? "Grapple Dash" : "???", 0xbf7d7d]
+				]));
+			}
+		}.bind(this));
+	}
+
+	commandOptions() {
+		this._options = new Scene_Options();
+		this._options._isOpeningOptionsMenuInGame = true;
+		this._options.createBackground = function() {}
+		this._options.commandLeave = function() {
+			const self = SceneManager._scene;
+			self._removeOptions = true;
+		};
+		this._options.create();
+		this.addChild(this._options);
+		this._titleButtons[3].unclick();
+		this.disableAllButtons();
+		this.setAllVisible(false);
 	}
 
 	disableAllButtons() {
@@ -410,7 +509,20 @@ modify_Scene_Map = class {
 		this._pauseWindow.deactivate();
 	}
 
+	enableAllButtons() {
+		this._titleButtons.enableAllButtons();
+		this._pauseWindow.activate();
+	}
+
+	setAllVisible(v) {
+		this._titleButtons.forEach((b) => b.visible = v);
+		this._flyHolder.visible = v;
+		this._moneyHolder.visible = v;
+		this._saveText.visible = v;
+	}
+
 	commandReturnToTitle() {
+		this.startFadeOut();
 		this.disableAllButtons();
 		SceneManager.goto(Scene_Title);
 	}
@@ -421,6 +533,33 @@ modify_Scene_Map = class {
 	}
 
 	updatePause() {
+		if(this._controlsSprite) {
+			if(Input.isOkTriggeredEx() || Input.isCancelTriggeredEx()) {
+				ESPAudio.menuButtonClickCancel();
+				this.removeChild(this._controlsSprite);
+				this._controlsSprite.destroy();
+				this._controlsSprite = null;
+				this.enableAllButtons();
+				this.setAllVisible(true);
+			}
+			return;
+		}
+		if(this._options) {
+			if(this._removeOptions) {
+				this.removeChild(this._options);
+				this._options.stop();
+				this._options.terminate();
+				this._options.destroy();
+				this._options = null;
+				this._removeOptions = false;
+				this.enableAllButtons();
+				this.setAllVisible(true);
+			} else if(Input.isCancelTriggeredEx()) {
+				ESPAudio.menuButtonClickCancel();
+				this._options.commandLeave();
+			}
+			return;
+		}
 		if(this._background) {
 			if(this._background.alpha < 1) {
 				this._background.alpha += 0.1;

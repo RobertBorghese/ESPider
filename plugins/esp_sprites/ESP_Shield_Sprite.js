@@ -43,8 +43,8 @@ class ESPShieldSprite extends ESPGameSprite {
 	}
 
 	updateShadowSprite() {
-		this.ShadowSprite.move(2, 0);//Math.sin((this._core.Index / this._core.MaxIndex) * Math.PI * 2) * 6, 0);
+		this.ShadowSprite.move(0, 0);
 		this.ShadowSprite.scale.set(0.5 * ((Math.abs(this._core.y)) * 0.06));
-		this.ShadowSprite.alpha = 0.6 + (1 - this.ShadowSprite.scale.x);
+		this.ShadowSprite.alpha = 0.5 + (2.4 - (this.ShadowSprite.scale.x * 2));
 	}
 }

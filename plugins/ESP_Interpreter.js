@@ -375,11 +375,11 @@ class ESPInterpreter {
 		return this;
 	}
 
-	startMovingDownForFinalCredits(duration) {
+	startMovingDownForFinalCredits(duration, img) {
 		let time = 0;
 		this._list.push([
 			() => {
-				const spr = new Sprite(ImageManager.loadBitmapFromUrl("img/pictures/End.png"));
+				const spr = new Sprite(ImageManager.loadBitmapFromUrl(img ?? "img/pictures/End.png"));
 				spr.x = 0;
 				spr.y = Graphics.height;
 				SceneManager._scene.addChild(spr);
@@ -390,6 +390,25 @@ class ESPInterpreter {
 				this._movingDownForCreditsSpr.y = (1 - r) * Graphics.height;
 				time++;
 				return time > duration;
+			}
+		]);
+		return this;
+	}
+
+	fadeOutCreditsPicture() {
+		this._list.push([
+			() => {},
+			() => {
+				if(!this._movingDownForCreditsSpr) return true;
+				if(this._movingDownForCreditsSpr.alpha > 0) {
+					this._movingDownForCreditsSpr.alpha -= 0.05;
+				} else {
+					this._movingDownForCreditsSpr.parent.removeChild(this._movingDownForCreditsSpr);
+					this._movingDownForCreditsSpr.destroy();
+					this._movingDownForCreditsSpr = null;
+					return true;
+				}
+				return false;
 			}
 		]);
 		return this;
@@ -436,6 +455,18 @@ class ESPInterpreter {
 					}
 				}
 				return result;
+			}
+		]);
+		return this;
+	}
+
+	startSlideshow(list) {
+		this._list.push([
+			() => {
+				SceneManager._scene.startSlideshow(list);
+			},
+			() => {
+				return SceneManager._scene._slideshowList === null;
 			}
 		]);
 		return this;

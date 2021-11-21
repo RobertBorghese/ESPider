@@ -8,7 +8,11 @@ class ESPKeySprite extends ESPGameSprite {
 
 		this.ObjectHolderOffsetY = 0;
 
-		this._key = new Sprite(ImageManager.loadBitmapFromUrl("img/other/Key.png"));
+		if(this.espObject._customImage) {
+			this._key = new ESPAnimatedSprite("img/other/" + this.espObject._customImage + ".png", 1);
+		} else {
+			this._key = new Sprite(ImageManager.loadBitmapFromUrl("img/other/Key.png"));
+		}
 		this._key.scale.set(2);
 		this._key.anchor.set(0.5, 1);
 		this.ObjectHolder.addChild(this._key);

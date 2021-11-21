@@ -10,9 +10,6 @@ class ESPMoneySprite extends ESPGameSprite {
 		this._touchTime = 0;
 		this._touchFlySpeed = 0;
 
-		//this._setScale = (Math.random() * 0.8) - 0.4;
-		//console.log(this._setScale);
-
 		this._rotation = (Math.PI * 0.5) * (Math.floor(Math.random() * 4));
 
 		this._core = new ESPAnimatedSprite("img/other/Money.png", 12);

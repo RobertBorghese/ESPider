@@ -50,25 +50,8 @@ class ESPPlayerSprite extends ESPGameSprite {
 		this._webAmmoAnimationTime = 0;
 		this._webAmmoList = [];
 		this._webAmmoTime = 0;
-		for(let i = 0; i < 3; i++) {
-			const par = new Sprite();
-			par.visible = false;
-			this._webAmmoFront.addChild(par);
-
-			const web = new ESPAnimatedSprite("img/particles/Particle.png", 0);
-			web.WebParent = par;
-			web.Index = 4;
-			web.alpha = 1;
-			web.anchor.set(0.5);
-			web._isFront = true;
-			par.addChild(web);
-			this._webAmmoList.push(web);
-
-			web.ShadowSprite = new Sprite(ImageManager.loadSystem("Shadow4"));
-			web.ShadowSprite.anchor.set(0.5);
-			web.ShadowSprite.z = 3;
-			web.ShadowSprite.move(0, 8);
-			par.addChild(web.ShadowSprite);
+		for(let i = 0; i < $espGamePlayer.maxConnections(); i++) {
+			this.addWebConnection(i);
 		}
 
 		this.LegCount = 8;
@@ -84,6 +67,27 @@ class ESPPlayerSprite extends ESPGameSprite {
 
 		this.Direction = -1;
 		this.setDirection(6);
+	}
+
+	addWebConnection(i) {
+		const par = new Sprite();
+		par.visible = false;
+		this._webAmmoFront.addChild(par);
+
+		const web = new ESPAnimatedSprite("img/particles/Particle.png", 0);
+		web.WebParent = par;
+		web.Index = 4;
+		web.alpha = 1;
+		web.anchor.set(0.5);
+		web._isFront = true;
+		par.addChild(web);
+		this._webAmmoList.push(web);
+
+		web.ShadowSprite = new Sprite(ImageManager.loadSystem("Shadow4"));
+		web.ShadowSprite.anchor.set(0.5);
+		web.ShadowSprite.z = 3;
+		web.ShadowSprite.move(0, 8);
+		par.addChild(web.ShadowSprite);
 	}
 
 	makeIdleLegs() {
@@ -363,11 +367,13 @@ class ESPPlayerSprite extends ESPGameSprite {
 		this.updateFlyCounter();
 		this.updateNomiCounter();
 		this.updateShieldsDisplay();
+		this.updateTempGauge();
 		this.updateWebAmmo();
 		this.updateVisibility();
 		this.updateColor();
 		this.updateRotation();
 		this.updateInvincibility();
+		this.updateInfoText();
 	}
 
 	updateContainers() {
@@ -395,10 +401,16 @@ class ESPPlayerSprite extends ESPGameSprite {
 			this.BodySprite.move(-2, 2 - (Offset >= 2 ? 1 : 0) - this._bodyOffsetY);
 		}
 
-		if(this.espObject.canControl()) {
+		if(this.espObject.canControlAndInvClosed()) {
 			if(Input.Input4Dir === 6) {
 				this.BodySprite.scale.set(1, 1);
 			} else if(Input.Input4Dir === 4) {
+				this.BodySprite.scale.set(-1, 1);
+			}
+		} else if($gameMap._isTranferring) {
+			if(this.Direction === 6) {
+				this.BodySprite.scale.set(1, 1);
+			} else if(this.Direction === 4) {
 				this.BodySprite.scale.set(-1, 1);
 			}
 		}
@@ -420,7 +432,7 @@ class ESPPlayerSprite extends ESPGameSprite {
 		} else if($espGamePlayer.isFalling()) {
 			this.setDirection(11);
 		} else {
-			let finalDir = this.espObject.canControl() ? Input.Input4Dir : 0;
+			let finalDir = this.espObject.canControlAndInvClosed() ? Input.Input4Dir : 0;
 			if(finalDir === 0) {
 				this.updatePlayerSpeed2d();
 				if(this.__espPlayerSpeed2d.x < 0) finalDir = 4;
@@ -498,36 +510,65 @@ class ESPPlayerSprite extends ESPGameSprite {
 	}
 
 	updateNomiCounter() {
+		const nomiLost = this.espObject.TempNomiCount < 0;
+
+		let shouldDestroy = false;
+
 		if(this.espObject.shouldShowNomiCount()) {
 			if(!this._nomiCountText) {
-				this._nomiCountText = ESP.makeText("×" + this.espObject.TempNomiCount, 16, "left");
+				this._nomiCountText = ESP.makeText("", nomiLost ? 20 : 16, "left");
+				if(nomiLost) {
+					const style = this._nomiCountText.style;
+					style.fill = 0xff6666;
+					style.letterSpacing = 1;
+					this._nomiCountText.style = style;
+				}
 				this._nomiCountText.anchor.set(0, 0.5);
 				this._nomiCountText.alpha = 1;
 				this._nomiCountText.scale.set(0);
 				SceneManager._scene.addUiChild(this._nomiCountText);
-				window.__blabla = this._nomiCountText;
 			}
 
 			if(this._nomiCountText.scale.x < 1) {
 				this._nomiCountText.scale.set((this._nomiCountText.scale.x + 0.1).clamp(0, 1));
 			}
-		} else if(this._nomiCountText && this._nomiCountText.scale.x > 0) {
+		} else if(!nomiLost && this._nomiCountText && this._nomiCountText.scale.x > 0) {
 			this._nomiCountText.scale.set((this._nomiCountText.scale.x - 0.05).clamp(0, 1));
 			if(this._nomiCountText.scale.x <= 0) {
-
-				this._nomiCountText.scale.set(0);
-				this.espObject.TempNomiCount = 0;
-
-				SceneManager._scene.removeUiChild(this._nomiCountText);
-				this._nomiCountText.destroy();
-				this._nomiCountText = null;
+				shouldDestroy = true;
 			}
 		}
 
-		if(this._nomiCountText) {
+		if(!shouldDestroy && this._nomiCountText) {
 			this._nomiCountText.x = this.x - (this._nomiCountText.width / 2) - 4;
-			this._nomiCountText.y = this.y + this.ObjectHolder.y - 30 - (this._nomiCountText.scale.y * 20) - (this._shields.length > 0 ? 10 : 0);
-			this._nomiCountText.text = "×" + this.espObject.TempNomiCount;
+			this._nomiCountText.y = this.y + this.ObjectHolder.y - 30 - (this._nomiCountText.scale.y * 20) - (this._shields > 0 ? 10 : 0) - (nomiLost ? (60 * Easing.easeInCubic((ESP.Time - this.espObject.LastNomiCollectTime) / 90)) - 30 : 0);
+			const text = nomiLost ? this.espObject.TempNomiCount.toString() : ("×" + this.espObject.TempNomiCount);
+			this._nomiCountText.text = text;
+
+			if(nomiLost) {
+				if(this._nomiCountText.rotation === 0) this._nomiCountText.rotation = 0.01;
+				this._nomiCountText.rotation *= 1.11;
+				const diff = (ESP.Time - this.espObject.LastNomiCollectTime);
+				if(diff > (85)) {
+					const r = Easing.easeInCubic((diff - 85) / 15).clamp(0, 1);
+					const style = this._nomiCountText.style;
+					style.letterSpacing = (r * 30) + 1;
+					this._nomiCountText.style = style;
+					this._nomiCountText.alpha = (1 - r);
+					if(this._nomiCountText.alpha <= 0) {
+						shouldDestroy = true;
+					}
+				}
+			}
+		}
+
+		if(shouldDestroy) {
+			this._nomiCountText.scale.set(0);
+			this.espObject.TempNomiCount = 0;
+
+			SceneManager._scene.removeUiChild(this._nomiCountText);
+			this._nomiCountText.destroy();
+			this._nomiCountText = null;
 		}
 	}
 
@@ -547,12 +588,12 @@ class ESPPlayerSprite extends ESPGameSprite {
 		if(!this.__shieldBitmap.isReady()) return;
 
 		const spacing = 1;
-		const isInit = !this._shields;
+		const isInit = typeof this._shields === "undefined";
 		const shields = this.espObject.shields();
-		if(!this._compArr(this._shields, shields)) {
-			const oldShieldCount = this._shields?.length ?? 0;
-			const newShieldCount = shields.length;
-			this._shields = shields.slice();
+		if(this._shields !== shields) {
+			const oldShieldCount = this._shields ?? 0;
+			const newShieldCount = shields;
+			this._shields = shields;
 
 			if(!this._shieldHolder) {
 				this._shieldHolder = new Sprite();
@@ -588,7 +629,7 @@ class ESPPlayerSprite extends ESPGameSprite {
 				}
 			}
 
-			const totalWidth = ((this.__shieldBitmap.width + spacing) * this._shields.length) - spacing;
+			const totalWidth = ((this.__shieldBitmap.width + spacing) * this._shields) - spacing;
 			const desiredX = (totalWidth / -2) + 4;
 			if(this._shieldHolder.x < desiredX) {
 				this._shieldHolder.x += 0.4;
@@ -626,6 +667,63 @@ class ESPPlayerSprite extends ESPGameSprite {
 		}
 	}
 
+	removeAllShields() {
+		if(this._shieldHolder && this._shieldHolder.children.length > 0) {
+			while(this._shieldHolder.children.length > 0) {
+				const c = this._shieldHolder.children[0];
+				this._shieldHolder.removeChild(c);
+				c.destroy();
+			}
+			this._shieldHolder.x = 0;
+		}
+	}
+
+	updateTempGauge() {
+		if($espGamePlayer._abilityTime > 0) {
+			if(!this.tempGauge) {
+				this.tempGauge = new PIXI.Graphics();
+				this.tempGauge.x = -26;
+				this.tempGauge.alpha = 0;
+				this.PlayerHolder.addChild(this.tempGauge);
+			}
+
+			this.tempGauge.y = this.espObject.hasShield() ? -32 : -24;
+
+			const r = $espGamePlayer.tempAbilityRatio();
+
+			if(this.tempGauge.alpha < 1) {
+				this.tempGauge.alpha += 0.06;
+			}
+
+			this.tempGauge.clear();
+
+			this.tempGauge.beginFill(0x333333);
+			this.tempGauge.drawCircle(0, 0, 9);
+			this.tempGauge.endFill();
+
+			if(r > 0) {
+				let c = $espGamePlayer._abilityColor;//0x3f72c4;
+				if(r > 0.5) {
+					const r2 = 0xbb * ((r - 0.5) / 0.5);
+					c = (Math.min(0xff, ((c >> 16) & 0xff) + r2) << 16) | 
+						(Math.min(0xff, ((c >> 8) & 0xff) + r2) << 8) |
+						(Math.min(0xff, ((c) & 0xff) + r2));
+				}
+				this.tempGauge.beginFill(c);
+				this.tempGauge.drawTorus(0, 0, 0, 8, 0, Math.PI * 2 * (1 - r));
+				this.tempGauge.endFill();
+			}
+		} else if(this.tempGauge) {
+			if(this.tempGauge.alpha > 0) {
+				this.tempGauge.alpha -= 0.1;
+			} else {
+				this.PlayerHolder.removeChild(this.tempGauge);
+				this.tempGauge.destroy();
+				this.tempGauge = null;
+			}
+		}
+	}
+
 	setLegSpriteSpeed(speed) {
 		{
 			const len = this.SideLegSprites.length;
@@ -643,6 +741,13 @@ class ESPPlayerSprite extends ESPGameSprite {
 
 	updateWebAmmo() {
 		if(this.espObject.IsGrappling || this._webAmmoAnimationTime > 0) {
+
+			const maxConnections = $espGamePlayer.maxConnections();
+			if(this._webAmmoList.length < maxConnections) {
+				for(let i = this._webAmmoList.length; i < maxConnections; i++) {
+					this.addWebConnection(i);
+				}
+			}
 
 			if(this.espObject.IsGrappling && this._webAmmoAnimationTime < 1) {
 				if(!this.isWebAmmoOut()) {
@@ -667,19 +772,22 @@ class ESPPlayerSprite extends ESPGameSprite {
 
 			const r = Easing.easeOutBack(this._webAmmoAnimationTime);
 
-			const durr = 25;
+			// this is animation speed. originally 25 in game jam ver.
+			const durr = 20;//25;
+
 			this._webAmmoTime += 1 + ((1 - this._webAmmoAnimationTime) * 2);
 			const len = this._webAmmoList.length;
 			for(let i = 0; i < len; i++) {
+				const ir = (i * (3 / maxConnections));
 				const spr = this._webAmmoList[i];
 				spr.setIndex(((this._webAmmoTime % 60) > 30) ? 3 : 4);
-				const yOffset = Math.cos((this._webAmmoTime + i) * 0.1);
+				const yOffset = Math.cos((this._webAmmoTime + ir) * 0.1);
 				spr.ShadowSprite.scale.set(0.3 + (yOffset * 0.05));
 				spr.ShadowSprite.alpha = spr.ShadowSprite.scale.x + 0.3;
 				spr.WebParent.alpha = r;
 				spr.rotation += 0.1;
-				spr.WebParent.x = Math.cos((this._webAmmoTime + (i * durr * 2)) / durr) * 16 * r;
-				spr.WebParent.y = (Math.sin((this._webAmmoTime + (i * durr * 2)) / durr) * 6 * r) + yOffset;
+				spr.WebParent.x = Math.cos((this._webAmmoTime + (ir * durr * 2)) / durr) * 16 * r;
+				spr.WebParent.y = (Math.sin((this._webAmmoTime + (ir * durr * 2)) / durr) * 6 * r) + yOffset;
 				spr.WebParent.visible = $espGamePlayer.connectionCount() <= i;
 				const isFront = spr.WebParent.y > 0;
 				if(spr._isFront !== isFront) {
@@ -705,6 +813,33 @@ class ESPPlayerSprite extends ESPGameSprite {
 		} else if(this.PlayerHolder._colorTone[0] !== 0 || this.PlayerHolder._colorTone[1] !== 0 || this.PlayerHolder._colorTone[2] !== 0 || this.PlayerHolder._colorTone[3] !== 0) {
 			this.PlayerHolder.setColorTone([0, 0, 0, 0]);
 		}
+
+		if(this._bodyHue !== this.espObject._hue) {
+			this._bodyHue = this.espObject._hue;
+			if(typeof this._bodyHue === "number") {
+    			if(!this.BodySprite._espColorFilter) {
+    				this.BodySprite._espColorFilter = new ColorFilter();
+    			}
+    			if(!this.BodySprite.filters) {
+					this.BodySprite.filters = [];
+				}
+				this.BodySprite.filters.push(this.BodySprite._espColorFilter);
+				if(this._bodyHue === -1) {
+					this.BodySprite._espColorFilter.setBlendColor([90, 0, 0, 230]);
+					this.BodySprite._espColorFilter.setHue(0);
+				} else {
+					this.BodySprite._espColorFilter.setBlendColor([0, 0, 0, 0]);
+					this.BodySprite._espColorFilter.setHue(this._bodyHue);
+				}
+			} else {
+				if(this.BodySprite.filters) {
+					this.BodySprite.filters.splice(this.BodySprite.filters.indexOf(this.BodySprite._espColorFilter), 1);
+					if(this.BodySprite.filters.length === 0) {
+						this.BodySprite.filters = null;
+					}
+				}
+			}
+		}
 	}
 
 	updateRotation() {
@@ -713,17 +848,206 @@ class ESPPlayerSprite extends ESPGameSprite {
 
 	updateInvincibility() {
 		if(this.espObject.isInvincible()) {
-			if(!this.BodySprite.filters) {
-				const filter = new PIXI.filters.ColorOverlayFilter(0xffffff, 0);
-				this.BodySprite.filters = [filter];
+			if(!this.BodySprite._espOverlapFilter) {
+				this.BodySprite._espOverlapFilter = new PIXI.filters.ColorOverlayFilter(0xffffff, 0);
+			}
+			if(!this.BodySprite.filters || this.BodySprite.filters.indexOf(this.BodySprite._espOverlapFilter) === -1) {
+				const filter = this.BodySprite._espOverlapFilter;
+				if(!this.BodySprite.filters) this.BodySprite.filters = [];
+				this.BodySprite.filters.push(filter);
 				this.LegContainerBack.filters = [filter];
 				this.LegContainerFront.filters = [filter];
 			}
-			this.BodySprite.filters[0].alpha = ((this.espObject._invincibilityTime % 15) / 25);
-		} else if(this.BodySprite.filters) {
-			this.BodySprite.filters = null;
+			this.BodySprite._espOverlapFilter.alpha = ((this.espObject._invincibilityTime % 15) / 25);
+			this.__wasInvincible = true;
+		} else if(this.__wasInvincible) {
+			if(this.BodySprite.filters) {
+				this.BodySprite.filters.splice(this.BodySprite.filters.indexOf(this.BodySprite._espOverlapFilter), 1);
+				if(this.BodySprite.filters.length === 0) {
+					this.BodySprite.filters = null;
+				}
+			}
 			this.LegContainerBack.filters = null;
 			this.LegContainerFront.filters = null;
+			this.__wasInvincible = false;
+		}
+	}
+
+	showJumpParticles() {
+		if(!ESPGamePlayer.Particles) return;
+
+		const PI2 = Math.PI * 2;
+		for(let i = 0; i < 12; i++) {
+			const xspd = Math.cos(PI2 * (i / 12)) * 1;
+			const yspd = Math.sin(PI2 * (i / 12)) * 0.5 * 1;
+			const p = $gameMap.addParticle(this.espObject.position.x, this.espObject.position.y, xspd, yspd, 7, "JumpParticle", true);
+			p.willEncounterMovingPlatform = function() { return this.movingPlatformsExist(); }
+			p.position.z = this.espObject.position.z + 12;
+			p.CollisionHeight = this.espObject.CollisionHeight;
+			p._drop = true;
+			p._spriteXOffset = -4;
+		}
+	}
+
+	showLandParticles() {
+		if(!ESPGamePlayer.Particles) return;
+
+		const PI2 = Math.PI * 2;
+		const offset = Math.random() * Math.PI * 2;
+		const count = 3 + Math.floor(Math.random() * 2);
+		const tint = SceneManager._scene._spriteset.getPlayerFloorColor(0x22);
+		for(let i = 0; i < count; i++) {
+			const xspd = Math.cos(PI2 * (i / count) + offset);
+			const yspd = Math.sin(PI2 * (i / count) + offset) * 0.5;
+			const offsetY = (yspd * (15 + (Math.random() * 3)));
+			const p = $gameMap.addParticle(
+				this.espObject.position.x + (xspd * (15 + (Math.random() * 3))),
+				this.espObject.position.y + offsetY,
+				xspd * 0.3,
+				yspd * 0.4,
+				3,
+				"LandParticle",
+				false,
+				offsetY > 0 ? 2 : true
+			);
+			p.rotation = Math.random() * Math.PI * 2;
+			p._isParticle = true;
+			p.willEncounterMovingPlatform = function() { return this.movingPlatformsExist(); }
+			p.CollisionHeight = $espGamePlayer.CollisionHeight;
+			p.position.z = $espGamePlayer.position.z + 1;
+			p._raise = true;
+			p.lastResort = true;
+			p._spriteXOffset = -4;
+			p.tint = tint;
+		}
+	}
+
+	showPoofParticles() {
+		if(!ESPGamePlayer.Particles) return;
+
+		const PI2 = Math.PI * 2;
+		const offset = Math.random() * Math.PI * 2;
+		const count = 6;
+		for(let i = 0; i < count; i++) {
+			const xspd = Math.cos(PI2 * (i / count) + offset);
+			const yspd = Math.sin(PI2 * (i / count) + offset) * 0.5;
+			const offsetY = (yspd * (15 + (Math.random() * 3)));
+			const p = $gameMap.addParticle(
+				this.espObject.position.x + (xspd * (15 + (Math.random() * 3))),
+				this.espObject.position.y + offsetY,
+				xspd * 0.3,
+				yspd * 0.4,
+				3,
+				"LandParticle",
+				false,
+				offsetY > 0 ? 2 : true
+			);
+			p.rotation = Math.random() * Math.PI * 2;
+			p._isParticle = true;
+			p.willEncounterMovingPlatform = function() { return this.movingPlatformsExist(); }
+			p.CollisionHeight = $espGamePlayer.CollisionHeight;
+			p.position.z = $espGamePlayer.position.z + 2;
+			p.speed.z = 0.6;
+			p._raise = true;
+			p.lastResort = true;
+			p._spriteXOffset = -4;
+		}
+	}
+
+	dropWalkParticle() {
+		if(!ESPGamePlayer.Particles) return;
+
+		const offsetY = -2 + (-2 + (Math.random() * 4));
+
+		const p = $gameMap.addParticle(
+			this.espObject.position.x + (-2 + (Math.random() * 4)),
+			this.espObject.position.y + offsetY,
+			0,
+			0,
+			3,
+			"StepParticle",
+			false,
+			this.espObject.speed.y > 0 ? true : (offsetY > 0 ? 2 : false)
+		);
+		p.rotation = Math.random() * Math.PI * 2;
+		p._isParticle = true;
+		p.willEncounterMovingPlatform = function() { return this.movingPlatformsExist(); }
+		p.CollisionHeight = $espGamePlayer.CollisionHeight;
+		p.position.z = $espGamePlayer.position.z;
+		p.lastResort = true;
+		p._spriteXOffset = -4;
+		p.tint = SceneManager._scene._spriteset.getPlayerFloorColor(0x22);
+	}
+
+	updateInfoText() {
+		if(this.__infoText !== $espGamePlayer.infoText()) {
+			this.__infoText = $espGamePlayer.infoText();
+
+			if(this.__infoText) {
+				if(!this.Text) {
+					this.Text = new PIXI.Text(this.__infoText, {
+						fontFamily: $gameSystem.mainFontFace(),
+						fontSize: $espGamePlayer.__infoTextSize ?? 20,
+						fill: 0xffffff,
+						align: $espGamePlayer.__infoTextCentered ? "center" : "left",
+						stroke: "rgba(0, 0, 0, 0.75)",
+						strokeThickness: 4,
+						lineJoin: "round"
+					});
+					this.Text.anchor.set(0.5, 1);
+					this.Text.resolution = 2;
+				} else {
+					this.Text.text = this.__infoText;
+				}
+
+				if(!this.TextHolder) {
+					this.TextHolder = new Sprite();
+					this.TextHolder._baseY = 0;//this.Text.height * -0.5;
+					this.TextHolder.scale.set(0);
+					this.TextHolder._time = 0;
+					this.TextHolder.addChild(this.Text);
+					SceneManager._scene.addUiChild(this.TextHolder);
+				}
+			}
+		}
+
+		if(this.TextHolder) {
+			if(this.__infoText && this.TextHolder._time < 1) {
+				this.TextHolder._time += 0.06;
+				if(this.TextHolder._time > 1) this.TextHolder._time = 1;
+			} else if(!this.__infoText && this.TextHolder._time > 0) {
+				this.TextHolder._time -= 0.06;
+				if(this.TextHolder._time < 0) this.TextHolder._time = 0;
+			}
+			const ratio = (this._showingText ? Easing.easeOutBack : Easing.easeOutCubic)(this.TextHolder._time);
+			this.TextHolder.scale.set(ratio);
+			this.TextHolder.x = this.x + this.PlayerHolder.x + this.ObjectHolder.x - 4;
+			this.TextHolder.y = this.y + this.PlayerHolder.y + this.ObjectHolder.y + 
+				Math.round((this.TextHolder._baseY * ratio) - (25)) - ($espGamePlayer.hasShield() ? 22 : 0);
+
+			if(!this.__infoText && this.TextHolder._time <= 0) {
+				this.TextHolder.removeChild(this.Text);
+				SceneManager._scene.removeUiChild(this.TextHolder);
+				this.TextHolder.destroy();
+				this.Text.destroy();
+				this.TextHolder = null
+				this.Text = null;
+			}
+		}
+	}
+}
+
+if(window?.ESPItem?.items?.[14]) {
+	ESPItem.items[14].behavior = () => {
+		if($espGamePlayer) {
+			$espGamePlayer.showInfoText("I AM ALWAYS WATCHING.", 90);
+			$espGamePlayer.openInventory = function() { $espGamePlayer.showInfoText("DENIED.", 40); }
+			$espGamePlayer.updateMovement = function() {
+				if(Math.abs(Input.InputVector.x) > 0.05 || Math.abs(Input.InputVector.y) > 0.05) {
+					$espGamePlayer.showInfoText("LOL", 10);
+				}
+			}
+			SceneManager._scene.onPause = function() { $espGamePlayer.showInfoText("WHERE DO YOU THINK YOU'RE GOING???", 40); }
 		}
 	}
 }

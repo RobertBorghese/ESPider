@@ -109,4 +109,19 @@ class ESPIcemakerSprite extends ESPFirespitterSprite {
 		this.ShadowSprite.scale.set(((500 - this.espObject.position.z).clamp(0, 500) / 500) + ((this._head.Index === 0 ? 1 : 0) * 0.1));
 		this.ShadowSprite.alpha = this.ShadowSprite.scale.x;
 	}
+
+	clearTint() {
+		if(this._headSpr) this._headSpr.tint = 0xffffff;
+		if(this._bodies) this._bodies.forEach(s => s.children[1].tint = 0xffffff);
+	}
+
+	bounce() {
+		this._isBouncing = 20;
+		if(this._bodies) {
+			if(this._headSpr) this._headSpr.tint = 0x777777;
+			this._bodies.forEach(s => {
+				s.children[1].tint = 0x777777;
+			});
+		}
+	}
 }

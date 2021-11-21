@@ -12,8 +12,6 @@ class ESPBoss2LegObject extends ESPGameObject {
 		this._reversed = !!data?.Reversed;
 		this._time = 0;
 		this._goUp = 0;
-
-		window._aaa = this;
 	}
 
 	constructSprite() {

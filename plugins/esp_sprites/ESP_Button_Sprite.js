@@ -8,7 +8,7 @@ class ESPButtonSprite extends ESPGameSprite {
 
 		this.ObjectHolderOffsetY = 24;
 
-		this._button = new Sprite(ImageManager.loadBitmapFromUrl("img/other/Button.png"));
+		this._button = new Sprite(ImageManager.loadBitmapFromUrl(this.espObject._isStore ? "img/other/StoreButton.png" : "img/other/Button.png"));
 		this._button.scale.set(2);
 		this._button.anchor.set(0.5, 1);
 		this._button.setFrame(0, 0, 24, 24);

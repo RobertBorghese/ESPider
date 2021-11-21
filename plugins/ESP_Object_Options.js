@@ -52,7 +52,51 @@
  * @desc The specific y the object will spawn at.
  * @type number
  * @default 0
+ *
+ *
+ *
+ * @command Specific Tile Position
+ * @text Options for tile positioning.
+ * @desc
+ *
+ * @arg Specific Tile X
+ * @desc The specific x the object will spawn at.
+ * @type number
+ * @default 0
+ *
+ * @arg Specific Tile Y
+ * @desc The specific y the object will spawn at.
+ * @type number
+ * @default 0
  * 
+ *
+ *
+ * @command Specific Position Offset
+ * @text Options for positioning offset.
+ * @desc
+ *
+ * @arg Specific Offset X
+ * @min -9999
+ * @desc The specific x the object will offset.
+ * @type number
+ * @default 0
+ *
+ * @arg Specific Offset Y
+ * @min -9999
+ * @desc The specific y the object will offset.
+ * @type number
+ * @default 0
+ * 
+ *
+ * 
+ * @command Specific Force Below
+ * @text Options for force below positioning.
+ * @desc
+ *
+ * @arg Force Below
+ * @desc Forces entitiy at literal position.
+ * @type boolean
+ * @default true
  *
  * @command Do Not Show On Transition
  * @text Options for not showing on transision.

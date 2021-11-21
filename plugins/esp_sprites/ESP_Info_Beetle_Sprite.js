@@ -39,7 +39,7 @@ class ESPInfoBeetleSprite extends ESPGameSprite {
 			this.Text.addChild(this._button);
 		}
 
-		this.TextHolder._baseY = this.Text.height * -0.5;
+		this.TextHolder._baseY = -15;//this.Text.height * -0.5;
 		this.TextHolder.scale.set(0);
 		this.TextHolder.addChild(this.Text);
 
@@ -60,6 +60,8 @@ class ESPInfoBeetleSprite extends ESPGameSprite {
 			if(this._time < 1) {
 				this._time += 0.03;
 				if(this._time >= 1) this._time = 1;
+				this.updateTextHolder();
+			} else if(this.espObject._isFloat) {
 				this.updateTextHolder();
 			}
 		} else {
@@ -114,6 +116,10 @@ class ESPInfoBeetleSprite extends ESPGameSprite {
 		if(this.espObject._customImage && this.espObject._customImage !== "Beetle") {
 			OffsetX = 0;
 			ScaleX = 0;
+		}
+		if(this.espObject._isFloat) {
+			OffsetX = 2;
+			ScaleX = 0.1 - (0.1 * ((this.espObject.position.z - this.espObject._floatMin) / (this.espObject._floatMax - this.espObject._floatMin)));
 		}
 		this.ShadowSprite.move(OffsetX, 0);
 		this.ShadowSprite.scale.set(0.9 + ScaleX);

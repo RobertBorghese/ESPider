@@ -6,6 +6,7 @@ modify_Game_Map_1 = class {
 	}
 
 	cleanUpBoss1() {
+		$gameMapTemp._surprisedTutorialBeetle = false;
 		$gameMapTemp._boss1Timer = null;
 		$gameMapTemp._boss1Lefties = null;
 		$gameMapTemp._boss1Righties = null;
@@ -192,6 +193,9 @@ modify_Game_Map_1 = class {
 				}
 			}
 			if($gameMapTemp._boss1Timer >= 3275) {
+				if($espGamePlayer.isInventoryOpen()) {
+					$espGamePlayer.closeInventory();
+				}
 				if($gameMapTemp._boss1Timer === 3275) {
 					ESPAudio.flashback();
 				}
@@ -243,6 +247,10 @@ modify_Game_Map_1 = class {
 			}
 
 			if(!$gameMapTemp._boss1DidJump && $gameMapTemp._boss1Timer > 3701) {
+				if($espGamePlayer.isInventoryOpen()) {
+					$espGamePlayer.closeInventory();
+				}
+
 				if($espGamePlayer.isJumpButtonTriggered()) {
 					ESPAudio.jump();
 					$gameMapTemp._boss1DidJump = $gameMapTemp._boss1Timer;
@@ -270,6 +278,14 @@ modify_Game_Map_1 = class {
 				}
 			}
 		} else {
+
+			if($gameMapTemp._surprisedTutorialBeetle === 2 && $espGamePlayer.position.y < 16 * TS) {
+				this.refreshSurpriseTutorialBeetle(3);
+			} else if($espGamePlayer.position.y > 18 * TS) {
+				this.refreshSurpriseTutorialBeetle(2);
+			} else if($espGamePlayer.position.z <= 0 && $espGamePlayer.position.y > 14 * TS) {
+				this.refreshSurpriseTutorialBeetle(1);
+			}
 
 			switch($gameMapTemp._boss1Timer) {
 				case 4090: { AudioManager.playBgm({ name: "TimeToFight", volume: 100, pitch: 100, pan: 0 }); break; }
@@ -309,8 +325,12 @@ modify_Game_Map_1 = class {
 					.removeGameObject($gameMapTemp._boss1InfoBeetle)
 					.callFunction(() => {
 						$gameMapTemp._boss1InfoBeetle = null;
+						const money1 = $gameMap.createEventObjectFromId(9);
+						money1._uniqueId = 3;
+						const money2 = $gameMap.createEventObjectFromId(10);
+						money2._uniqueId = 4;
 					})
-					.createInfoBug(13, 14, "Nice buddy!", 80, 100, "InfoBug")
+					.createInfoBug(13, 14, $gameMapTemp._surprisedTutorialBeetle ? "That was kinda lame." : "Nice buddy!", 80, 100, "InfoBug")
 					.fadeIn()
 					.wait(20)
 					.moveCameraToGrid(13.5, 13)
@@ -371,5 +391,24 @@ modify_Game_Map_1 = class {
 	updateJumpTutorialBeetle() {
 		$gameMapTemp._boss1InfoBeetle._triggerDist = 800;
 		$gameMapTemp._boss1InfoBeetle._untriggerDist = 850;
+	}
+
+	refreshSurpriseTutorialBeetle(type) {
+		if((!$gameMapTemp._surprisedTutorialBeetle || $gameMapTemp._surprisedTutorialBeetle < type) && !$espGamePlayer._isDying) {
+			$gameMapTemp._surprisedTutorialBeetle = type;
+			if($gameMapTemp._boss1InfoBeetle) {
+				$gameMapTemp._boss1InfoBeetle._triggerDist = type === 3 ? 180 : 300;
+				$gameMapTemp._boss1InfoBeetle._untriggerDist = type === 3 ? 220 : 360;
+				$gameMapTemp._boss1InfoBeetle._spr.Text.text = type === 1 ? "Oh wow, smart move." : (type === 2 ? "Well... bye?" : "...");
+				$gameMapTemp._boss1InfoBeetle._spr._showingText = false;
+				$gameMapTemp._boss1InfoBeetle._spr._time = 0;
+				if($gameMapTemp._boss1InfoBeetle._spr._button) {
+					$gameMapTemp._boss1InfoBeetle._spr.Text.removeChild($gameMapTemp._boss1InfoBeetle._spr._button);
+					$gameMapTemp._boss1InfoBeetle._spr._button.destroy();
+					$gameMapTemp._boss1InfoBeetle._spr._button = null;
+				}
+				$gameMapTemp._boss1InfoBeetle._spr.update();
+			}
+		}
 	}
 }

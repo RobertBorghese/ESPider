@@ -127,9 +127,22 @@ class ESPAudio {
 		["NullHit", 0.7],
 		["NomiCollect", 0.8],
 		{ name: "TalkBigSlug", pitch: () => (60 + (Math.random() * 30) - 15) },
+		{ name: "BeeTalk", volume: 0.2, pitch: () => (80 + (Math.random() * 40) - 20) },
 
 		["ShieldGet", 0.8],
-		["ShieldBlock", 0.5]
+		["ShieldBlock", 0.5],
+
+		"Pay",
+
+		"InventoryOpen",
+		"InventoryClose",
+		"InventoryConfirm",
+
+		"Cursor2",
+
+		"ConsumeJared",
+		"CuddleJared",
+		"Poof"
 	];
 
 	static setup() {

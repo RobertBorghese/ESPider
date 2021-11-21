@@ -33,6 +33,7 @@ class ESPMoneyObject extends ESPGameObject {
 		this.CanCollide = false;
 
 		this._uniqueId = (ESPMoneyObject.lastUniqueId++);
+		this._beingDrawn = false;
 	}
 
 	onCreate() {
@@ -64,7 +65,14 @@ class ESPMoneyObject extends ESPGameObject {
 		//this.updatePosition();
 	}
 
+	saveGroup() {
+		return "nomi";
+	}
+
 	condition() {
+		if(!super.condition()) {
+			return false;
+		}
 		return !$espGamePlayer.hasNomiBeenTaken($gameMap.mapId(), this._uniqueId);
 	}
 
@@ -73,9 +81,39 @@ class ESPMoneyObject extends ESPGameObject {
 	}
 
 	update() {
-		if(!this._touched) this.position.z = this._desiredZ;
+		if(!this._touched && !this._beingDrawn) {
+			this.position.z = this._desiredZ;
+		}
+
+		if(!this._touched) {
+			const dist = this.getDistance($espGamePlayer);
+			const catchDist = $espGamePlayer.isDashing() ? 60 : 26;
+			if(dist <= catchDist) {
+				this._touched = true;
+
+				ESPAudio.nomiGet();
+				$espGamePlayer.incrementNomi($gameMap.mapId(), this._uniqueId);
+				this.CanCollide = false;
+				//$gameMap.shake();
+			} else if(dist <= $espGamePlayer.nomiDrawDistance()) {
+				this.CanCollide = true;
+				this._beingDrawn = true;
+				const mdd = $espGamePlayer.nomiDrawDistance();
+				const pow = 0.01 + (1 - ((dist - (mdd / 2)) / (mdd / 2))) * 0.09;
+				this.speed.x = ($espGamePlayer.position.x - this.position.x) * pow;
+				this.speed.y = ($espGamePlayer.position.y - this.position.y) * pow;
+				this.speed.z = ($espGamePlayer.realZ() - this.realZ()) * pow;
+			} else if(this._beingDrawn) {
+				this.speed.set(0, 0, 0);
+				this._desiredZ = this.position.z;
+				this._beingDrawn = false;
+				this.CanCollide = false;
+			}
+		}
 
 		super.update();
+
+		//if(this.position.z < 0) this.position.z = 0;
 
 		/*if(!this._touched) {
 			if(this.position.z < 0) {
@@ -84,24 +122,8 @@ class ESPMoneyObject extends ESPGameObject {
 			}
 		}*/
 
-		if(!this._touched) {
-			const dist = this.getDistance($espGamePlayer);
-			if(dist <= 26) {
-				this._touched = true;
-
-				ESPAudio.nomiGet();
-				$espGamePlayer.incrementNomi($gameMap.mapId(), this._uniqueId);
-				this.CanCollide = false;
-				//$gameMap.shake();
-			} else if(dist <= 50) {
-				const pow = 0.01 + (1 - ((dist - 26) / 26)) * 0.09;
-				this.position.x += ($espGamePlayer.position.x - this.position.x) * pow;
-				this.position.y += ($espGamePlayer.position.y - this.position.y) * pow;
-				this.position.z += ($espGamePlayer.position.z - this.position.z) * 0.2;
-			}
-		}
+		
 	}
-
 
 	updateConsumeAnimation(speedZ) {
 		this.position.x = ESP.lerp(this.position.x, $espGamePlayer.position.x - 2, 0.5);

@@ -7,6 +7,18 @@ class ESPShieldObject extends ESPGameObject {
 		this.position.set(0, 0, 0);
 		this.speed.set(0, 0, 0);
 		this._touched = false;
+
+		this._uniqueId = (ESPShieldObject.lastUniqueId++);
+	}
+
+	condition() {
+		if(!super.condition()) {
+			return false;
+		}
+		if(!$gameMap._enableIndividualShields) {
+			return true;
+		}
+		return !$espGamePlayer.hasShieldBeenTaken($gameMap.mapId(), this._uniqueId);
 	}
 
 	constructSprite() {
@@ -39,13 +51,13 @@ class ESPShieldObject extends ESPGameObject {
 	}
 
 	updateConsumeAnimation(speedZ) {
-		this.position.x = ESP.lerp(this.position.x, $espGamePlayer.position.x - 2, 0.5);
+		this.position.x = ESP.lerp(this.position.x, $espGamePlayer.position.x, 0.5);
 		this.position.y = ESP.lerp(this.position.y, $espGamePlayer.position.y, 0.5);
 		this.position.z += speedZ;
 	}
 
 	execute() {
-		$espGamePlayer.addTempShield();
+		$espGamePlayer.addTempShield($gameMap.mapId(), this._uniqueId);
 		this.delete();
 	}
 }

@@ -70,7 +70,16 @@ modify_Spriteset_Map = class {
 	addGameSprite(obj) {
 		const spr = obj.constructSprite();
 		spr.espObject = obj;
-		this._tilemap.addChild(spr);
+		if(this._addBelowPlayer) {
+			if(this._addBelowPlayer === 2) {
+				this._tilemap.addChildAt(spr, this._tilemap.getChildIndex(this._espPlayer) + 1);
+			} else {
+				this._tilemap.addChildAt(spr, this._tilemap.getChildIndex(this._espPlayer));
+			}
+			this._addBelowPlayer = false;
+		} else {
+			this._tilemap.addChild(spr);
+		}
 		if(obj.isMovingPlatform()) {
 			this._tilemap._espMovingPlatforms.push(spr);
 		} else {
@@ -473,6 +482,7 @@ modify_Spriteset_Map = class {
 		for(let i = 0; i < len; i++) {
 			const spr = this._espWorldSprites[i];
 			if(spr._espSurronded) spr.visible = false;
+			else if(spr._alwaysBelowEverything) spr.visible = false;
 			else spr.visible = !((spr.x + spr._espLeft) > right || (spr.x + spr._espRight) < left || (spr.y + spr._espTop) > bottom || (spr.y + spr._espBottom) < top);
 		}
 	}
@@ -602,7 +612,12 @@ modify_Spriteset_Map = class {
 
 		this._tilemap._needsRepaint = true;
 		this._tilemap.updateTransform();
-		const tilemapBitmap = Bitmap.snapWhole(this._tilemap._lowerLayer, this._tilemap.width, this._tilemap.height);
+		if(this._tilemapBitmap) {
+			this._tilemapBitmap.destroy();
+			this._tilemapBitmap = null;
+		}
+		this._tilemapBitmap = Bitmap.snapWhole(this._tilemap._lowerLayer, this._tilemap.width, this._tilemap.height);
+		const tilemapBitmap = this._tilemapBitmap;
 		for(let x = 0; x < mapWidth; x++) {
 			for(let y = 0; y < $gameMap.MapBottom; y++) {
 				const regionId = $gameMap.getColHeight(x, y);
@@ -634,6 +649,9 @@ modify_Spriteset_Map = class {
 					spr.espOffset = function(x, y) {
 						this.espMove(this._espCurrX + x, this._espCurrY + y);
 					};
+					if($gameMap.AlwaysBelowCallback) {
+						spr._alwaysBelowEverything = $gameMap.AlwaysBelowCallback(spr, regionId);
+					}
 					if(regionId === 18) {
 						spr._alwaysBelowPlayer = true;
 					}
@@ -656,7 +674,7 @@ modify_Spriteset_Map = class {
 
 					if(spr._espSurronded) {
 						currLoop: for(let i = regionId; i >= 2; i--) {
-							if($gameMap.getColHeight(x - 1, y - i) !== regionId || $gameMap.getColHeight(x + 1, y - i) !== regionId) {
+							if($gameMap.getColHeight(x, y - i) !== regionId || $gameMap.getColHeight(x - 1, y - i) !== regionId || $gameMap.getColHeight(x + 1, y - i) !== regionId) {
 								spr._espSurronded = false;
 								break currLoop;
 							}
@@ -697,6 +715,7 @@ modify_Spriteset_Map = class {
 					}
 					*/
 
+					spr.update = null;
 					spr.z = height == 1 ? 999 : 4;
 					spr._espWorldObject = true;
 					this._espWorldSpriteIndexes[x + (y * mapWidth)] = spr;
@@ -753,6 +772,23 @@ modify_Spriteset_Map = class {
 	isCameraAtTarget(threshold) {
 		return Math.abs(this._tilemap.x - this._cameraTargetX) < threshold && Math.abs(this._tilemap.y - this._cameraTargetY) < threshold;
 	}
+
+	getFloorColor(x, y, darken = null) {
+		if(!this._tilemapBitmap) {
+			return 0;
+		}
+		let tint = parseInt(this._tilemapBitmap.getPixel(x,y,1,1).substring(1), 16);
+		if(darken) {
+			tint = ((((tint & 0xff0000) >> 16) - darken).clamp(0, 0xff) << 16) |
+				((((tint & 0x00ff00) >> 8) - darken).clamp(0, 0xff) << 8) |
+				((((tint & 0x0000ff)) - darken).clamp(0, 0xff));
+		}
+		return tint;
+	}
+
+	getPlayerFloorColor(darken = null) {
+		return this.getFloorColor(this._espPlayer.x, this._espPlayer.y, darken);
+	}
 }
 
 class ESPGameSprite extends Sprite {
@@ -765,6 +801,8 @@ class ESPGameSprite extends Sprite {
 		this.ObjectHolderOffsetY = 0;
 
 		this.IsGameActive = true;
+
+		this.Particles = [];
 
 		this.setupShadow();
 		this.setupObjectHolder();
@@ -852,5 +890,48 @@ class ESPGameSprite extends Sprite {
 
 	doNotShowOnTransition() {
 		return !!this.espObject?._doNotShowOnTransition;
+	}
+
+	addParticle(url, x, y, spdX, spdY, scaleData, alphaTime, time) {
+		const p = new ESPParticle(ImageManager.loadBitmapFromUrl(url), x, y, spdX, spdY, scaleData, alphaTime, time);
+		this.addChild(p);
+		this.Particles.push(p);
+		return p;
+	}
+
+	removeParticle(particle) {
+		const index = this.Particles.indexOf(particle);
+		if(index > -1) {
+			this.Particles.splice(index, 1);
+			this.removeChild(particle);
+			particle.destroy();
+		}
+	}
+
+	setupParticleSystem(url, countMin, countMax, scaleData, minAlpha, maxAlpha, minX, maxX, minY, maxY, minSpdX, maxSpdX, minSpdY, maxSpdY, alphaTime, minTime, maxTime) {
+		function getRand(min, max) {
+			return min + (Math.random() * (max - min));
+		}
+
+		const c = getRand(countMin, countMax);
+		for(let i = 0; i < c; i++) {
+			const p = this.addParticle(
+				url,
+				getRand(minX, maxX),
+				getRand(minY, maxY),
+				getRand(minSpdX, maxSpdX),
+				getRand(minSpdY, maxSpdY),
+				typeof scaleData === "object" ? {
+					startScaleX: getRand(scaleData.startScaleXMin, scaleData.startScaleXMax),
+					endScaleX: getRand(scaleData.endScaleXMin, scaleData.endScaleXMax),
+					startScaleY: getRand(scaleData.startScaleYMin, scaleData.startScaleYMax),
+					endScaleY: getRand(scaleData.endScaleYMin, scaleData.endScaleYMax),
+				} : null,
+				alphaTime,
+				getRand(minTime, maxTime)
+			);
+			p._initAlpha = getRand(minAlpha, maxAlpha);
+			if(typeof scaleData === "number") p.scale.set(scale);
+		}
 	}
 }

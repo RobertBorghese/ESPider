@@ -29,6 +29,13 @@ Array.prototype.disableAllButtons = function() {
 	}
 };
 
+Array.prototype.enableAllButtons = function() {
+	const len = this.length;
+	for(let i = 0; i < len; i++) {
+		this[i].setFrozen(false);
+	}
+};
+
 class ESPButton extends Sprite_Clickable {
 	constructor(width, height, text, colorNormal, colorHover, colorClickFlash, colorUnderline, callback, soundType) {
 		super();

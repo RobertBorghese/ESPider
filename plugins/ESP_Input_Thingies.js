@@ -6,6 +6,12 @@ Input.keyMapper[87] = "w";
 Input.keyMapper[83] = "s";
 Input.keyMapper[65] = "a";
 Input.keyMapper[68] = "d";
+Input.keyMapper[69] = "e";
+Input.keyMapper[120] = "F9";
+
+Input.keyMapper[90] = "z";
+Input.keyMapper[88] = "x";
+Input.keyMapper[67] = "c";
 
 Input.gamepadMapper = {
 	0: "button_a",
@@ -29,6 +35,7 @@ Input._ESP_isDisabled = false;
 modify_Input = class {
 	static clear() {
 		ESP.Input.clear.apply(this, arguments);
+		this.AllowVibrate = true;
 		this.InputVector = new Vector2(0, 0);
 		this.InputDir = 0;
 		this.Input4Dir = 0;
@@ -118,11 +125,27 @@ modify_Input = class {
 	}
 
 	static isOkTriggeredEx() {
-		return Input.isTriggeredExOverride("space") || ESP.Input.isTriggered.call(this, "ok") || TouchInput.isTriggered() || ESP.Input.isTriggered.call(this, "button_a");
+		return Input.isTriggeredExOverride("space") || ESP.Input.isTriggered.call(this, "ok") || TouchInput.isLeftClickTriggered() || ESP.Input.isTriggered.call(this, "button_a");
+	}
+
+	static isCancelTriggeredEx() {
+		return Input.isTriggeredExOverride("esc") || ESP.Input.isTriggered.call(this, "cancel") || TouchInput.isRightClickTriggered() || ESP.Input.isTriggered.call(this, "button_b");
 	}
 
 	static isOkTriggeredExNoMouse() {
 		return Input.isTriggeredExOverride("space") || ESP.Input.isTriggered.call(this, "ok") || ESP.Input.isTriggered.call(this, "button_a");
+	}
+
+	static isOkTriggeredForGameplay() {
+		return Input.isTriggeredEx("space") || Input.isTriggeredEx("ok") || Input.isTriggeredEx("button_a");
+	}
+
+	static menuLeftRepeated() {
+		return Input.isRepeated("a") || Input.isRepeated("dpad_left") || Input.isDirectionTriggered("left");
+	}
+
+	static menuRightRepeated() {
+		return Input.isRepeated("d") || Input.isRepeated("dpad_right") || Input.isDirectionTriggered("right");
 	}
 
 	static isDirectionTriggered(dir) {
@@ -227,6 +250,7 @@ modify_Input = class {
 	}
 
 	static vibrate(duration = 150, weakMagnitude = 0.5, strongMagnitude = 0.5, startDelay = 0) {
+		if(!this.AllowVibrate) return;
 		const gamepads = navigator.getGamepads();
 		if(gamepads) {
 			let index = null;

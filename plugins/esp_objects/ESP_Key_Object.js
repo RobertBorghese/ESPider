@@ -14,6 +14,11 @@
  * @desc Whether on touch is run the second the key is touched
  * @type boolean
  * @default false
+ *
+ * @arg Custom Image
+ * @desc
+ * @type string
+ * @default
  */
 
 class ESPKeyObject extends ESPGameObject {
@@ -25,6 +30,7 @@ class ESPKeyObject extends ESPGameObject {
 
 		this._code = data["On Touch"];
 		this._immediate = data["Immediate"] === "true";
+		this._customImage = data["Custom Image"]?.trim?.() ?? null;
 		
 		this._isTouched = false;
 	}

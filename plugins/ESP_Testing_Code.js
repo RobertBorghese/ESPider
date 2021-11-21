@@ -1,8 +1,9 @@
+// uncomment this code to go straight to map with all abilities
 
-
+/*
 if(Utils.isOptionValid("test")) {
 	Game_Variables.prototype.value = function(variableId) {
-		if(variableId === 1) return 1;
+		//if(variableId === 1) return 3;
 		return this._data[variableId] || 0;
 	};
 
@@ -16,4 +17,4 @@ if(Utils.isOptionValid("test")) {
 		$gameTemp._isNewGame = false;
 	};
 }
-
+*/

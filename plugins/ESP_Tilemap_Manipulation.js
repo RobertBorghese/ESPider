@@ -9,7 +9,7 @@ Tilemap.prototype._sortChildren = function() {
 	//this._espSprites.forEach(s => this.removeChild(s));
 	//this._espSprites.forEach(s => this.addChild(s));
 
-	if(Math.floor(ESP.Time) % 2 !== 0) return;
+	if(!$gameMap.exactLayering() && (ESPGamePlayer.LayeringFreq !== 1) && (Math.floor(ESP.Time) % ESPGamePlayer.LayeringFreq !== 0)) return;
 
 	this.children.sort(this._compareChildOrder.bind(this));
 
@@ -19,6 +19,9 @@ Tilemap.prototype._sortChildren = function() {
 			if(this.children[i] === this._espPlayer) {
 				break;
 			}
+			if(this.children[i]._ensureAbove) {
+				this.children[i]._ensureAboveProcessed = false;
+			}
 			if(this.children[i]._espWorldObject) {
 				if(this._compareChildOrder(this._espPlayer, this.children[i]) > 0) {
 					isHigher = i;
@@ -27,12 +30,12 @@ Tilemap.prototype._sortChildren = function() {
 			}
 		}
 
-		if(this._espPlayer._currentMovingPlatform) {
+		if(this._espPlayer.espObject?._currentMovingPlatform?.getAllSiblings) {
 			const playerIndex = this.children.indexOf(this._espPlayer);
-			const siblings = this._espPlayer._currentMovingPlatform.getAllSiblings();
+			const siblings = this._espPlayer.espObject._currentMovingPlatform.getAllSiblings();
 			const len = siblings.length;
 			for(let i = 0; i < len; i++) {
-				const newIndex = this.children.indexOf(siblings[i]);
+				const newIndex = this.children.indexOf(siblings[i]?._spr);
 				if(newIndex > playerIndex && (isHigher === null || newIndex > isHigher)) {
 					isHigher = newIndex;
 				}
@@ -43,61 +46,11 @@ Tilemap.prototype._sortChildren = function() {
 			this.removeChild(this._espPlayer);
 			this.addChildAt(this._espPlayer, isHigher);
 		}
-	
-	/*
-	if($gameMapTemp._mapMovingPlatforms && $gameMapTemp._mapMovingPlatforms.length > 0) {
-		const playerIndex = this.children.indexOf(this._espPlayer);
-		const platforms = [];
-		for(let i = 0; i < playerIndex; i++) {
-			if(this.children[i]._espMovingPlatform) {
-				platforms.push(this.children[i]);
-			}
-		}
-		platforms.forEach(p => {
-			this.removeChild(p);
-			this.addChildAt(p, playerIndex - 1);
-		});
-	}*/
-
-		if($gameMapTemp._mapGroupReferences["webdevice"] && $gameMapTemp._mapGroupReferences["webdevice"].length > 0) {
-			const results = [];
-			const len = this.children.length;
-			for(let i = 0; i < len; i++) {
-				if(this.children[i]._isWebDeviceSprite) {
-					let highest = i;
-					for(let j = i; j < len; j++) {
-						if(this.children[j]._colZ <= this.children[i]._colZ) {
-							highest = j;
-						}
-					}
-					results.push([i, highest]);
-				}
-			}
-			let highest = null;
-			const childs = [];
-			results.forEach(r => {
-				if(r[0] < this.children.length) {
-					childs.push(this.removeChildAt(r[0]));
-				}
-			});
-			for(let i = 0; i < childs.length; i++) {
-				const index = results[i][1] - childs.length;
-				if(Math.abs(this._espPlayer.y - childs[i].y) < 30 && Math.sqrt(Math.pow(this._espPlayer.x - childs[i].x, 2) + Math.pow(this._espPlayer.y - childs[i].y, 2)) < 20 && 
-					this._compareChildOrder(this._espPlayer, childs[i]) > 0) {
-					highest = index;
-				}
-				this.addChildAt(childs[i], index);
-			}
-			if(highest !== null && this.children.indexOf(this._espPlayer) < highest) {
-				this.removeChild(this._espPlayer);
-				this.addChildAt(this._espPlayer, highest);
-			}
-		}
 	}
 
 	const len = this.children.length;
 	for(let i = 0; i < len; i++) {
-		if(this.children[i]._ensureAbove) {
+		if(this.children[i]._ensureAbove && !this.children[i]._ensureAboveProcessed) {
 			const child = this.children[i];
 			const other = child._ensureAbove;
 			const newIndex = this.children.indexOf(other);
@@ -106,6 +59,7 @@ Tilemap.prototype._sortChildren = function() {
 				this.addChildAt(child, newIndex);
 				i--;
 			}
+			child._ensureAboveProcessed = true;
 		}
 	}
 
@@ -183,28 +137,6 @@ Tilemap.prototype._compareChildOrder = function(a, b) {
 	let ay2 = Math.round(a._colY ?? 0);
 	let by2 = Math.round(b._colY ?? 0);
 
-	/*
-	if(typeof a._colZBase === "number") {
-		if(typeof b._colZBase === "number") {
-			if(a._colZBase !== b._colZBase) {
-				return a._colZBase - b._colZBase;
-			}
-		} else if(a._colZBase !== b._colZ) {
-			return a._colZBase - b._colZ;
-		}
-	} else if(typeof b._colZBase === "number" && b._colZBase !== a._colZ) {
-		return a._colZ - b._colZBase;
-	}*/
-
-	/*
-	if(a._espWorldObject && (b._colZBase ?? 0) > a._colZ) {
-		return -1;
-	}
-	if(b._espWorldObject && (a._colZBase ?? 0) > b._colZ) {
-		return 1;
-	}
-	*/
-
 	// If an entity is above another, the back needs to be compared, not the front.
 	if(a._espWorldObject && !b._espWorldObject && bz2 < az2) {
 		ay2 += TS;
@@ -218,18 +150,6 @@ Tilemap.prototype._compareChildOrder = function(a, b) {
 			ay2 = (b._espMovingPlatform ? (a._objY + (ay2 - a._objY) * 0.5) : a._objY);
 		}
 	}
-
-	/*
-	if(a._isWebDeviceSprite && b._espWorldObject) {
-		if((az2 + 1) !== bz2) {
-			return (az2 + 1) - bz2;
-		}
-	}
-	if(b._isWebDeviceSprite && a._espWorldObject) {
-		if((bz2 + 1) !== az2) {
-			return az2 - (bz2 + 1);
-		}
-	}*/
 
 	// Apply checks.
 	if(ay2 !== by2) {

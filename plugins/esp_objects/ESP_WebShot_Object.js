@@ -33,10 +33,32 @@ class ESPWebShotObject extends ESPGameObject {
 		return $gameMapTemp._mapGroupReferences && $gameMapTemp._mapGroupReferences["box"] && $gameMapTemp._mapGroupReferences["box"].length > 0;
 	}
 
+	lerp(a, b, i) {
+		if(Math.abs((b - a)) < 1) return b;
+		return a + ((b - a) * i);
+	}
+
+	setTargetMode(x, y, z) {
+		this._isTargetting = true;
+		this._target = [ x, y, z + 20 ];
+	}
+
 	update() {
 		const oldX = this.position.x;
 		const oldY = this.position.y;
 		super.update();
+		if(this._isTargetting) {
+			this.position.set(this.lerp(this.position.x, this._target[0], 0.2), this.lerp(this.position.y, this._target[1], 0.2), this.lerp(this.position.z, this._target[2], 0.2));
+			if(this.position.x === this._target[0] && this.position.y === this._target[1] && this.position.z === this._target[2]) {
+				if(this._spr._mainParticle.scale.x > 0.3) {
+					//this._spr.alpha -= 0.2;
+					this._spr._mainParticle.scale.set((this._spr._mainParticle.scale.x * 0.8).clamp(0, 99));
+				} else {
+					$gameMap.removeGameObject(this);
+				}
+			}
+			return;
+		}
 		if(this._downMode) {
 			//this._deltaX += this.position.x - oldX;
 			//this._deltaY += this.position.y - oldY;
@@ -71,13 +93,14 @@ class ESPWebShotObject extends ESPGameObject {
 		this._spr.visible = vis;
 	}
 
-	shoot(spdX, spdY, power) {
+	shoot(spdX, spdY, power, ignoreBuffs = false) {
 		if(!this._shooting && this._visible) {
 			this._shooting = true;
 			this._power = power;
-			this._existTime = ((5 + power) * this._inc);
-			this.speed.x = spdX;
-			this.speed.y = spdY;
+			const r = ignoreBuffs ? 1 : $espGamePlayer.webShotDistanceRatio();
+			this._existTime = Math.floor(((5 + power) * this._inc) * r);
+			this.speed.x = spdX * r;
+			this.speed.y = spdY * r;
 		}
 	}
 

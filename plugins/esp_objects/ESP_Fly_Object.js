@@ -35,6 +35,10 @@ class ESPFlyObject extends ESPGameObject {
 		return new ESPFlySprite(this);
 	}
 
+	saveGroup() {
+		return "fly";
+	}
+
 	update() {
 		super.update();
 		this.updatePlayerTouch();

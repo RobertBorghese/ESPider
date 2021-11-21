@@ -40,6 +40,7 @@ modify_Game_Map = class {
 		this.initMapEval();
 		this.initPreGameObjectCreation();
 		this.initStartingGameObjects();
+		$espGamePlayer.onMapChangeOrRespawn();
 		this.initPlayerPos();
 		if(this.PostObjectsCreation) {
 			this.PostObjectsCreation();
@@ -54,6 +55,7 @@ modify_Game_Map = class {
 		this.initMapEval();
 		this.initPreGameObjectCreation(true);
 		this.initStartingGameObjects();
+		$espGamePlayer.onMapChangeOrRespawn();
 		this.cleanUpBosses();
 		if(this.PostObjectsCreation) {
 			this.PostObjectsCreation();
@@ -223,8 +225,9 @@ modify_Game_Map = class {
 	initPreGameObjectCreation(isRespawn) {
 		$gameTemp._unrespawnablesKilled = 0;
 		ESPMoneyObject.lastUniqueId = 0;
+		ESPShieldObject.lastUniqueId = 0;
 		if(isRespawn) {
-			$espGamePlayer.restoreOldNomiData();
+			$espGamePlayer.restoreOldData();
 		}
 	}
 
@@ -293,9 +296,24 @@ modify_Game_Map = class {
 			obj.__eventY = y;
 			let objX = (x * TS) + (TS / 2);
 			let objY = (y * TS) + (regionId * TS) + (TS / 2);
+			if(objectData["Force Below"] === "true") {
+				objY = (y * TS) + (TS / 2);
+			}
+			if(objectData["Specific Tile X"]) {
+				objectData["Specific X"] = Math.floor((parseFloat(objectData["Specific Tile X"]) + 0.5) * TS).toString();
+			}
+			if(objectData["Specific Tile Y"]) {
+				objectData["Specific Y"] = Math.floor((parseFloat(objectData["Specific Tile Y"]) + 0.5) * TS).toString();
+			}
 			if(objectData["Specific X"] && objectData["Specific Y"]) {
 				objX = parseInt(objectData["Specific X"]) || objX;
 				objY = parseInt(objectData["Specific Y"]) || objY;
+			}
+			if(objectData["Specific Offset X"]) {
+				objX += parseInt(objectData["Specific Offset X"]);
+			}
+			if(objectData["Specific Offset Y"]) {
+				objY += parseInt(objectData["Specific Offset Y"]);
 			}
 			this.addGameObject(obj, objX, objY);//, regionId * TS);
 			return obj;
@@ -343,6 +361,7 @@ modify_Game_Map = class {
 		this.permaInvisibleFunc = null;
 		this.OnRespawnFunction = null;
 		this.PostObjectsCreation = null;
+		this.AlwaysBelowCallback = null;
 
 		this.restrictMapBottom = false;
 		this.starBackground = false;
@@ -416,6 +435,11 @@ modify_Game_Map = class {
 			this.saveRespawnPosAndSave();
 		}
 		this._isTranferring = false;
+		this._transitionEndTime = ESP.Time + 120;
+	}
+
+	exactLayering() {
+		return this._isTranferring || (ESP.Time <= this._transitionEndTime);
 	}
 
 	// upon transferring in and the player is visible (even if transparent)
@@ -556,6 +580,7 @@ modify_Game_Map = class {
 		$gameMapTemp._mapObjects = [];
 		$gameMapTemp._mapReferences = {};
 		$gameMapTemp._mapGroupReferences = {};
+		$gameMapTemp._particles = [];
 	}
 
 	// called once the player leaves the map "zones"
@@ -568,6 +593,8 @@ modify_Game_Map = class {
 				}
 			}
 			this.RoomKillCount = 0;
+			$espGamePlayer.clearShields();
+			ESPDecorSprite.__lastMapId = $gameMap.mapId();
 			this._espTransferDirection = direction;
 			SceneManager._scene._spriteset.transitionOut();
 			this.getGameObjects().forEach(g => g.onPlayerLeavesTheMap());
@@ -686,7 +713,7 @@ modify_Game_Map = class {
 
 	// save the game
 	save() {
-		$espGamePlayer.storeOldNomiData();
+		$espGamePlayer.storeOldData();
 		$gameSystem.setSavefileId(1);
 		$gameSystem.onBeforeSave();
 		DataManager.saveGame(1).then(function() {
@@ -769,6 +796,58 @@ modify_Game_Map = class {
 		Input.vibrate(duration, weakMagnitude, strongMagnitude, start);
 	}
 
+	addParticle(x, y, spdX, spdY, animationSpeed, img = null, fadeOut = false, belowPlayer = false) {
+		if(!$gameMapTemp._particles) $gameMapTemp._particles = [];
+		if(!$gameMapTemp._recycleParticles) $gameMapTemp._recycleParticles = {};
+
+		if(belowPlayer) {
+			SceneManager._scene._spriteset._addBelowPlayer = belowPlayer === 2 ? 2 : true;
+		}
+
+		let obj;
+		/*if($gameMapTemp._recycleParticles[img]?.length > 0) {
+			obj = $gameMapTemp._recycleParticles[img].pop();
+
+			obj._spr.Animation.setIndex(0);
+			obj._spr.Animation.Frame = 0;
+			obj._spr.Animation.await();
+			obj._spr.alpha = 1;
+			obj.position.set(x, y, 6);
+			obj.speed.set(spdX, spdY, 0);
+			obj._img = img;
+			obj._fadeOut = fadeOut;
+			obj._animationSpeed = animationSpeed;
+			obj._deleteOnComplete = false;
+		} else {*/
+			obj = new ESPParticleObject(spdX, spdY, animationSpeed, true, img, fadeOut);
+			$gameMap.addGameObject(obj, x, y);
+		//}
+		$gameMapTemp._particles.push(obj);
+		
+		return obj;
+	}
+
+	updateParticles() {
+		if($gameMapTemp._particles) {
+			for(let i = 0; i < $gameMapTemp._particles.length; i++) {
+				const p = $gameMapTemp._particles[i];
+				//p.update();
+				if(p.isComplete()) {
+					$gameMapTemp._particles.splice(i, 1);
+					this.removeGameObject(p);
+					i--;
+					/*
+					const img = p._img;
+					if(!$gameMapTemp._recycleParticles[img]) {
+						$gameMapTemp._recycleParticles[img] = [];
+					}
+					$gameMapTemp._recycleParticles[img].push(p);
+					*/
+				}
+			}
+		}
+	}
+
 	// need more precise method for getting touch x/y
 	canvasToMapXPrecise(x) {
 		const tileWidth = this.tileWidth();
@@ -789,6 +868,9 @@ modify_Game_Map = class {
 			const r = t / 150;
 			ESP.WS = 1 - r;
 		} else if(t > 150 && t <= (350)) {
+			if($espGamePlayer.isInventoryOpen()) {
+				$espGamePlayer.closeInventory();
+			}
 			if(t === 151) {
 				ESPAudio.flashback();
 			}

@@ -115,10 +115,14 @@ modify_Scene_Title = class {
 		this._titleButtons = ESP.makeButtons(this, 240, 40, -390, 240, 260, 0, [
 			["New Game", this.commandESPNewGame.bind(this), 1],
 			["Continue", this.commandLoadGame.bind(this)],
-			["Volume [" + Math.floor(WebAudio._masterVolume * 100) + "%]", this.commandVolume.bind(this)],
+			["Options", this.commandOptions.bind(this)],
 			["Leave", this.commandEndGame.bind(this)]
 		], 0x123a3b, 0x2e9294, 0x1b5657, 0x216869, this.onMouseEnter, this._commandWindow.isCommandEnabled.bind(this._commandWindow));
 		this._titleButtons.forEach(b => b.y = 552 + 200);
+
+		if(Scene_Title._fromOptions) {
+			this._commandWindow._index = 2;
+		}
 
 		// fullscreen help
 		this._fullscreenText = ESP.makeText("F4  •  Fullscreen Toggle", 22, "center");
@@ -131,6 +135,19 @@ modify_Scene_Title = class {
 		this._fullscreenText.y = 40 - 200;
 
 		this.addChild(this._fullscreenText);
+
+		// verasion help
+
+		this._versionText = ESP.makeText("v2.0 (Steam Edition)", 22, "center");
+		this._versionText.style.fontFamily = "title-font";
+		this._versionText.alpha = 1;
+		this._versionText.style.strokeThickness = 6;
+		this._versionText.style.stroke = "rgba(1, 1, 1, 1)";
+
+		this._versionText.x = 15;
+		this._versionText.y = 30;
+
+		this._fullscreenText.addChild(this._versionText);
 
 		// controller help
 		this._controllerText = ESP.makeText("🎮  •  Controller Recommended", 22, "center");
@@ -262,20 +279,20 @@ modify_Scene_Title = class {
 		const savefileId = 1;
 		DataManager.loadGame(savefileId).then(function() {
 			// TODO: load game se
-			this.fadeOutAll();
-			SceneManager.goto(Scene_Map);
-			$gameSystem.onAfterLoad();
-			$gameMapTemp._shouldLoad = true;
+			this.createWhiteBackground(function() {
+				this.fadeOutAll();
+				SceneManager.goto(Scene_Map);
+				$gameSystem.onAfterLoad();
+				$gameMapTemp._shouldLoad = true;
+			}.bind(this));
 		}.bind(this)).catch(function(e) {
 			console.error("ERROR: ", e);
 		});
 	}
 
-	commandVolume() {
-		const masterVolume = ConfigManager.incrementVolume();
-		this._titleButtons[2]._text.text = "Volume [" + masterVolume + "%]";
-		this._titleButtons[2].unclick();
-		this._titleButtons[2].updateGraphics();
+	commandOptions() {
+		SceneManager.snapForBackground();
+		SceneManager.push(Scene_Options);
 	}
 
 	commandEndGame() {
@@ -559,14 +576,13 @@ modify_Scene_Title = class {
 			this._titleAnimationTime--;
 		}
 
-		if(this._anySaveFileExists && this._titleAnimationTime > 120 && Input.isOkTriggeredExNoMouse()) {
-			this._whiteBackground = new PIXI.Graphics();
-			this._whiteBackground.beginFill(0xffffff);
-			this._whiteBackground.drawRect(0, 0, Graphics.width, Graphics.height);
-			this._whiteBackground.endFill();
-			this._whiteBackground.alpha = 0;
-			this.addChild(this._whiteBackground);
+		if(Scene_Title._fromOptions) {
+			this._titleAnimationTime = 120;
+			Scene_Title._fromOptions = false;
+		}
 
+		if(this._anySaveFileExists && this._titleAnimationTime > 120 && Input.isOkTriggeredExNoMouse()) {
+			this.createWhiteBackground();
 			ESPAudio.flashbackInput(35);
 		}
 
@@ -574,17 +590,20 @@ modify_Scene_Title = class {
 			if(this._whiteBackground.__back) {
 				this._whiteBackground.alpha -= 0.04;
 				if(this._whiteBackground.alpha <= 0) {
-					this._whiteBackground.alpha = 0;
-					this.removeChild(this._whiteBackground);
-					this._whiteBackground.destroy();
-					this._whiteBackground = null;
+					this.destroyWhiteBackground();
 				}
 			} else {
 				this._whiteBackground.alpha += 0.08;
 				if(this._whiteBackground.alpha >= 1) {
 					this._whiteBackground.alpha = 1;
 					this._whiteBackground.__back = true;
-					this._titleAnimationTime = 120;
+					if(this._whiteBackgroundCallback) {
+						this._whiteBackgroundCallback();
+						this._whiteBackgroundCallback = null;
+						this._whiteBackground = null;
+					} else {
+						this._titleAnimationTime = 120;
+					}
 				}
 			}
 		}
@@ -652,5 +671,24 @@ modify_Scene_Title = class {
 		}
 
 		this._starsContainer._speedY = this._titleAnimationTime > 300 ? 12 : (Easing.easeInQuart(this._titleAnimationTime / 300) * 12);
+	}
+
+	createWhiteBackground(callback) {
+		if(!this._whiteBackground) {
+			this._whiteBackground = new PIXI.Graphics();
+			this._whiteBackground.beginFill(0xffffff);
+			this._whiteBackground.drawRect(0, 0, Graphics.width, Graphics.height);
+			this._whiteBackground.endFill();
+			this._whiteBackground.alpha = 0;
+			this.addChild(this._whiteBackground);
+		}
+		this._whiteBackgroundCallback = callback;
+	}
+
+	destroyWhiteBackground() {
+		this._whiteBackground.alpha = 0;
+		this.removeChild(this._whiteBackground);
+		this._whiteBackground.destroy();
+		this._whiteBackground = null;
 	}
 }

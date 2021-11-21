@@ -14,6 +14,11 @@
  * @desc The code to run when released.
  * @type multiline_string
  * @default
+ *
+ * @arg Is Store
+ * @desc
+ * @type boolean
+ * @default
  */
 
 class ESPButtonObject extends ESPGameObject {
@@ -25,6 +30,7 @@ class ESPButtonObject extends ESPGameObject {
 
 		if(data["On Press"]) this._press = new Function(data["On Press"]);
 		if(data["On Released"]) this._release = new Function(data["On Released"]);
+		this._isStore = data["Is Store"] === "true";
 		
 		this._isTouched = false;
 		this._touchingObject = null;

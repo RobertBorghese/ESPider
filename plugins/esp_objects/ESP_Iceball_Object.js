@@ -24,6 +24,18 @@ class ESPIceballObject extends ESPFireballObject {
 					}
 				}
 			}
+
+			if(this.canConnect()) {
+				const icemakers = $gameMap.findObjectGroup("icemaker");
+				if(icemakers.length > 0) {
+					const len = icemakers.length;
+					for(let i = 0; i < len; i++) {
+						if(this._owner !== icemakers[i] && icemakers[i].canBounce() && this.getDistance(icemakers[i]) < this._collisionSize) {
+							icemakers[i].bounce();
+						}
+					}
+				}
+			}
 		}
 	}
 }

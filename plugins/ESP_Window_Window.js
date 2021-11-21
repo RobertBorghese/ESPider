@@ -14,10 +14,10 @@ modify_Window_Selectable = class {
 			if(Input.isRepeated("w") || Input.isRepeated("dpad_up") || Input.isDirectionTriggered("up")) {
 				this.cursorUp(true);
 			}
-			if(Input.isRepeated("d") || Input.isRepeated("dpad_right") || Input.isDirectionTriggered("right")) {
+			if(Input.menuRightRepeated()) {
 				this.cursorRight(true);
 			}
-			if(Input.isRepeated("a") || Input.isRepeated("dpad_left") || Input.isDirectionTriggered("left")) {
+			if(Input.menuLeftRepeated()) {
 				this.cursorLeft(true);
 			}
 		}

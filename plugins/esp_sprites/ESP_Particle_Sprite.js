@@ -11,15 +11,34 @@ class ESPParticleSprite extends ESPGameSprite {
 
 		this.ObjectHolderOffsetY = -8;
 
-		this.Animation = new ESPAnimatedSprite("img/particles/Particle.png", spd);
+		this.Animation = new ESPAnimatedSprite("img/particles/" + (this.espObject._img ?? "Particle") + ".png", spd);
 		this.Animation.await();
 		this.Animation.scale.set(2);
 		this.Animation.anchor.set(0.5);
 		this.ObjectHolder.addChild(this.Animation);
+
+		this.visible = false;
 	}
 
 	update() {
 		super.update();
+
+		if(this.espObject._spriteXOffset) {
+			this.x += this.espObject._spriteXOffset;
+		}
+
+		if(this.espObject.tint) {
+			this.Animation.tint = this.espObject.tint;
+		}
+
+		if(this.espObject._fadeOut) {
+			const a = 1 - this.Animation.ratio();
+			if(a <= 0.5) {
+				this.alpha = Easing.easeInCubic(a / 0.5);
+			}
+		}
+
+		this.visible = !this.espObject.lastResort || ((this.espObject.CollisionHeight - 1) <= $espGamePlayer.CollisionHeight);
 
 		if(this.DeleteOnComplete)  {
 			if(this.ShouldUpdate && this.Animation.isDone()) {
@@ -30,9 +49,13 @@ class ESPParticleSprite extends ESPGameSprite {
 	}
 
 	updateShadowSprite() {
-		this.ShadowSprite.move(0, 0);
-		this.ShadowSprite.scale.set((1 - ((this.Animation.Index) / 9)) * 0.8);
-		this.ShadowSprite.alpha = this.ShadowSprite.scale.x;
+		if(this.espObject.NoShadow) {
+			this.ShadowSprite.visible = false;
+		} else {
+			this.ShadowSprite.move(0, 0);
+			this.ShadowSprite.scale.set((1 - ((this.Animation.Index) / 9)) * 0.8);
+			this.ShadowSprite.alpha = this.ShadowSprite.scale.x;
+		}
 	}
 
 	freezable() {

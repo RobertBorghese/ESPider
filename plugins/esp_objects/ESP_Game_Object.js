@@ -72,7 +72,7 @@ class ESPGameObject {
 
 	getObjectVolume() {
 		if(SceneManager._scene._spriteset._tilemap.scale.x > 1) return 0;
-		let dist = this.getDistanceCameraCenter2d();//this.getDistance2d($espGamePlayer);
+		let dist = this.getDistanceCameraCenter2d();
 		if(!$gameMap.objectInCamera(this)) {
 			dist *= 2;
 		}
